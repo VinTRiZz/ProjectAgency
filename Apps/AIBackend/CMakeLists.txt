@@ -1,0 +1,24 @@
+if (NOT PAG_BUILD_BACKEND)
+    message(STATUS "AI backend build disabled")
+    return()
+endif()
+
+set(APP_TARGET_NAME PAG-AIBackend)
+
+COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
+    boost_system
+    boost_program_options
+)
+
+
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Logger)
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Common)
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Encryption)
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Database)
+
+if (websocketpp_SOURCE_DIR)
+    target_include_directories(${APP_TARGET_NAME} PRIVATE ${websocketpp_SOURCE_DIR})
+endif()
+
+set(PAG_LIBRARIES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../Libraries)
+COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} DataObjects ${PAG_LIBRARIES_ROOT}/DataObjects)
