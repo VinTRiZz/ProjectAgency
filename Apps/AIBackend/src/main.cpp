@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "ollama/ollamainterface.hpp"
+
 namespace bpo = boost::program_options;
 
 int main(int argc, char* argv[]) {
@@ -46,6 +48,11 @@ int main(int argc, char* argv[]) {
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(dataDir);
     COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+
+    OllamaInterface iface;
+    iface.setAPIserver("127.0.0.1", 11434);
+    auto answer = iface.askSync("deepseek-coder-v2:16b", "Answer shortly, in maximum 5 words. Who you are?");
+    COMPLOG_DEBUG("ANSWER:", answer.second);
 
     return 0;
 }
