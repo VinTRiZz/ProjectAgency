@@ -51,8 +51,12 @@ int main(int argc, char* argv[]) {
 
     OllamaInterface iface;
     iface.setAPIserver("127.0.0.1", 11434);
-    auto answer = iface.askSync("deepseek-coder-v2:16b", "Answer shortly, in maximum 5 words. Who you are?");
-    COMPLOG_DEBUG("ANSWER:", answer.second);
+
+    DataObjects::AIRequest req;
+    req.setModel("deepseek-coder-v2:16b");
+    req.setRequest("Boost beast example of using websockets for connecting to server and request for JSON file");
+    auto answer = iface.askSync(req);
+    COMPLOG_DEBUG("ANSWER:", answer.getResponse());
 
     return 0;
 }

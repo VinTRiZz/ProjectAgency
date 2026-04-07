@@ -4,6 +4,9 @@
 #include <memory>
 #include <functional>
 
+#include <ProjectAgency/AIRequest.h>
+#include <ProjectAgency/AIResponse.h>
+
 class OllamaInterface
 {
 public:
@@ -12,7 +15,7 @@ public:
 
     void setAPIserver(const std::string& serverHost, uint16_t apiPort);
 
-    std::pair<unsigned, std::string> askSync(const std::string& modelName, std::string requestText);
+    DataObjects::AIResponse askSync(const DataObjects::AIRequest& req);
 
     void setResponsePartCallback(const std::function<void(std::string&&, std::string&&, bool)>&& responsePartCallback);
 

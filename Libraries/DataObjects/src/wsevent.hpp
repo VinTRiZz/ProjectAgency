@@ -40,8 +40,8 @@ public:
     std::string_view getPayload() const;
 
     // SerializableObject interface
-    std::string toJson();
-    bool readJson(const std::string &iString);
+    std::string toJson() const override;
+    bool readJson(const std::string &iString) override;
 
 private:
     EventType   m_type {EventType::EtcUnknown};

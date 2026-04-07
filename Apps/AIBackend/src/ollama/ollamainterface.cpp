@@ -26,27 +26,21 @@ void OllamaInterface::setAPIserver(const std::string &serverHost, uint16_t apiPo
     d->httpClient.setHost(serverHost, apiPort);
 }
 
-std::pair<unsigned, std::string> OllamaInterface::askSync(const std::string &modelName, std::string requestText)
+DataObjects::AIResponse OllamaInterface::askSync(const DataObjects::AIRequest &req)
 {
-    // Prepare request
-    boost::algorithm::replace_all(requestText, "\"", "\\\"");
-    boost::algorithm::replace_all(requestText, "\n", "\\n");
-
-    // Prepare JSON
-    nlohmann::json reqJson;
-    reqJson["model"] = modelName;
-    reqJson["prompt"] = requestText;
-    reqJson["stream"] = false;
-
     // Prepare packet
     HTTP::Packet requestPacket;
     requestPacket.target = "/api/generate";
     requestPacket.bodyType = HTTP::Packet::BodyType::Json;
-    requestPacket.body = reqJson.dump();
+    requestPacket.body = req.toJson();
 
     // Request
     auto responsePacket = d->httpClient.request(HTTP::MethodType::Post, std::move(requestPacket));
-    return std::make_pair(responsePacket.statusCode, responsePacket.body);
+
+    // Parse answer
+    DataObjects::AIResponse res;
+    res.readJson(responsePacket.body);
+    return res;
 }
 
 void OllamaInterface::setResponsePartCallback(const std::function<void (std::string &&, std::string &&, bool)> &&responsePartCallback)

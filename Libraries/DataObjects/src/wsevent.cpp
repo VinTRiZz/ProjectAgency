@@ -27,7 +27,7 @@ std::string_view WSEvent::getPayload() const
     return m_payload;
 }
 
-std::string WSEvent::toJson()
+std::string WSEvent::toJson() const
 {
     nlohmann::json res;
     res["type"] = m_type;
