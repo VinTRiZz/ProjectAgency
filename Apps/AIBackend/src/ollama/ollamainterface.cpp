@@ -1,5 +1,6 @@
 #include "ollamainterface.hpp"
 
+#include <Components/Logger/Logger.h>
 #include <Components/Network/ClientHTTP.h>
 
 #include <nlohmann/json.hpp>

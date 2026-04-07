@@ -81,7 +81,10 @@ void WebsocketEventListener::setManagerToken(const std::string &tokenString)
 
 bool WebsocketEventListener::listen(uint16_t port)
 {
-    return false;
+    d->deviceEventServer.listen(port);
+    d->deviceEventServer.start_accept();
+    d->deviceEventServer.run();
+    return true;
 }
 
 void WebsocketEventListener::stop()
@@ -91,7 +94,12 @@ void WebsocketEventListener::stop()
 
 void WebsocketEventListener::setEventCallback(DataObjects::Events::EventType evType, std::function<void (DataObjects::Events::WSEvent &&)> &&eventCallback)
 {
+    d->eventCallbacks[evType] = std::move(eventCallback);
+}
 
+void WebsocketEventListener::sendResponse(const std::string_view &respText)
+{
+    d->deviceEventServer.send(d->managerConnection, respText.data(), websocketpp::frame::opcode::text);
 }
 
 void WebsocketEventListener::initClient()
@@ -133,7 +141,7 @@ void WebsocketEventListener::initConnectionProcessing()
         }
 
         COMPLOG_OK("[WS] Manager connected:", remote);
-        con->set_pong_timeout(5000);
+        d->managerConnection = con;
         return true;
     });
 

@@ -9,7 +9,9 @@ public:
     AIBackend();
     ~AIBackend();
 
-    void setup(const std::string& managerToken, uint16_t eventPort, uint16_t ollamaPort);
+    void start(const std::string& managerToken,
+               uint16_t eventListenPort,
+               const std::string& ollamaServerAddress, uint16_t ollamaAPIPort);
     void stop();
 
 private:

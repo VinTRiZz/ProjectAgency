@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <iostream>
 
-#include "ollama/ollamainterface.hpp"
+#include "business/aibackend.hpp"
 
 namespace bpo = boost::program_options;
 
@@ -49,14 +49,7 @@ int main(int argc, char* argv[]) {
     dirManager.setRootPath(dataDir);
     COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
 
-    OllamaInterface iface;
-    iface.setAPIserver("127.0.0.1", 11434);
-
-    DataObjects::AIRequest req;
-    req.setModel("deepseek-coder-v2:16b");
-    req.setRequest("Boost beast example of using websockets for connecting to server and request for JSON file");
-    auto answer = iface.askSync(req);
-    COMPLOG_DEBUG("ANSWER:", answer.getResponse());
-
+    AIBackend backend; // TODO: Load info from config
+    backend.start("3b7ea58ba5d458db8c8b130fab4f98d126d83c3df90cb7dcbd54656da6b186a8", wsControlPort, "127.0.0.1", ollamaAPIPort);
     return 0;
 }

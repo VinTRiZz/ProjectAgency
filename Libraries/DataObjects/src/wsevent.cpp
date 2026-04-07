@@ -22,6 +22,11 @@ EventType WSEvent::getType() const
     return m_type;
 }
 
+void WSEvent::setPayload(const std::string &payload)
+{
+    m_payload = payload;
+}
+
 std::string_view WSEvent::getPayload() const
 {
     return m_payload;

@@ -33,6 +33,8 @@ public:
         DataObjects::Events::EventType evType,
         std::function<void(DataObjects::Events::WSEvent&&)>&& eventCallback);
 
+    void sendResponse(const std::string_view& respText);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> d;

@@ -37,6 +37,8 @@ public:
     bool isValid() const;
 
     EventType getType() const;
+
+    void setPayload(const std::string& payload);
     std::string_view getPayload() const;
 
     // SerializableObject interface
