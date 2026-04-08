@@ -63,9 +63,9 @@ void OllamaConfigMaster::saveConfig(const OllamaConfig& config, const std::strin
 }
 
 std::shared_ptr<OllamaConfig> OllamaConfigMaster::createConfig(const std::string& modelType) {
-    if (modelType == "qwen3.5") {
+    if (modelType.find("qwen") != std::string::npos) {
         return std::make_unique<OllamaQwenConfig>();
-    } else if (modelType == "deepseek-r1") {
+    } else if (modelType.find("deepseek") != std::string::npos) {
         return std::make_unique<OllamaDeepSeekConfig>();
     } else {
         return std::make_unique<OllamaConfig>();
