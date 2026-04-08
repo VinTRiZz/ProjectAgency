@@ -1,0 +1,13 @@
+# Task analyse section
+Task analyser
+
+# Developement planning section
+Architector
+Planner
+Plan Analyser
+
+# Developement section
+Developer(s)
+UnitTestMaster
+Tester
+

@@ -1,27 +1,13 @@
 FROM deepseek-coder-v2:16b
 
-# 0..1 How many exprompts. Lower - less
 PARAMETER temperature 0
-
-# 0..1 Word expectance. Lower - expected
 PARAMETER top_p 0.1
-
-# 0..N Max variant count
 PARAMETER top_k 1
-
-# 1..2 Penalty for repeat. Find synomimes
 PARAMETER repeat_penalty 1.05
-
-# GPU layer count
 PARAMETER num_gpu 7
-
-# 2048..N Model-depend context size
 PARAMETER num_ctx 32768
-
-# 1..N Max response size
 PARAMETER num_predict -1
 
-# System prompt
 SYSTEM """
 <system_instructions>
 Your answer MUST consist of <prepare>, <solution_test>, <optimization> and <solution> blocks. NEVER answer in other way, strictly follow this system_instructions.
