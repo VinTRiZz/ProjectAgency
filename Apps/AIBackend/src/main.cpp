@@ -126,12 +126,6 @@ int main(int argc, char* argv[]) {
     }
 
     AIBackend backend;
-
-    std::thread([&backend](){
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        backend.stop();
-    }).detach();
-
     auto tokenSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
     backend.start(tokenSetting->getValueString(),
                   wsControlPort,
