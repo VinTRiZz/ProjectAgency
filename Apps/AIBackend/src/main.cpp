@@ -14,6 +14,14 @@
 
 namespace bpo = boost::program_options;
 
+// TODO: Think, how to do this thing properly (don't like such format)
+#define APP_EXITCODE_OK                   0
+#define APP_EXITCODE_CONFIGURATION_ERROR  1
+#define APP_EXITCODE_FAILURE              2
+#define APP_EXITCODE_EXCEPTION            3
+#define APP_EXITCODE_UNKNOWN_EXCEPTION    4
+
+
 int main(int argc, char* argv[]) {
 
     // Common setings
@@ -22,27 +30,33 @@ int main(int argc, char* argv[]) {
 
     bpo::options_description desc;
     desc.add_options()
+            ("help",                                        "Print help and exit")
             ("control,-c",      bpo::value(&wsControlPort), "Manager control port")
             ("data,-d",         bpo::value(&dataDir),       "Path to directory to use for saving data (current dir by default)")
             ;
+    bpo::variables_map vm;
 
     // Harvest settings
     try {
         auto options = bpo::parse_command_line(argc, argv, desc, bpo::command_line_style::unix_style);
-        bpo::variables_map vm;
         bpo::store(options, vm);
         bpo::notify(vm);
     } catch (bpo::error& er) {
         std::cerr << er.what() << std::endl;
         desc.print(std::cerr);
         std::cerr << std::endl;
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
+    }
+
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        return APP_EXITCODE_OK;
     }
 
     // Check-up
     if (!std::filesystem::exists(dataDir)) {
         std::cerr << "Invalid data directory path: " << dataDir << std::endl;
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
     dataDir = std::filesystem::path(dataDir) / "PAG-AIBackend";
 
@@ -76,7 +90,7 @@ int main(int argc, char* argv[]) {
     if (wsControlPort == 0) {
         if (!pPortSetting->getValue().has_value()) {
             COMPLOG_ERROR("Invalid manager control port. Set it in settings file or arguments of application");
-            return 1;
+            return APP_EXITCODE_CONFIGURATION_ERROR;
         }
 
         try {
@@ -86,10 +100,10 @@ int main(int argc, char* argv[]) {
             }
         } catch (std::bad_variant_access& ex) {
             COMPLOG_ERROR("Invalid port value. Acceptable value - integer, from 0 to 65535");
-            return 1;
+            return APP_EXITCODE_CONFIGURATION_ERROR;
         } catch (std::invalid_argument& ex) {
             COMPLOG_ERROR("Invalid port value. Acceptable value - integer, from 0 to 65535");
-            return 1;
+            return APP_EXITCODE_CONFIGURATION_ERROR;
         }
     }
 
@@ -98,7 +112,7 @@ int main(int argc, char* argv[]) {
     auto pOllamaAddressSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_SERVER);
     if (!pOllamaPortSetting->getValue().has_value() || !pOllamaAddressSetting->getValue().has_value()) {
         COMPLOG_ERROR("Ollama server not set. Configure it in configuration file");
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     // Check Ollama server IP
@@ -107,7 +121,7 @@ int main(int argc, char* argv[]) {
         );
     if (!std::regex_match(pOllamaAddressSetting->getValueString(), pattern)) {
         COMPLOG_ERROR("Invalid ollama server address. Acceptable: IPv4 address");
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     // Check Ollama server port
@@ -119,17 +133,38 @@ int main(int argc, char* argv[]) {
         }
     } catch (std::bad_variant_access& ex) {
         COMPLOG_ERROR("Invalid ollama server port value. Acceptable value - integer, from 0 to 65535");
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     } catch (std::invalid_argument& ex) {
         COMPLOG_ERROR("Invalid ollama server port value. Acceptable value - integer, from 0 to 65535");
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     AIBackend backend;
     auto tokenSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
+
+    try {
     backend.start(tokenSetting->getValueString(),
                   wsControlPort,
                   pOllamaAddressSetting->getValueString(),
                   ollamaAPIport);
-    return 0;
+    } catch (const std::exception& ex) {
+        try {
+            backend.stop();
+        } catch (...) {
+            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
+            return APP_EXITCODE_FAILURE;
+        }
+        std::cerr << "CRITICAL: EXCEPTION: " << ex.what() << std::endl;
+        return APP_EXITCODE_EXCEPTION;
+    } catch (...) {
+        try {
+            backend.stop();
+        } catch (...) {
+            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
+            return APP_EXITCODE_FAILURE;
+        }
+        std::cerr << "CRITICAL: UNKNOWN EXCEPTION" << std::endl;
+        return APP_EXITCODE_UNKNOWN_EXCEPTION;
+    }
+    return APP_EXITCODE_OK;
 }
