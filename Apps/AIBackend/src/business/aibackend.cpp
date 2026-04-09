@@ -7,6 +7,7 @@
 
 #include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>
+#include <Components/Thread/ProcessInvoker.h>
 
 #include <atomic>
 
@@ -17,6 +18,8 @@ struct AIBackend::Impl
 
     DataObjects::OllamaConfigMaster             configMaster;
     std::shared_ptr<DataObjects::OllamaConfig>  currentOllamaConfig;
+
+    DataObjects::AIRequest requestBase;
 
     std::atomic<bool> isAnswering {false};
 };
@@ -46,11 +49,16 @@ void AIBackend::start(
         throw std::runtime_error("No model configuration found! Add it in configs dir as a model.mf file");
     }
 
+    d->requestBase.setModel(d->currentOllamaConfig->model());
+    d->requestBase.setKeepAlive("30m"); // TODO: Discuss
+
     d->eventListener.setManagerToken(managerToken);
     d->ollamaInterface.setAPIserver(ollamaServerAddress, ollamaAPIPort);
 
     COMPLOG_INFO("Starting AI backend...");
-    d->eventListener.listen(eventListenPort);
+
+    const uint8_t wsThreadCount = 3; // 3 must be enough (1 for answer await, 2 for status / command / etc, 3 is extra)
+    d->eventListener.listen(eventListenPort, wsThreadCount);
 }
 
 void AIBackend::stop()
@@ -62,8 +70,7 @@ void AIBackend::initEventProcessing()
 {
     namespace Events = DataObjects::Events;
     d->eventListener.setEventCallback(Events::AIAsk, [this](auto&& wsEvent){
-        DataObjects::AIRequest req;
-        req.setModel(d->currentOllamaConfig->model());
+        auto req = d->requestBase;
         req.setRequest(wsEvent.getPayload().data());
 
         d->isAnswering.store(true, std::memory_order_release);

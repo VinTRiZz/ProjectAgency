@@ -8,23 +8,34 @@ namespace DataObjects {
 
 std::string AIResponse::toJson() const
 {
-    return {};
+    nlohmann::json j;
+    j["model"] = m_modelName;
+    j["response"]   = m_response;
+    j["created_at"]  = m_timestamp;
+    j["done_reason"] = m_doneReason;
+    j["context"]    = m_context;
+    return j.dump();
 }
 
 bool AIResponse::readJson(const std::string &iString)
 {
+    if (iString.size() < 2) { // 2 is size of {}
+        COMPLOG_ERROR("[AIResponse] Parsing error: empty input");
+        return false;
+    }
+
     try {
         auto parsedJson = nlohmann::json::parse(iString);
 
         m_modelName     = parsedJson["model"];
         m_response      = parsedJson["response"];
-        m_timestamp     = parsedJson["timestamp"];
+        m_timestamp     = parsedJson["created_at"];
         m_doneReason    = parsedJson["done_reason"];
         m_context       = parsedJson["context"];
 
         return true;
     } catch (const nlohmann::json::exception& ex) {
-        COMPLOG_ERROR("[WSEvent] Parsing error:", ex.what());
+        COMPLOG_ERROR("[AIResponse] Parsing error:", ex.what());
     }
     return false;
 }

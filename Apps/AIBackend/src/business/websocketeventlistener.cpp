@@ -5,7 +5,6 @@
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <nlohmann/json.hpp>
-#include <thread>
 
 #include <map>
 #include <regex>
@@ -17,7 +16,6 @@ using MessagePtr = websocketpp::config::asio::message_type::ptr;
 struct WebsocketEventListener::Impl
 {
     websocketpp::lib::asio::io_service ioService;
-    std::unique_ptr<std::thread> ioThread;
 
     Server deviceEventServer;
     ConnectionHdl managerConnection;
@@ -29,7 +27,7 @@ struct WebsocketEventListener::Impl
     std::map<DataObjects::Events::EventType, std::function<void(DataObjects::Events::WSEvent&&)> > eventCallbacks;
 
     void stop() {
-        if (!isListening.load(std::memory_order_release)) {
+        if (!deviceEventServer.is_listening()) {
             return;
         }
 
@@ -47,13 +45,7 @@ struct WebsocketEventListener::Impl
             COMPLOG_WARNING("Unknown close exception");
         }
 
-        if (ioThread && ioThread->joinable()) {
-            ioService.stop();
-            ioThread->join();
-            ioThread.reset();
-        }
-
-        isListening.store(false, std::memory_order_release);
+        deviceEventServer.stop();
     }
 
     ~Impl() {
@@ -79,10 +71,15 @@ void WebsocketEventListener::setManagerToken(const std::string &tokenString)
     d->token = tokenString;
 }
 
-bool WebsocketEventListener::listen(uint16_t port)
+bool WebsocketEventListener::listen(uint16_t port, uint8_t threadCount)
 {
     d->deviceEventServer.listen(port);
     d->deviceEventServer.start_accept();
+    for (uint8_t thNo = 1; thNo < threadCount; ++thNo) {
+        std::thread([this](){
+            d->deviceEventServer.run();
+        }).detach();
+    }
     d->deviceEventServer.run();
     return true;
 }

@@ -23,7 +23,7 @@ enum EventType : int
     AIStop,
     AIAsk,
     AIAskStatus,
-    AIAskResponse,
+    AISetCommonSettings,
 };
 
 /**

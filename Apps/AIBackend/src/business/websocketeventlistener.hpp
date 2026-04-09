@@ -17,11 +17,12 @@ public:
     void setManagerToken(const std::string& tokenString);
 
     /**
-     * @brief listen    Start async listening for events
-     * @param port      Listen port
-     * @return          true if listen started
+     * @brief listen        Start async listening for events
+     * @param port          Listen port
+     * @param threadCount   Count of threads to listen
+     * @return              true if listen started
      */
-    bool listen(uint16_t port);
+    bool listen(uint16_t port, uint8_t threadCount);
     void stop();
 
     /**

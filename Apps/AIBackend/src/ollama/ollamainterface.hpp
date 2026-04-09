@@ -16,8 +16,9 @@ public:
     void setAPIserver(const std::string& serverHost, uint16_t apiPort);
 
     DataObjects::AIResponse askSync(const DataObjects::AIRequest& req);
+    void ask(const DataObjects::AIRequest& req);
 
-    void setResponsePartCallback(const std::function<void(std::string&&, std::string&&, bool)>&& responsePartCallback);
+    void setResponseCallback(const std::function<void(std::optional<DataObjects::AIResponse>&&)>&& responseCallback);
 
 private:
     struct Impl;
