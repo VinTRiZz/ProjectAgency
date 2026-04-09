@@ -78,8 +78,7 @@ public:
 
     // SerializableObject interface
     std::string toJson() const override;
-    [[deprecated("Request must not be converted from JSON back")]]
-    bool readJson(const std::string& iString) override;
+    bool readJson(const std::string_view& iString) override;
 
 private:
     std::string m_model;

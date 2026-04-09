@@ -17,6 +17,11 @@ bool WSEvent::isValid() const
     return (m_type != EventType::EtcUnknown);
 }
 
+void WSEvent::setType(EventType etype)
+{
+    m_type = etype;
+}
+
 EventType WSEvent::getType() const
 {
     return m_type;
@@ -40,7 +45,7 @@ std::string WSEvent::toJson() const
     return res.dump();
 }
 
-bool WSEvent::readJson(const std::string &iString)
+bool WSEvent::readJson(const std::string_view &iString)
 {
     m_type = EventType::EtcUnknown;
     try {

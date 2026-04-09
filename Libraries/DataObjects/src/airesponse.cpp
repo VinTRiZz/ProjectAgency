@@ -17,7 +17,7 @@ std::string AIResponse::toJson() const
     return j.dump();
 }
 
-bool AIResponse::readJson(const std::string &iString)
+bool AIResponse::readJson(const std::string_view &iString)
 {
     if (iString.size() < 2) { // 2 is size of {}
         COMPLOG_ERROR("[AIResponse] Parsing error: empty input");

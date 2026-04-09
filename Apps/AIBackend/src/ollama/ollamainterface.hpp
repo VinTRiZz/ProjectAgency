@@ -18,6 +18,8 @@ public:
     DataObjects::AIResponse askSync(const DataObjects::AIRequest& req);
     void ask(const DataObjects::AIRequest& req);
 
+    void askInterrupt();
+
     void setResponseCallback(const std::function<void(std::optional<DataObjects::AIResponse>&&)>&& responseCallback);
 
 private:

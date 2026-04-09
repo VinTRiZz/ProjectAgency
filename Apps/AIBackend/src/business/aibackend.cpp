@@ -68,22 +68,49 @@ void AIBackend::stop()
 
 void AIBackend::initEventProcessing()
 {
+    initEventProcessingAIAsk();
+}
+
+void AIBackend::initEventProcessingAIAsk()
+{
+    // AI asking processors
     namespace Events = DataObjects::Events;
     d->eventListener.setEventCallback(Events::AIAsk, [this](auto&& wsEvent){
         auto req = d->requestBase;
         req.setRequest(wsEvent.getPayload().data());
 
         d->isAnswering.store(true, std::memory_order_release);
-        auto response = d->ollamaInterface.askSync(req);
-        d->isAnswering.store(false, std::memory_order_release);
-
-        Events::WSEvent resp(Events::AIAsk);
-        resp.setPayload(response.getResponse());
-        d->eventListener.sendResponse(resp.toJson());
+        d->ollamaInterface.ask(req);
     });
-    d->eventListener.setEventCallback(Events::AIStatus, [this](auto&& wsEvent){
-        Events::WSEvent resp(Events::AIStatus);
-        resp.setPayload(d->isAnswering.load(std::memory_order_acquire) ? "answering" : "idle");
+    d->eventListener.setEventCallback(Events::AIAskStatus, [this](auto&& wsEvent){
+        wsEvent.setPayload(d->isAnswering.load(std::memory_order_acquire) ? "busy" : "idle");
+        d->eventListener.sendResponse(wsEvent.toJson());
+    });
+    d->eventListener.setEventCallback(Events::AIAskInterrupt, [this](auto&& wsEvent){
+        d->ollamaInterface.askInterrupt();
+        wsEvent.setPayload({});
+        d->eventListener.sendResponse(wsEvent.toJson());
+    });
+    d->eventListener.setEventCallback(Events::AIAskSetConfig, [this](auto&& wsEvent) {
+        auto pConfig = DataObjects::OllamaConfigMaster::fromText(wsEvent.getPayload().data());
+        auto readSucceed = (pConfig.use_count() != 0);
+        if (readSucceed) {
+            d->currentOllamaConfig = pConfig;
+        }
+        wsEvent.setPayload(readSucceed ? "ok" : "fail");
+        d->eventListener.sendResponse(wsEvent.toJson());
+    });
+}
+
+void AIBackend::initOllamaInterface()
+{
+    namespace Events = DataObjects::Events;
+    d->ollamaInterface.setResponseCallback([this](auto&& response) -> void {
+        d->isAnswering.store(false, std::memory_order_release);
+        Events::WSEvent resp(Events::AIAsk);
+        if (response.has_value()) {
+            resp.setPayload(response->getResponse());
+        }
         d->eventListener.sendResponse(resp.toJson());
     });
 }

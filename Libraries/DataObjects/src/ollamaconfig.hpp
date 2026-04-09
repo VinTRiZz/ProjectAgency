@@ -131,7 +131,7 @@ public:
 
     // --- Сериализация ---
     virtual std::string toModelfileString() const;        ///< Преобразовать в текст Modelfile
-    virtual void fromModelfileString(const std::string& content); ///< Загрузить из текста Modelfile
+    virtual void fromModelfileString(const std::string &content); ///< Загрузить из текста Modelfile
 
 private:
     // --- Основные параметры API ---

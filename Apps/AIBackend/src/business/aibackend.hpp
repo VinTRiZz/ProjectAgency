@@ -18,5 +18,9 @@ private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
+    // Event processing
     void initEventProcessing();
+    void initEventProcessingAIAsk();
+
+    void initOllamaInterface();
 };

@@ -80,6 +80,11 @@ void OllamaInterface::ask(const DataObjects::AIRequest &req)
     });
 }
 
+void OllamaInterface::askInterrupt()
+{
+    d->httpClient.interruptRequestProcessing();
+}
+
 void OllamaInterface::setResponseCallback(const std::function<void (std::optional<DataObjects::AIResponse> &&)> &&responseCallback)
 {
     d->responseCallback = std::move(responseCallback);

@@ -9,8 +9,8 @@ class AIResponse : public SerializableObject
 public:
 
     // SerializableObject interface
-    [[deprecated("Response must not be converted back")]] std::string toJson() const override;
-    bool readJson(const std::string &iString) override;
+    std::string toJson() const override;
+    bool readJson(const std::string_view &iString) override;
 
     std::string getModelName() const;
     std::string getResponse() const;

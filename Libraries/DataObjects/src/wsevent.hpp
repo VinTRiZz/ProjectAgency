@@ -18,12 +18,13 @@ enum EventType : int
     ExchangeUnknown = 200,
 
     // 300..399 - AI events
-    AIStart = 300,
-    AIStatus,
-    AIStop,
+    AIOllamaStart = 300,
+    AIOllamaStatus,
+    AIOllamaStop,
     AIAsk,
     AIAskStatus,
-    AISetCommonSettings,
+    AIAskInterrupt,
+    AIAskSetConfig,
 };
 
 /**
@@ -36,6 +37,7 @@ public:
 
     bool isValid() const;
 
+    void setType(EventType etype);
     EventType getType() const;
 
     void setPayload(const std::string& payload);
@@ -43,7 +45,7 @@ public:
 
     // SerializableObject interface
     std::string toJson() const override;
-    bool readJson(const std::string &iString) override;
+    bool readJson(const std::string_view &iString) override;
 
 private:
     EventType   m_type {EventType::EtcUnknown};

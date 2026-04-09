@@ -22,7 +22,7 @@ std::string DeviceStatus::toJson() const
     return res.dump();
 }
 
-bool DeviceStatus::readJson(const std::string &iString)
+bool DeviceStatus::readJson(const std::string_view &iString)
 {
     try {
         auto statusJson = nlohmann::json::parse(iString);

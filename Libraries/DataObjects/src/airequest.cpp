@@ -133,7 +133,7 @@ std::string AIRequest::toJson() const
     return j.dump();
 }
 
-bool AIRequest::readJson(const std::string &iString)
+bool AIRequest::readJson(const std::string_view &iString)
 {
     if (iString.size() < 2) {
         COMPLOG_ERROR("[AIRequest] Parsing error: empty input");
