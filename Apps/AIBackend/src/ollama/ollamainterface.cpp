@@ -17,8 +17,8 @@ OllamaInterface::OllamaInterface() :
 {
     d->httpClient.setClientName("AIBackend");
 
-    // TODO: Remove (debug needs)
-    d->httpClient.setLoggingEnabled(true);
+    // TODO: Remove? (debug needs)
+    // d->httpClient.setLoggingEnabled(true);
 }
 
 OllamaInterface::~OllamaInterface()
@@ -65,11 +65,13 @@ void OllamaInterface::ask(const DataObjects::AIRequest &req)
         std::move(requestPacket),
         [this](auto&& responseOpt){
             if (!d->responseCallback) {
+                COMPLOG_WARNING("[OLLAMA] Model async answer ignored (no processor set)");
                 return;
             }
 
             if (!responseOpt.has_value()) {
                 d->responseCallback(std::nullopt);
+                COMPLOG_WARNING("[OLLAMA] Model async answer receive failed");
                 return;
             }
 

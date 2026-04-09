@@ -2,6 +2,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <Components/Logger/Logger.h>
 
 namespace DataObjects {
@@ -9,11 +11,12 @@ namespace DataObjects {
 std::string AIResponse::toJson() const
 {
     nlohmann::json j;
-    j["model"] = m_modelName;
-    j["response"]   = m_response;
-    j["created_at"]  = m_timestamp;
-    j["done_reason"] = m_doneReason;
-    j["context"]    = m_context;
+    j["model"]          = m_modelName;
+    j["response"]       = m_response;
+    j["created_at"]     = m_timestamp;
+    j["done_reason"]    = m_doneReason;
+    j["context"]        = m_context;
+    j["done"]           = m_isDone;
     return j.dump();
 }
 
@@ -32,6 +35,7 @@ bool AIResponse::readJson(const std::string_view &iString)
         m_timestamp     = parsedJson["created_at"];
         m_doneReason    = parsedJson["done_reason"];
         m_context       = parsedJson["context"];
+        m_isDone        = parsedJson["done"];
 
         return true;
     } catch (const nlohmann::json::exception& ex) {

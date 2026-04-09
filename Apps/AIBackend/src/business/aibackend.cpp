@@ -28,6 +28,7 @@ AIBackend::AIBackend() :
     d {new Impl}
 {
     initEventProcessing();
+    initOllamaInterface();
 }
 
 AIBackend::~AIBackend()
@@ -49,6 +50,7 @@ void AIBackend::start(
         throw std::runtime_error("No model configuration found! Add it in configs dir as a model.mf file");
     }
 
+    d->requestBase.setStream(false); // TODO: Enable later (after MVP)
     d->requestBase.setModel(d->currentOllamaConfig->model());
     d->requestBase.setKeepAlive("30m"); // TODO: Discuss
 

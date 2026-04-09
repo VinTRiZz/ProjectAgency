@@ -96,6 +96,10 @@ void WebsocketEventListener::setEventCallback(DataObjects::Events::EventType evT
 
 void WebsocketEventListener::sendResponse(const std::string_view &respText)
 {
+    if (d->managerConnection.expired()) {
+        COMPLOG_WARNING("[WS] Failed to send response (size:", respText.size(), "bytes)");
+        return;
+    }
     d->deviceEventServer.send(d->managerConnection, respText.data(), websocketpp::frame::opcode::text);
 }
 

@@ -24,6 +24,7 @@ private:
     std::string m_timestamp;
     std::string m_doneReason;
     std::string m_context;
+    bool        m_isDone {false};
 };
 
 } // namespace DataObjects
