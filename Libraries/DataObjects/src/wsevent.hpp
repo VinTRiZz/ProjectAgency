@@ -37,6 +37,10 @@ public:
 
     bool isValid() const;
 
+    // ID = 0 --> invalid, so it's required to set ID (even as random number)
+    void setId(uint64_t eventId);
+    uint64_t getId() const;
+
     void setType(EventType etype);
     EventType getType() const;
 
@@ -48,6 +52,7 @@ public:
     bool readJson(const std::string_view &iString) override;
 
 private:
+    uint64_t m_eventId {0};
     EventType   m_type {EventType::EtcUnknown};
     std::string m_payload;
 };

@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 
+/**
+ * @brief The AIManager class Main instance of application
+ */
 class AIManager
 {
 public:
@@ -12,6 +15,7 @@ public:
     void initBackends();
 
     void setToken(const std::string& tokenString);
+    void setPlanningModel(const std::string& modelName);
 
     void start(uint16_t apiPort);
     void stop();

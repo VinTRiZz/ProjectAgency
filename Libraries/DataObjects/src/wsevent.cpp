@@ -14,7 +14,18 @@ WSEvent::WSEvent(EventType etype) :
 
 bool WSEvent::isValid() const
 {
-    return (m_type != EventType::EtcUnknown);
+    return (m_type != EventType::EtcUnknown &&
+            m_eventId != 0);
+}
+
+void WSEvent::setId(uint64_t eventId)
+{
+    m_eventId = eventId;
+}
+
+uint64_t WSEvent::getId() const
+{
+    return m_eventId;
 }
 
 void WSEvent::setType(EventType etype)

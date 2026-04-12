@@ -20,6 +20,11 @@ struct AIBackendHandler::Impl
     std::string token;
     std::string displayName;
 
+    std::map<DataObjects::Events::EventType, EventCallback_t> eventCallbacks;
+
+    Business::TaskPlan currentExecutionPlan;
+    std::atomic<bool>  mustStopExecution {false};
+
     Client                              eventClient;
     websocketpp::lib::asio::io_service  ioService;
     ConnectionHdl                       eventConnection;
@@ -43,6 +48,18 @@ AIBackendHandler::AIBackendHandler(const std::string &backendAddress) :
         if (msg->get_opcode() == websocketpp::frame::opcode::text) {
             std::string payload = msg->get_payload();
             COMPLOG_DEBUG("[WS] Text got:", payload);
+
+            DataObjects::Events::WSEvent ev;
+            if (!ev.readJson(msg->get_payload())) {
+                COMPLOG_WARNING("[AIBackendHandler]", this, "Failed to parse event response");
+                return;
+            }
+
+            auto cbkIt = d->eventCallbacks.find(ev.getType());
+            if (cbkIt != d->eventCallbacks.end()) {
+                cbkIt->second(std::move(ev));
+            }
+            COMPLOG_WARNING("[AIBackendHandler]", this, "Skipped event of type:", ev.getType(), "(no processor found)");
             return;
         }
         COMPLOG_WARNING("[AIBackendHandler]", this, "Skipped binary message");
@@ -107,6 +124,36 @@ bool AIBackendHandler::isConnected() const
     return d->connected.load(std::memory_order_acquire);
 }
 
+void AIBackendHandler::planExecSet(Business::TaskPlan &&plan)
+{
+    d->currentExecutionPlan = std::move(plan);
+}
+
+void AIBackendHandler::planExecStart()
+{
+    COMPLOG_INFO("[AIBackendHandler]", this, "Starting plan execution...");
+    auto currentAction = d->currentExecutionPlan.getCurrentAction();
+    while (currentAction) {
+        if (d->mustStopExecution) {
+            COMPLOG_WARNING("[AIBackendHandler]", this, "Plan execution interrupted");
+            break;
+        }
+
+        if (!currentAction->execute()) {
+            COMPLOG_ERROR("[AIBackendHandler]", this, "Plan execution error");
+            break;
+        }
+
+        currentAction = d->currentExecutionPlan.getCurrentAction();
+    }
+    COMPLOG_OK("[AIBackendHandler]", this, "Plan execution complete");
+}
+
+void AIBackendHandler::planExecInterrupt()
+{
+    d->mustStopExecution = true;
+}
+
 bool AIBackendHandler::sendEvent(const DataObjects::Events::WSEvent &ev)
 {
     if (!isConnected()) {
@@ -114,6 +161,11 @@ bool AIBackendHandler::sendEvent(const DataObjects::Events::WSEvent &ev)
     }
     d->eventClient.send(d->eventConnection, ev.toJson(), websocketpp::frame::opcode::text);
     return true;
+}
+
+void AIBackendHandler::setEventCallback(DataObjects::Events::EventType etype, EventCallback_t &&cbk)
+{
+    d->eventCallbacks.emplace(etype, std::move(cbk));
 }
 
 void AIBackendHandler::setDisplayName(const std::string &displayName)

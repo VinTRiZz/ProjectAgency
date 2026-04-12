@@ -3,6 +3,9 @@
 #include <string>
 #include <memory>
 
+/**
+ * @brief The AIBackend class Main instance of application
+ */
 class AIBackend
 {
 public:

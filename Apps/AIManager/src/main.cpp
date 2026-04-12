@@ -74,6 +74,9 @@ int main(int argc, char* argv[]) {
     if (!settingsInstance.hasSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT)) {
         settingsInstance.addSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
     }
+    if (!settingsInstance.hasSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL)) {
+        settingsInstance.addSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL);
+    }
     settingsInstance.saveSettings();
 
     // Check API port
@@ -104,8 +107,17 @@ int main(int argc, char* argv[]) {
     }
     auto token = tokenSetting->getValueString();
 
+    // Planning model
+    auto planningModelSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL);
+    if (!tokenSetting->getValue().has_value()) {
+        COMPLOG_ERROR("Planning model (such as deepseek-r1:14b, qwen3.5:14b, etc.) not set");
+        return APP_EXITCODE_CONFIGURATION_ERROR;
+    }
+    auto planningModel = planningModelSetting->getValueString();
+
     AIManager manager;
     manager.setToken(token);
+    manager.setPlanningModel(planningModel);
     manager.initBackends();
 
     try {

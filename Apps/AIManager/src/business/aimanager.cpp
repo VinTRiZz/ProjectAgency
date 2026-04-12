@@ -18,6 +18,7 @@
 struct AIManager::Impl
 {
     std::string token;
+    std::string planningModel;
 
     BackendHandlerBuilder backendBuilder;
     std::vector<std::shared_ptr<AIBackendHandler> > backends;
@@ -31,7 +32,7 @@ AIManager::AIManager() :
 
 AIManager::~AIManager()
 {
-
+    stop();
 }
 
 void AIManager::initBackends()
@@ -76,6 +77,11 @@ void AIManager::setToken(const std::string &tokenString)
     d->token = tokenString;
 }
 
+void AIManager::setPlanningModel(const std::string &modelName)
+{
+    d->planningModel = modelName;
+}
+
 void AIManager::start(uint16_t apiPort)
 {
     for (auto& pBackend : d->backends) {
@@ -89,13 +95,23 @@ void AIManager::start(uint16_t apiPort)
     // Server info
     drogon::app().setServerHeaderField("AIManager");
 
+    // 3 threads, one for pending operations, second for periodic requests, third is extra
+    drogon::app().setThreadNum(3);
+
     drogon::app().addListener("0.0.0.0", apiPort);
     drogon::app().run();
 }
 
 void AIManager::stop()
 {
+    if (!drogon::app().isRunning()) {
+        return;
+    }
 
+    for (auto& pBackend : d->backends) {
+        pBackend->disconnect();
+    }
+    drogon::app().quit();
 }
 
 
