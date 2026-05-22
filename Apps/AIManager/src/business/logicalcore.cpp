@@ -19,6 +19,4 @@ void LogicalCore::interrupt()
 
 }
 
-
-
 }

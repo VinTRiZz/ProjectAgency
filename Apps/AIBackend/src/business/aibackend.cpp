@@ -6,7 +6,7 @@
 #include <ProjectAgency/OllamaConfigMaster.h>
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Thread/ProcessInvoker.h>
 
 #include <atomic>
@@ -42,7 +42,7 @@ void AIBackend::start(
     const std::string &ollamaServerAddress, uint16_t ollamaAPIPort)
 {
     auto& dirManager = Common::DirectoryManager::getInstance();
-    auto configDir = dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Config);
+    auto configDir = dirManager.getDirectory(Common::DirectoryType::Config);
     auto configFile = configDir / "model.mf";
 
     d->currentOllamaConfig = d->configMaster.loadConfig(configFile);

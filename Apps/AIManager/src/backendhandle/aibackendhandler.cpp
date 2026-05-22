@@ -22,7 +22,6 @@ struct AIBackendHandler::Impl
 
     std::map<DataObjects::Events::EventType, EventCallback_t> eventCallbacks;
 
-    Business::TaskPlan currentExecutionPlan;
     std::atomic<bool>  mustStopExecution {false};
 
     Client                              eventClient;
@@ -122,36 +121,6 @@ void AIBackendHandler::disconnect()
 bool AIBackendHandler::isConnected() const
 {
     return d->connected.load(std::memory_order_acquire);
-}
-
-void AIBackendHandler::planExecSet(Business::TaskPlan &&plan)
-{
-    d->currentExecutionPlan = std::move(plan);
-}
-
-void AIBackendHandler::planExecStart()
-{
-    COMPLOG_INFO("[AIBackendHandler]", this, "Starting plan execution...");
-    auto currentAction = d->currentExecutionPlan.getCurrentAction();
-    while (currentAction) {
-        if (d->mustStopExecution) {
-            COMPLOG_WARNING("[AIBackendHandler]", this, "Plan execution interrupted");
-            break;
-        }
-
-        if (!currentAction->execute()) {
-            COMPLOG_ERROR("[AIBackendHandler]", this, "Plan execution error");
-            break;
-        }
-
-        currentAction = d->currentExecutionPlan.getCurrentAction();
-    }
-    COMPLOG_OK("[AIBackendHandler]", this, "Plan execution complete");
-}
-
-void AIBackendHandler::planExecInterrupt()
-{
-    d->mustStopExecution = true;
 }
 
 bool AIBackendHandler::sendEvent(const DataObjects::Events::WSEvent &ev)

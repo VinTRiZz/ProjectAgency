@@ -4,8 +4,8 @@
 #include "backendhandle/aibackendhandler.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/ApplicationSettings.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Filework/Common.h>
 
 #include <vector>
@@ -38,7 +38,7 @@ AIManager::~AIManager()
 void AIManager::initBackends()
 {
     auto& dirManager = Common::DirectoryManager::getInstance();
-    auto backendInfoFile = dirManager.getDirectory(Common::DirectoryManager::Config) / "backends.json";
+    auto backendInfoFile = dirManager.getDirectory(Common::Config) / "backends.json";
 
     if (!std::filesystem::exists(backendInfoFile)) {
         std::fstream ofile(backendInfoFile, std::ios_base::out);

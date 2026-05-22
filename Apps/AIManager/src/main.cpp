@@ -1,6 +1,6 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
-#include <Components/Common/ApplicationSettings.h>
+#include <Components/Ecosystem/DirectoryManager.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
 
 #include <boost/program_options.hpp>
 
@@ -60,11 +60,11 @@ int main(int argc, char* argv[]) {
     // Setup root of application and logging
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(dataDir);
-    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
     // Load settings
     auto& settingsInstance = Common::ApplicationSettings::getInstance();
-    auto settingsFile = dirManager.getDirectory(Common::DirectoryManager::Config) / "aimanager.ini";
+    auto settingsFile = dirManager.getDirectory(Common::Config) / "aimanager.ini";
     settingsInstance.loadSettings(settingsFile);
 
     // Add expected settings
@@ -83,11 +83,11 @@ int main(int argc, char* argv[]) {
     if (httpAPIPort == 0) {
         try {
             auto pApiPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
-            if (!pApiPortSetting->getValue().has_value()) {
+            if (!pApiPortSetting->isSet()) {
                 COMPLOG_ERROR("Invalid API port value (not set). Acceptable value - integer, from 0 to 65535");
                 return APP_EXITCODE_CONFIGURATION_ERROR;
             }
-            httpAPIPort = std::get<long long>(pApiPortSetting->getValue().value());
+            httpAPIPort = pApiPortSetting->getValue<int64_t>();
         } catch (std::bad_variant_access& ex) {
             COMPLOG_ERROR("Invalid API port value. Acceptable value - integer, from 0 to 65535");
             return APP_EXITCODE_CONFIGURATION_ERROR;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     // Token
     auto tokenSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
-    if (!tokenSetting->getValue().has_value()) {
+    if (!tokenSetting->isSet()) {
         COMPLOG_ERROR("Manager token not set");
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     // Planning model
     auto planningModelSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL);
-    if (!tokenSetting->getValue().has_value()) {
+    if (!tokenSetting->isSet()) {
         COMPLOG_ERROR("Planning model (such as deepseek-r1:14b, qwen3.5:14b, etc.) not set");
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }

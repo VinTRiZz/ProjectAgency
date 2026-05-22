@@ -1,6 +1,6 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
-#include <Components/Common/ApplicationSettings.h>
+#include <Components/Ecosystem/DirectoryManager.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
 
 #include <boost/program_options.hpp>
 
@@ -63,11 +63,11 @@ int main(int argc, char* argv[]) {
     // Setup root of application and logging
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(dataDir);
-    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
     // Load settings
     auto& settingsInstance = Common::ApplicationSettings::getInstance();
-    auto settingsFile = dirManager.getDirectory(Common::DirectoryManager::Config) / "aibackend.ini";
+    auto settingsFile = dirManager.getDirectory(Common::Config) / "aibackend.ini";
     settingsInstance.loadSettings(settingsFile);
 
     // Add expected settings
@@ -88,13 +88,13 @@ int main(int argc, char* argv[]) {
     // Check control port
     auto pPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_CONTROL_PORT);
     if (wsControlPort == 0) {
-        if (!pPortSetting->getValue().has_value()) {
+        if (!pPortSetting->isSet()) {
             COMPLOG_ERROR("Invalid manager control port. Set it in settings file or arguments of application");
             return APP_EXITCODE_CONFIGURATION_ERROR;
         }
 
         try {
-            wsControlPort = std::get<long long>(pPortSetting->getValue().value());
+            wsControlPort = pPortSetting->getValue<int64_t>();
             if (wsControlPort < 0 || wsControlPort > 65535) {
                 throw std::invalid_argument("Port value exception");
             }
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Check Ollama server settings
     auto pOllamaPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_PORT);
     auto pOllamaAddressSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_SERVER);
-    if (!pOllamaPortSetting->getValue().has_value() || !pOllamaAddressSetting->getValue().has_value()) {
+    if (!pOllamaPortSetting->isSet() || !pOllamaAddressSetting->isSet()) {
         COMPLOG_ERROR("Ollama server not set. Configure it in configuration file");
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     // Check Ollama server port
     long long ollamaAPIport = 0;
     try {
-        ollamaAPIport = std::get<long long>(pOllamaPortSetting->getValue().value());
+        ollamaAPIport = pOllamaPortSetting->getValue<int64_t>();
         if (ollamaAPIport < 0 || ollamaAPIport > 65535) {
             throw std::invalid_argument("Port value exception");
         }

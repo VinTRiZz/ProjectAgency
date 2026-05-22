@@ -6,8 +6,6 @@
 
 #include <ProjectAgency/WSEvent.h>
 
-#include "business/taskplan.hpp"
-
 class AIBackendHandler
 {
 public:
@@ -19,11 +17,6 @@ public:
     void connect();
     void disconnect();
     bool isConnected() const;
-
-    // Execution planning
-    void planExecSet(Business::TaskPlan&& plan);
-    void planExecStart();
-    void planExecInterrupt();
 
     // Event processing (mostly used by internal)
     using EventCallback_t = std::function<void(DataObjects::Events::WSEvent&&)>;
