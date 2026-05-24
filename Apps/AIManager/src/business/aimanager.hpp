@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+
+#include <ProjectAgency/BackendDisplayInfo.h>
 
 /**
  * @brief The AIManager class Main instance of application
@@ -19,6 +22,8 @@ public:
 
     void start(uint16_t apiPort);
     void stop();
+
+    std::vector<DataObjects::BackendDisplayInfo> getBackends() const;
 
 private:
     struct Impl;

@@ -6,6 +6,8 @@
 
 #include "controllerbase.hpp"
 
+#include <ProjectAgency/ExchangeHTTP.h>
+
 class ServerEventProcessor;
 
 class ServerController : public drogon::HttpController<ServerController, false>,
@@ -14,10 +16,9 @@ class ServerController : public drogon::HttpController<ServerController, false>,
 public:
     void setServerEventProcessor(const std::shared_ptr<ServerEventProcessor>& pProcessor);
 
-    // METHOD_LIST_BEGIN
-    //     ADD_METHOD_TO(ServerController::processGetStatus,       Protocol::API::DROGON::SERVER_STATUS,   drogon::Get);
-    //     ADD_METHOD_TO(ServerController::processPowerRequest,    Protocol::API::DROGON::SERVER_POWER,    drogon::Put);
-    // METHOD_LIST_END
+    METHOD_LIST_BEGIN
+        ADD_METHOD_TO(ServerController::processGetStatus, Exchange::HTTPv1::SERVER_STATUS, drogon::Get);
+    METHOD_LIST_END
 
     using ResponseCallback_t = std::function<void(const drogon::HttpResponsePtr&)>;
 

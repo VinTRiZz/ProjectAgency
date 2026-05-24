@@ -3,6 +3,9 @@
 #include "backendhandle/backendhandlerbuilder.hpp"
 #include "backendhandle/aibackendhandler.hpp"
 
+#include "httpcontrollers/aicontroller.hpp"
+#include "httpcontrollers/servercontroller.hpp"
+
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/ApplicationSettings.h>
 #include <Components/Ecosystem/DirectoryManager.h>
@@ -90,7 +93,8 @@ void AIManager::start(uint16_t apiPort)
     }
 
     // Controller setup
-    // drogon::app().registerController(std::make_shared<ServerController>());
+    drogon::app().registerController(std::make_shared<ServerController>());
+    drogon::app().registerController(std::make_shared<AIController>(*this));
 
     // Server info
     drogon::app().setServerHeaderField("AIManager");
@@ -112,6 +116,19 @@ void AIManager::stop()
         pBackend->disconnect();
     }
     drogon::app().quit();
+}
+
+std::vector<DataObjects::BackendDisplayInfo> AIManager::getBackends() const
+{
+    std::vector<DataObjects::BackendDisplayInfo> res;
+    for (auto& hdl : d->backends) {
+        DataObjects::BackendDisplayInfo info;
+        info.isOnline = hdl->isConnected();
+        info.name = hdl->getDisplayName();
+
+        res.push_back(info);
+    }
+    return res;
 }
 
 
