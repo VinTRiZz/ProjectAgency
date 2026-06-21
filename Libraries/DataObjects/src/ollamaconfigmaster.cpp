@@ -10,7 +10,7 @@
 namespace DataObjects
 {
 
-std::shared_ptr<OllamaConfig> OllamaConfigMaster::loadConfig(const std::string& filepath) {
+OllamaConfigPtr OllamaConfigMaster::loadConfig(const std::string& filepath) {
     std::ifstream file(filepath);
     if (!file.is_open()) {
         return {};
@@ -31,7 +31,7 @@ bool OllamaConfigMaster::saveConfig(const OllamaConfig& config, const std::strin
     return true;
 }
 
-std::shared_ptr<OllamaConfig> OllamaConfigMaster::createConfig(const std::string& modelType) {
+OllamaConfigPtr OllamaConfigMaster::createConfig(const std::string& modelType) {
     if (modelType.find("qwen") != std::string::npos) {
         return std::make_unique<OllamaQwenConfig>();
     } else if (modelType.find("deepseek") != std::string::npos) {
@@ -40,7 +40,7 @@ std::shared_ptr<OllamaConfig> OllamaConfigMaster::createConfig(const std::string
     return std::make_unique<OllamaConfig>();
 }
 
-std::shared_ptr<OllamaConfig> OllamaConfigMaster::fromText(const std::string &content)
+OllamaConfigPtr OllamaConfigMaster::fromText(const std::string &content)
 {
     std::regex fromRe(R"(FROM\s+(\S+))", std::regex::icase);
     std::smatch match;

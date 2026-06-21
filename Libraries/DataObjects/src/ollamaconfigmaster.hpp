@@ -13,11 +13,11 @@ namespace DataObjects
  */
 class OllamaConfigMaster {
 public:
-    std::shared_ptr<OllamaConfig> loadConfig(const std::string& filepath);
+    OllamaConfigPtr loadConfig(const std::string& filepath);
     bool saveConfig(const OllamaConfig& config, const std::string& filepath);
 
-    static std::shared_ptr<OllamaConfig> createConfig(const std::string& modelType);
-    static std::shared_ptr<OllamaConfig> fromText(const std::string &content);
+    static OllamaConfigPtr createConfig(const std::string& modelType);
+    static OllamaConfigPtr fromText(const std::string &content);
 };
 
 }
