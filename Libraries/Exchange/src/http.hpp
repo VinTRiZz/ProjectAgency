@@ -13,17 +13,19 @@ const auto SERVER_STATUS {SERVER_BASE + "/status"};
 // Backends
 const auto BACKENDS_GET {API_V + "/backends"};
 
-const auto BACKEND_CONFIG_GET {API_V + "/backend/{uuid}"};
-const auto BACKEND_CONFIG_SET {API_V + "/backend/{uuid}"};
+const auto BACKEND_STATUS {API_V + "/backend/{backendId}/status"};
 
-const auto QT_BACKEND_CONFIG_GET {API_V + "/backend/%1"};
-const auto QT_BACKEND_CONFIG_SET {API_V + "/backend/%1"};
+const auto BACKEND_CONFIG_GET {API_V + "/backend/{backendId}/config"};
+const auto BACKEND_CONFIG_SET {API_V + "/backend/{backendId}/config"};
+
+const auto QT_BACKEND_CONFIG_GET {API_V + "/backend/%1/config"};
+const auto QT_BACKEND_CONFIG_SET {API_V + "/backend/%1/config"};
 
 
-// Developing
-const auto DEVELOP_BASE     {API_V + "/dev"};
-const auto DEVELOP_START    {DEVELOP_BASE + "?action=start"};
-const auto DEVELOP_STATUS   {DEVELOP_BASE};
-const auto DEVELOP_STOP     {DEVELOP_BASE + "?action=stop"};
+// User tasks processing
+const auto USER_REQUEST_BASE     {API_V + "/task"}; // TODO: Process many tasks in future?
+const auto USER_REQUEST_START    {USER_REQUEST_BASE + "?action=start"};
+const auto USER_REQUEST_STATUS   {USER_REQUEST_BASE + "/status"};
+const auto USER_REQUEST_STOP     {USER_REQUEST_BASE + "?action=stop"};
 
 } // namespace Exchange::HTTPv1

@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 
-#include <ProjectAgency/BackendDisplayInfo.h>
+#include "backendhandle/backendhandlerbuilder.hpp"
+#include "backendhandle/aibackendhandler.hpp"
 
 /**
- * @brief The AIManager class Main instance of application
+ * @brief The AIManager class AIBackend handler class
  */
 class AIManager
 {
@@ -15,17 +16,19 @@ public:
     AIManager();
     ~AIManager();
 
-    void initBackends();
-
     void setToken(const std::string& tokenString);
     void setPlanningModel(const std::string& modelName);
 
-    void start(uint16_t apiPort);
+    bool init();
+    void start();
     void stop();
 
-    std::vector<DataObjects::BackendDisplayInfo> getBackends() const;
+    std::vector<std::shared_ptr<AIBackendHandler> > getBackends() const;
 
 private:
-    struct Impl;
-    std::unique_ptr<Impl> d;
+    std::string m_token;
+    std::string m_plannerModel;
+
+    BackendHandlerBuilder m_backendBuilder;
+    std::vector<std::shared_ptr<AIBackendHandler> > m_backends;
 };

@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "business/aimanager.hpp"
+#include "business/applicationcore.hpp"
 #include "common/settings.hpp"
 
 namespace bpo = boost::program_options;
@@ -107,24 +107,18 @@ int main(int argc, char* argv[]) {
     }
     auto token = tokenSetting->getValueString();
 
-    // Planning model
-    auto planningModelSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL);
-    if (!tokenSetting->isSet()) {
-        COMPLOG_ERROR("Planning model (such as deepseek-r1:14b, qwen3.5:14b, etc.) not set");
+    ApplicationCore app;
+    app.setToken(token);
+    if (!app.init()) {
+        COMPLOG_ERROR("Failed to start application (init failed)");
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
-    auto planningModel = planningModelSetting->getValueString();
-
-    AIManager manager;
-    manager.setToken(token);
-    manager.setPlanningModel(planningModel);
-    manager.initBackends();
 
     try {
-        manager.start(httpAPIPort);
+        app.start(httpAPIPort);
     } catch (const std::exception& ex) {
         try {
-            manager.stop();
+            app.stop();
         } catch (...) {
             std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
             return APP_EXITCODE_FAILURE;
@@ -133,7 +127,7 @@ int main(int argc, char* argv[]) {
         return APP_EXITCODE_EXCEPTION;
     } catch (...) {
         try {
-            manager.stop();
+            app.stop();
         } catch (...) {
             std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
             return APP_EXITCODE_FAILURE;
