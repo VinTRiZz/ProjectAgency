@@ -1,34 +1,35 @@
 #include "ollamadeepseekconfig.hpp"
 
+#include <nlohmann/json.hpp>
+
 namespace DataObjects {
 
 OllamaDeepSeekConfig::OllamaDeepSeekConfig() {
-    setModel("deepseek-r1");
-    setSystemPrompt("You are DeepSeek-R1, an AI assistant created by DeepSeek.");
-    // Официально рекомендованные параметры
-    setTemperature(0.6f);
-    setTopP(0.95f);
-    setTopK(40);
-    // DeepSeek-R1 может генерировать длинные цепочки рассуждений
-    setNumPredict(4096);
-    setNumCtx(32768);
-    // Специфичный шаблон
-    setTemplateStr(R"({{ if .System }}{{ .System }}
-{{ end }}User: {{ .Prompt }}
-Assistant: )");
+    m_model.name = "deepseek-r1";
 }
 
-void OllamaDeepSeekConfig::setReasoningEffort(const std::string &level) {
-    if (level == "high") {
-        setNumPredict(8192);
-        setTemperature(0.5f); // Более детерминированно для сложных рассуждений
-    } else if (level == "medium") {
-        setNumPredict(4096);
-        setTemperature(0.6f);
-    } else { // low
-        setNumPredict(2048);
-        setTemperature(0.7f);
+std::string OllamaDeepSeekConfig::toJson() const
+{
+    auto res = OllamaConfig::toJson();
+    auto js = nlohmann::json::parse(res); // Think about this?
+
+    auto& spec = js["specific"];
+        spec["enableThinking"] = m_specific.enableThinking;
+
+    return js.dump();
+}
+
+bool OllamaDeepSeekConfig::readJson(const std::string_view &iString)
+{
+    if (!OllamaConfig::readJson(iString)) {
+        return false;
     }
+
+    // Must have no exception here
+    auto configJson = nlohmann::json::parse(iString);
+    auto& spec = configJson["specific"];
+        m_specific.enableThinking = spec.value("enableThinking", false);
+    return true;
 }
 
 } // namespace DataObjects

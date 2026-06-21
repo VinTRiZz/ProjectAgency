@@ -1,31 +1,36 @@
 #include "ollamaqwenconfig.hpp"
 
+#include <nlohmann/json.hpp>
+
 namespace DataObjects {
 
 OllamaQwenConfig::OllamaQwenConfig() {
-    setModel("qwen3.5");
-    setSystemPrompt("You are a helpful assistant.");
-    setTemperature(0.7f);
-    setTopP(0.8f);
-    setTopK(20);
-    setPresencePenalty(1.5f);
-    setNumCtx(32768);
-    setTemplateStr(R"({{ if .System }}<|im_start|>system
-{{ .System }}<|im_end|>
-{{ end }}{{ if .Prompt }}<|im_start|>user
-{{ .Prompt }}<|im_end|>
-{{ end }}<|im_start|>assistant
-)");
+    m_model.name = "qwen3.5";
 }
 
-void OllamaQwenConfig::enableThinkingMode(bool enable) {
-    if (enable) {
-        setTemperature(1.0f);
-        setTopP(0.95f);
-    } else {
-        setTemperature(0.7f);
-        setTopP(0.8f);
+
+std::string OllamaQwenConfig::toJson() const
+{
+    auto res = OllamaConfig::toJson();
+    auto js = nlohmann::json::parse(res); // Think about this?
+
+    auto& spec = js["specific"];
+    spec["enableThinking"] = m_specific.enableThinking;
+
+    return js.dump();
+}
+
+bool OllamaQwenConfig::readJson(const std::string_view &iString)
+{
+    if (!OllamaConfig::readJson(iString)) {
+        return false;
     }
+
+    // Must have no exception here
+    auto configJson = nlohmann::json::parse(iString);
+    auto& spec = configJson["specific"];
+    m_specific.enableThinking = spec.value("enableThinking", false);
+    return true;
 }
 
 } // namespace DataObjects

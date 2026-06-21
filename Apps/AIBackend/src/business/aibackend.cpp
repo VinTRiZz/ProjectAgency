@@ -50,9 +50,11 @@ void AIBackend::start(
         throw std::runtime_error("No model configuration found! Add it in configs dir as a model.mf file");
     }
 
-    d->requestBase.setStream(false); // TODO: Enable later (after MVP)
-    d->requestBase.setModel(d->currentOllamaConfig->model());
-    d->requestBase.setKeepAlive("30m"); // TODO: Discuss
+    d->requestBase.setStream(d->currentOllamaConfig->m_extra.stream);
+    d->requestBase.setModel(d->currentOllamaConfig->m_model.name);
+
+    double kaliveD = d->currentOllamaConfig->m_extra.keepAliveS;
+    d->requestBase.setKeepAlive(std::to_string(kaliveD / 60.0) + "m");
 
     d->eventListener.setManagerToken(managerToken);
     d->ollamaInterface.setAPIserver(ollamaServerAddress, ollamaAPIPort);

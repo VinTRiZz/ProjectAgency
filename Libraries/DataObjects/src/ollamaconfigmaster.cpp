@@ -27,7 +27,7 @@ bool OllamaConfigMaster::saveConfig(const OllamaConfig& config, const std::strin
     if (!file.is_open()) {
         return false;
     }
-    file << config.toModelfileString();
+    file << config.toJson();
     return true;
 }
 
@@ -58,8 +58,48 @@ OllamaConfigPtr OllamaConfigMaster::fromText(const std::string &content)
         config = std::make_unique<OllamaConfig>();
     }
 
-    config->fromModelfileString(content);
+    config->readJson(content);
     return config;
+}
+
+void OllamaConfigMaster::configureForOrchestra(const OllamaConfigPtr &pModel)
+{
+    // More strict, but with exprompts
+    pModel->m_sampling.temperature = 0.01f;
+    pModel->m_sampling.topP = 0.1f;
+    pModel->m_sampling.topK = 5;
+
+    pModel->m_repetition.repeatPenalty = 0.6f;
+}
+
+void OllamaConfigMaster::configureForCode(const OllamaConfigPtr &pModel)
+{
+    // Strict, style-following, no extra random
+    pModel->m_sampling.temperature = 0.005f;
+    pModel->m_sampling.topP = 0.5f;
+    pModel->m_sampling.topK = 5;
+
+    pModel->m_repetition.repeatPenalty = 0.5f;
+}
+
+void OllamaConfigMaster::configureForPlanning(const OllamaConfigPtr &pModel)
+{
+    // More exprompts, but follow target
+    pModel->m_sampling.temperature = 0.3f;
+    pModel->m_sampling.topP = 0.1f;
+    pModel->m_sampling.topK = 2;
+
+    pModel->m_repetition.repeatPenalty = 0.6f;
+}
+
+void OllamaConfigMaster::configureForTranslating(const OllamaConfigPtr &pModel)
+{
+    // Creativeness and rechecking is the key
+    pModel->m_sampling.temperature = 1.0f;
+    pModel->m_sampling.topP = 0.4f;
+    pModel->m_sampling.topK = 10;
+
+    pModel->m_repetition.repeatPenalty = 1.4f;
 }
 
 }

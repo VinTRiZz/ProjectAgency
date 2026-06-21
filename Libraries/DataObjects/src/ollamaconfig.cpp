@@ -24,44 +24,46 @@ std::string OllamaConfig::toJson() const {
         repeat["token"] = m_repetition.repeatPenalty;
 
     auto& extra = res["extra"];
-        extra["stream"]     = m_extra.stream;
-        extra["keepAlive"]  = m_extra.keepAlive;
-        extra["suffix"]     = m_extra.suffix;
+        extra["stream"]         = m_extra.stream;
+        extra["keepAliveS"]      = m_extra.keepAliveS;
+        extra["answerTimeout"]  = m_extra.answerTimeoutMs;
 
     return res.dump();
 }
 
 bool OllamaConfig::readJson(const std::string_view& iString) {
     try {
-        auto statusJson = nlohmann::json::parse(iString);
+        auto configJson = nlohmann::json::parse(iString);
 
         // Model systems
-        auto& modelJson = statusJson.at("model");
+        auto& modelJson = configJson.at("model");
             m_model.name           = modelJson.value("name", "");
             m_model.systemPrompt   = modelJson.value("systemPrompt", "");
             m_model.numPredict     = modelJson.value("numPredict", 0);
             m_model.numCtx         = modelJson.value("numCtx", 0);
 
         // Sample parameters
-        auto& samplingJson = statusJson.at("sampling");
+        auto& samplingJson = configJson.at("sampling");
             samplingJson["temperature"] = m_sampling.temperature;
             samplingJson["topP"]        = m_sampling.topP;
             samplingJson["topK"]        = m_sampling.topK;
 
         // Repeat configuration
-        auto& repeatJson = statusJson.at("repeat");
+        auto& repeatJson = configJson.at("repeat");
             m_repetition.repeatPenalty = repeatJson.value("token", 0.0);
 
         // Extra parameters
-        auto& extraJson = statusJson.at("extra");
+        auto& extraJson = configJson.at("extra");
             m_extra.stream    = extraJson.value("stream", false);
-            m_extra.keepAlive = extraJson.value("keepAlive", 60);
-            m_extra.suffix    = extraJson.value("suffix", "");
+            m_extra.keepAliveS = extraJson.value("keepAliveS", 60);
+            m_extra.answerTimeoutMs = extraJson.value("answerTimeout", 60'000);
     } catch (nlohmann::json::exception& ex) {
         COMPLOG_ERROR("OllamaConfig Parse error:", ex.what());
+        *this = {}; // defence
         return false;
     } catch (std::exception& ex) {
         COMPLOG_ERROR("OllamaConfig Error:", ex.what());
+        *this = {}; // defence
         return false;
     }
     return true;

@@ -12,7 +12,14 @@ class OllamaQwenConfig : public OllamaConfig
 public:
     OllamaQwenConfig();
 
-    void enableThinkingMode(bool enable);
+    struct Specific
+    {
+        bool enableThinking {true};
+    };
+    Specific m_specific;
+
+    virtual std::string toJson() const override;
+    virtual bool readJson(const std::string_view& iString) override;
 };
 
 } // namespace DataObjects
