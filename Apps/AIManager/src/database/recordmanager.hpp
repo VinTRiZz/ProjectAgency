@@ -29,34 +29,40 @@ public:
     void setDatabase(const std::string& databaseName);
     void setUser(const std::string& username, const std::string& password);
 
-    template <bool isSync = true, typename T>
-    std::enable_if_t<std::is_base_of_v<RecordBase, T>, bool>
-    addRecord(T&& iValue) {
+    template <bool isSync = true, typename T, typename IdT>
+    bool addRecord(T&& iValue) {
         return addRecord(isSync, iValue.getTable(), iValue.toRecord());
     }
 
     template <bool isSync = true, typename T>
-    std::enable_if_t<std::is_base_of_v<RecordBase, T>, bool>
-    updateRecord(T&& iValue) {
-
+    bool updateRecord(T&& iValue, const std::string& whereCondition) {
+        return updateRecord(isSync, iValue.getTable(), whereCondition, iValue.toRecord());
     }
 
     int removeRecord(const std::string &tableName, const std::string &whereCondition);
 
     template <bool isSync = true, typename T>
-    std::enable_if_t<std::is_base_of_v<RecordBase, T>, T>
-    getRecord(const DataObjects::id_t recordId) const {
+    T getRecord(const DataObjects::id_t recordId) const {
         T res;
-        res.initFromRecord(getRecord(isSync, res.getTable(), res.getIdColumn(), recordId));
+        auto whereC = std::string(res.getIdColumn().data()) + " = " + std::to_string(recordId);
+        res.initFromRecord(getRecord(isSync, res.getTable(), whereC));
         return res;
     }
 
-    std::vector<DataObjects::id_t> getAvailableRecords(const std::string &tableName, const std::string& recordIdColumn = "id") const;
+    template <bool isSync = true, typename T>
+    T getRecord(const std::string& recordStrId) const {
+        T res;
+        auto whereC = std::string(res.getIdColumn().data()) + " = '" + recordStrId + "'";
+        res.initFromRecord(getRecord(isSync, res.getTable(), whereC));
+        return res;
+    }
+
+    std::vector<record_t> executeQuery(const std::string& queryStr) const;
 
 private:
     bool addRecord(bool isSync, const std::string& tableName, const std::map<std::string, recordValue_t>& valueMap) const;
     bool updateRecord(bool isSync, const std::string& tableName, const std::string& whereCondition, const std::map<std::string, recordValue_t>& valueMap);
-    std::map<std::string, recordValue_t> getRecord(bool isSync, const std::string_view& tableName, const std::string_view& idColumnName, DataObjects::id_t recordId) const;
+    std::map<std::string, recordValue_t> getRecord(bool isSync, const std::string_view& tableName, const std::string_view& whereCondition) const;
 
     drogon::orm::DbClientPtr m_pClient;
 

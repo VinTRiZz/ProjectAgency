@@ -117,17 +117,14 @@ int RecordManager::removeRecord(const std::string& tableName, const std::string&
     return true;
 }
 
-std::vector<DataObjects::id_t> RecordManager::getAvailableRecords(const std::string& tableName, const std::string &recordIdColumn) const
+std::vector<record_t> RecordManager::executeQuery(const std::string &queryStr) const
 {
-    std::vector<DataObjects::id_t> res;
+    std::vector<record_t> res;
     try {
-        auto execRes = m_pClient->execSqlSync(std::string("SELECT ") + recordIdColumn + " FROM " + tableName);
-        auto rows = resultToRecords(execRes);
-        for (auto& r : rows) {
-            res.push_back(std::get<int64_t>(r.at(recordIdColumn)));
-        }
+        auto execRes = m_pClient->execSqlSync(queryStr);
+        res = resultToRecords(execRes);
     } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+        COMPLOG_ERROR("[RecordManager] SYNC Record exec error:", ex.base().what());
         return {};
     }
     return res;
@@ -173,9 +170,9 @@ bool RecordManager::updateRecord(bool isSync, const std::string& tableName, cons
     return false;
 }
 
-std::map<std::string, recordValue_t> RecordManager::getRecord(bool isSync, const std::string_view &tableName, const std::string_view &idColumnName, DataObjects::id_t recordId) const
+std::map<std::string, recordValue_t> RecordManager::getRecord(bool isSync, const std::string_view &tableName, const std::string_view &whereCondition) const
 {
-    std::string query = std::string("SELECT * FROM ") + tableName.data() + " WHERE " + idColumnName.data() + " = " + std::to_string(recordId);
+    std::string query = std::string("SELECT * FROM ") + tableName.data() + " WHERE " + whereCondition.data();
     try {
         auto res = m_pClient->execSqlSync(query);
         auto records = resultToRecords(res);

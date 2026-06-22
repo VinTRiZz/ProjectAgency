@@ -13,6 +13,12 @@ COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     boost_program_options
 )
 
+target_sources(PAG-AIManager
+  PRIVATE
+    src/database/airole.hpp src/database/airole.cpp
+    src/database/backendinfo.hpp src/database/backendinfo.cpp
+)
+
 COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Logger)
 COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Common)
 COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Encryption)
