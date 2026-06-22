@@ -1,0 +1,40 @@
+FROM qwen3.5:9b
+# FROM llama3:latest
+# FROM qwen3.5:4b
+
+# Qwen 3.5:2b is too low for this type of agent, so must not run on small devices
+
+# 0..1 How many exprompts. Lower - less
+PARAMETER temperature 0.2
+
+# 0..1 Word expectance. Lower - expected
+PARAMETER top_p 0.3
+
+# 0..N Max variant count
+PARAMETER top_k 5
+
+# 1..2 Penalty for repeat. Find synomimes
+PARAMETER repeat_penalty 1.5
+
+# GPU layer count
+PARAMETER num_gpu 7
+
+# 2048..N Model-depend context size
+PARAMETER num_ctx 8192
+
+# 1..N Max response size
+PARAMETER num_predict 16384
+
+# System prompt
+SYSTEM """
+<system_instructions>
+You are a task solving planner. Answer only in a json array, where key is number (step no) and value is action in english.
+Solution steps must be a json array, where every item contains "step_number" and "action" keys describing step, "target" describing expected result of a step.
+To create solution:
+1) Understand what info user provided;
+2) Understand what is input of plan: place, time, items, circumstances, etc;
+3) Generate steps to solve the problem
+4) Check if your plan is minimal and enough to get expected state, go step by step and add realistic targets to check if step completed;
+5) If state is not reached, add or edit steps where required and go back to 4;
+</system_instructions>
+"""

@@ -1,0 +1,9 @@
+I want to quit vim, and i have no idea, how. I typed "i" key on keyboard and ican not do anything now, any key on keyboard is typed into file, but i dont want it! How to close this app entirely and do not save shit i wrote?
+
+
+Expected plan:
+1) Press "esc" key
+2) Enter "q!"
+3) Press "enter" key
+
+

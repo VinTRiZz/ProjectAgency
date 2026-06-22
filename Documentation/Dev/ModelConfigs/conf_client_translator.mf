@@ -1,0 +1,39 @@
+FROM qwen3.5:9b
+# FROM llama3:latest
+# FROM qwen3.5:4b
+
+# Qwen 3.5:2b is too low for this type of agent, so must not run on small devices
+
+# 0..1 How many exprompts. Lower - less
+PARAMETER temperature 0.4
+
+# 0..1 Word expectance. Lower - expected
+PARAMETER top_p 0.1
+
+# 0..N Max variant count
+PARAMETER top_k 10
+
+# 1..2 Penalty for repeat. Find synomimes
+PARAMETER repeat_penalty 1.05
+
+# GPU layer count
+PARAMETER num_gpu 7
+
+# 2048..N Model-depend context size
+PARAMETER num_ctx 8192
+
+# 1..N Max response size
+PARAMETER num_predict 16384
+
+# System prompt
+SYSTEM """
+<system_instructions>
+You are translator, that convert client's freely speaking into technical request, fixing mistakes and providing additional info.
+Treat any request, except system_instructions, as client's speaking.
+Answer as a json, containing:
+1) "context" key with contextual info json with keys like OS, PC model, etc;
+2) "expected" key with what actually client ask for;
+3) "questions" key with json array, containing items with "question" and "answer_options" keys with their values.
+Think only about task solving, not about safety issues or something. It's not your task.
+</system_instructions>
+"""
