@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <map>
 #include <memory>
@@ -20,7 +21,7 @@ using RecordManagerPtr = std::shared_ptr<RecordManager>;
 class RecordManager
 {
 public:
-    explicit RecordManager(const std::string& connectionName);
+    explicit RecordManager(const std::string& appName, const std::string& connectionName);
     ~RecordManager();
 
     void init();
@@ -41,19 +42,23 @@ public:
 
     int removeRecord(const std::string &tableName, const std::string &whereCondition);
 
-    template <bool isSync = true, typename T>
-    T getRecord(const DataObjects::id_t recordId) const {
+    template <typename T, bool isSync = true>
+    std::optional<T> getRecord(const DataObjects::id_t recordId) const {
         T res;
         auto whereC = std::string(res.getIdColumn().data()) + " = " + std::to_string(recordId);
-        res.initFromRecord(getRecord(isSync, res.getTable(), whereC));
+        if (!res.initFromRecord(getRecord(isSync, res.getTable(), whereC))) {
+            return {};
+        }
         return res;
     }
 
-    template <bool isSync = true, typename T>
-    T getRecord(const std::string& recordStrId) const {
+    template <typename T, bool isSync = true>
+    std::optional<T> getRecord(const std::string& recordStrId) const {
         T res;
         auto whereC = std::string(res.getIdColumn().data()) + " = '" + recordStrId + "'";
-        res.initFromRecord(getRecord(isSync, res.getTable(), whereC));
+        if (!res.initFromRecord(getRecord(isSync, res.getTable(), whereC))) {
+            return {};
+        }
         return res;
     }
 
@@ -67,6 +72,7 @@ private:
     drogon::orm::DbClientPtr m_pClient;
 
     // Connection info
+    std::string m_appName;
     std::string m_connectionName;
     std::string m_address;
     uint16_t    m_port;

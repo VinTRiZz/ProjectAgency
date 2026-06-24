@@ -71,7 +71,8 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
     return res;
 }
 
-RecordManager::RecordManager(const std::string &connectionName) :
+RecordManager::RecordManager(const std::string &appName, const std::string &connectionName) :
+    m_appName { appName },
     m_connectionName{ connectionName }
 {
 
@@ -121,6 +122,9 @@ std::vector<record_t> RecordManager::executeQuery(const std::string &queryStr) c
 {
     std::vector<record_t> res;
     try {
+        if (std::string::npos != queryStr.find(';')) {
+            throw std::runtime_error("Invalid query. Expected query with no ';' symbol");
+        }
         auto execRes = m_pClient->execSqlSync(queryStr);
         res = resultToRecords(execRes);
     } catch (const drogon::orm::DrogonDbException& ex) {
@@ -194,7 +198,8 @@ std::string RecordManager::createConnectionString() const
                              " port=" + std::to_string(m_port) +
                              " dbname=" + m_databaseName +
                              " user=" + m_username +
-                             " password=" + m_password;
+                             " password=" + m_password +
+                             " application_name=" + m_appName;
     return connString;
 }
 

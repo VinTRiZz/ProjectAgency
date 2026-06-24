@@ -3,6 +3,7 @@
 #include <string>
 #include <variant>
 #include <map>
+#include <algorithm>
 
 #include <ProjectAgency/Types.h>
 
@@ -36,21 +37,35 @@ public:
         return res;
     }
 
-    virtual void initFromRecord(const record_t& iRecord) {
-        if constexpr (std::is_arithmetic_v<IdT> || std::is_same_v<IdT, DataObjects::id_t>) {
-            m_id = std::get<int64_t>(iRecord.at(m_idColumnName));
-        } else {
-            m_id = std::get<std::string>(iRecord.at(m_idColumnName));
+    virtual bool initFromRecord(const record_t& iRecord) {
+        auto idColIt = iRecord.find(m_idColumnName);
+        if (iRecord.end() == idColIt) {
+            return false;
         }
+        if constexpr (std::is_arithmetic_v<IdT> || std::is_same_v<IdT, DataObjects::id_t>) {
+            m_id = std::get<int64_t>(idColIt->second);
+        } else {
+            m_id = std::get<std::string>(idColIt->second);
+        }
+        return true;
     }
 
-    void setId(DataObjects::id_t id);
-    DataObjects::id_t getId() const;
+    void setId(const IdT& id) { m_id = id; }
+    IdT getId() const { return m_id; }
 
 private:
     std::string m_table;
     std::string m_idColumnName;
     IdT m_id {};
+
+protected:
+    // Clean string from symbols like ', ;, etc.
+    void fixStringValueIssues(std::string& inputStr) const {
+        std::replace_if(inputStr.data(), inputStr.data() + inputStr.size(),
+                        [](auto c){
+            return (c == '\'') || (c == ';') || (c == '"');
+        }, ' ');
+    }
 };
 
 using RecordBaseI = RecordBase<DataObjects::id_t>;
