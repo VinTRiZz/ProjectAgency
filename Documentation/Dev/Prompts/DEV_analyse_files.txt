@@ -1,0 +1,42 @@
+[Input directories]
+
+
+[Files to be proceed]
+*.h
+*.c
+*.hpp
+*.cpp
+*.sql
+
+[Sorting rule]
+Alphabetic order everywhere
+
+[Output directory]
+MODEL_CONTEXT_FILERY
+
+[Extra]
+Extra referred files can be found according to CMakeLists.txt
+In any unknown case, assume that the most likely or logical option is present
+Process header and implementation files together, like one file (for example, treat myfile.h as a part of processing myfile.c)
+You are allowed to create subdirectories of a files
+Process only one SQL file or header/implementation pair and assume that task completed
+
+[Task]
+Before start:
+1) Check if in output directory exist file "PROCEED.md"
+2) If file "PROCEED.md" not exist, create it 
+3) Add or update status / commit date in "PROCEED.md" file you want to process in format "source_filename(s)/result_file/status (COMPLETED or PROCESSING:LAST_PROCEED_LINE)/date_of_last_git_commit_changed_file"
+4) If there's any file in "PROCEED.md" that in status PROCESSING, continue working with it
+For one file:
+1) Read N lines (no more than 300 at once);
+2) Setup a list of TSQL syntax constructions, keywords, logic (for example, "COUNT(*)") mentioned in a CURRENT_FILE;
+3) For every function, add prototype with short comment about function purpose and internal logic (in brief, using keywords). Also add in comment references section with everything it refers to (including functions, macroses, etc.);
+4) For every structure or class, add commentary with structure and it's fields purpose;
+5) For every data type, add full declaration;
+6) For every macro, add it's name and a comment above with it's purpose;
+7) For other things, if they have any usable logic - add short info;
+8) Write got from 2 to 7 steps info into a file with same name but with suffix ".md" as a CURRENT_FILE into output directory. If such a file already exist, then merge them;
+9) Update status of a CURRENT_FILE in "PROCEED.md" file with current line as the last proceed
+10) Repeat from 1 to 9 steps while file is not ended or 2000 lines in total did not read
+11) If you read the whole file, so set status of it to "COMPLETE". Otherwise set status "PROCESSING"
+12) Answer that task is complete
