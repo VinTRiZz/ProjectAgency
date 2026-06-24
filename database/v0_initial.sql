@@ -6,6 +6,17 @@
 CREATE SCHEMA IF NOT EXISTS sch_manager;
 COMMENT ON SCHEMA sch_manager IS 'Primary schema of AIBackend application';
 
+-- Grant permissions for schema
+GRANT USAGE ON SCHEMA sch_manager TO :CONFIGURE_SERVERUSER;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA sch_manager TO :CONFIGURE_SERVERUSER;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA sch_manager TO :CONFIGURE_SERVERUSER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA sch_manager
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO :CONFIGURE_SERVERUSER;
+
+-- Drop existing (if version is downgraded?)
+DROP VIEW sch_manager.view_backend_common;
+DROP TABLE sch_manager.t_backends;
+DROP TABLE sch_manager.t_model_roles;
 
 -- ============================================== --
 -- ============== Tables setup ================== --
@@ -14,13 +25,12 @@ COMMENT ON SCHEMA sch_manager IS 'Primary schema of AIBackend application';
 -- Table for roles data saving
 CREATE TABLE sch_manager.t_model_roles (
 	id 			BIGSERIAL PRIMARY KEY,
-	version		INT NOT NULL DEFAULT 100, 					-- Version of role, 100 is 1.0.0
+	version		INT NOT NULL DEFAULT 100 CHECK (version > 0 AND version < 1000), -- Version of role, 100 is 1.0.0
 	name 		TEXT NOT NULL DEFAULT 'Default role name', 	-- Display name
-	type		TEXT, 										-- Type of role, like "Coder" or "Planner"
+	type		TEXT, 										-- Type of role, like "coder" or "planner"
+	config 		JSON NOT NULL,								-- Configuration with values contain *.mf file in Ollama
 
-	-- Configuration must be specified or not, in case of "thinking" mode or other extras
-	config 		JSON  CHECK (config IS NOT NULL AND config_special IS NULL),
-	config_special	JSON CHECK (config IS NULL AND config_special IS NOT NULL)
+	CONSTRAINT uniq_name_with_version UNIQUE (name, version)
 );
 COMMENT ON TABLE sch_manager.t_model_roles IS 'AI configurations';
 GRANT INSERT, DELETE, SELECT, UPDATE ON TABLE sch_manager.t_model_roles TO "server";
@@ -44,20 +54,6 @@ CREATE TABLE sch_manager.t_backends (
 COMMENT ON TABLE sch_manager.t_backends IS 'AI backends';
 GRANT INSERT, DELETE, SELECT, UPDATE ON TABLE sch_manager.t_backends TO "server";
 
-
--- Event history of a devices. Must be harvested every second by AIManager
-CREATE TABLE sch_manager.t_backends_history (
-	id BIGSERIAL NOT NULL PRIMARY KEY,
-
-	level		INTEGER CHECK (level > 0 AND level < 4) NOT NULL DEFAULT 0, -- 3 +debug, 2 +ok, 1 +warn, 0 err
-	message 	TEXT,
-	sender		VARCHAR(64), 			-- If NULL then sender is AIBackend
-	type		VARCHAR(32) NOT NULL	-- Type of an event, such as "Prompt" or "Power"
-);
-COMMENT ON TABLE sch_manager.t_backends IS 'Events history';
-GRANT INSERT, DELETE, SELECT ON TABLE sch_manager.t_backends TO "server";
-
-
 -- ============================================== --
 -- =============== Views setup ================== --
 -- ============================================== --
@@ -71,6 +67,7 @@ CREATE OR REPLACE VIEW sch_manager.view_backend_common AS
 		b.last_online	AS "last_online"
 		FROM
 			sch_manager.t_model_roles AS mr,
-			sch_manager.t_backends AS b;
+			sch_manager.t_backends AS b
+		ORDER BY "name" ASC;
 GRANT SELECT ON sch_manager.view_backend_common TO "server";
 COMMENT ON VIEW sch_manager.view_backend_common IS 'Common data for control panel interface';
