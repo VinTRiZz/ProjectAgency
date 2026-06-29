@@ -6,6 +6,49 @@
 
 namespace Database {
 
+int deduceCellType(const drogon::orm::Field& rowCell) {
+    auto strVal = row[i].as<std::string>();
+    try {
+        std::size_t convEndPos {0};
+        auto convRes = std::stol(strVal, &convEndPos);
+        if (convEndPos != strVal.length()) {
+            throw std::invalid_argument("len end not reached");
+        }
+        record[execResult.columnName(i)] = convRes;
+        columnTypes[i] = 1;
+
+    } catch (const std::invalid_argument& ex) {
+        try {
+            std::size_t convEndPos {0};
+            auto doubleV = std::stod(strVal, &convEndPos);
+            if (convEndPos != strVal.length()) {
+                throw std::invalid_argument("len end not reached");
+            }
+            record[execResult.columnName(i)] = doubleV;
+            columnTypes[i] = 2;
+
+        } catch (const std::invalid_argument& ex) {
+            record[execResult.columnName(i)] = strVal;
+            columnTypes[i] = 3;
+        }
+    }
+}
+
+static recordValue_t cellToRecord(const drogon::orm::Field& rowCell, int columnType) {
+    recordValue_t res { std::monostate() };
+    if (rowCell.isNull()) {
+        return res;
+    } else {
+        switch (columnType)
+        {
+        case 1: return rowCell.as<int64_t>();       // Integer
+        case 2: return rowCell.as<double>();        // double prec
+        case 3: return rowCell.as<std::string>();   // Other type (treat as string)
+        }
+    }
+    throw std::runtime_error(std::string("Unexpected type of column: ") + std::to_string(columnType));
+}
+
 // TODO: Move to common?
 static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResult) {
 
@@ -17,20 +60,7 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
         for (size_t i = 0; i < row.size(); ++i) {
             // Use deduced type
             if (columnTypes[i] != 0) {
-                switch (columnTypes[i])
-                {
-                case 1:
-                    row[i].isNull() ? record[execResult.columnName(i)] = int64_t{} : record[execResult.columnName(i)] = row[i].as<int64_t>();
-                    break; // Integer
-
-                case 3:
-                    row[i].isNull() ? record[execResult.columnName(i)] = double{} : record[execResult.columnName(i)] = row[i].as<double>();
-                    break; // Double
-
-                case 4:
-                    row[i].isNull() ? record[execResult.columnName(i)] = std::string{} : record[execResult.columnName(i)] = row[i].as<std::string>();
-                    break; // String
-                }
+                record[execResult.columnName(i)] = cellToRecord(row[i], columnTypes[i]);
                 continue;
             }
 
@@ -40,31 +70,9 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
             }
 
             // Deduce type
-            auto strVal = row[i].as<std::string>();
-            try {
-                std::size_t convEndPos {0};
-                auto convRes = std::stol(strVal, &convEndPos);
-                if (convEndPos != strVal.length()) {
-                    throw std::invalid_argument("len end not reached");
-                }
-                record[execResult.columnName(i)] = convRes;
-                columnTypes[i] = 1;
-
-            } catch (const std::invalid_argument& ex) {
-                try {
-                    std::size_t convEndPos {0};
-                    auto doubleV = std::stod(strVal, &convEndPos);
-                    if (convEndPos != strVal.length()) {
-                        throw std::invalid_argument("len end not reached");
-                    }
-                    record[execResult.columnName(i)] = doubleV;
-                    columnTypes[i] = 2;
-
-                } catch (const std::invalid_argument& ex) {
-                    record[execResult.columnName(i)] = strVal;
-                    columnTypes[i] = 3;
-                }
-            }
+            auto colType = deduceCellType(row[i]);
+            columnTypes[i] = colType;
+            record[execResult.columnName(i)] = cellToRecord(row[i], colType);
         }
         res.push_back(record);
     }

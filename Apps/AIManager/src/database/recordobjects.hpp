@@ -10,7 +10,7 @@
 namespace Database {
 
 // Common
-using recordValue_t = std::variant<std::string, int64_t, double>;
+using recordValue_t = std::variant<std::monostate, std::string, int64_t, double>;
 using record_t = std::map<std::string, recordValue_t>;
 
 /**
@@ -50,7 +50,7 @@ public:
         return true;
     }
 
-    void setId(const IdT& id) { m_id = id; }
+    virtual void setId(const IdT& id) { m_id = id; }
     IdT getId() const { return m_id; }
 
 private:
