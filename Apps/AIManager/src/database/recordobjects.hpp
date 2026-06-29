@@ -7,11 +7,9 @@
 
 #include <ProjectAgency/Types.h>
 
-namespace Database {
+#include "dbconnection.hpp"
 
-// Common
-using recordValue_t = std::variant<std::monostate, std::string, int64_t, double>;
-using record_t = std::map<std::string, recordValue_t>;
+namespace Database {
 
 /**
  * @brief The RecordBase class Basic class for converting from/to DB records
@@ -52,6 +50,14 @@ public:
 
     virtual void setId(const IdT& id) { m_id = id; }
     IdT getId() const { return m_id; }
+    virtual std::string getIdString() const {
+        if constexpr (std::is_same_v<IdT, std::string>) {
+            return m_id;
+        } else if constexpr (std::is_same_v<IdT, DataObjects::id_t>) {
+            return std::to_string(m_id);
+        }
+        return {};
+    }
 
 private:
     std::string m_table;
