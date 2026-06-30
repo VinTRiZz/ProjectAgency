@@ -3,9 +3,10 @@
 #include <optional>
 #include <string>
 #include <memory>
+#include <stdexcept>
 
 #include <ProjectAgency/DB/AIRole.h>
-#include "dbconnection.hpp"
+#include <ProjectAgency/DB/AbstractConnection.h>
 
 namespace drogon::orm {
 class DbClient;
@@ -30,27 +31,26 @@ class RecordManager
     };
 
 public:
-    explicit RecordManager();
-    ~RecordManager();
 
     // For outer initialization
-    DBConnection& getConnection();
+    void setConnection(const AbstractConnectionPtr& pCon);
+    AbstractConnectionPtr getConnection() const;
 
     template <typename IdT, bool isSync = true>
     bool addRecord(RecordBase<IdT>&& iValue) {
-        auto res = m_connection.executeQuery(makeSimpleQuery(QueryType::Insert, iValue));
+        auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Insert, iValue));
         return (res.has_value());
     }
 
     template <typename IdT, bool isSync = true>
     bool updateRecord(RecordBase<IdT>&& iValue) {
-        auto res = m_connection.executeQuery(makeSimpleQuery(QueryType::Update, iValue));
+        auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Update, iValue));
         return (res.has_value());
     }
 
     template <typename IdT, bool isSync = true>
     bool removeRecord(RecordBase<IdT>&& iValue) {
-        auto res = m_connection.executeQuery(makeSimpleQuery(QueryType::Delete, iValue));
+        auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Delete, iValue));
         return (res.has_value());
     }
 
@@ -58,7 +58,7 @@ public:
     std::optional<RecordT> getRecord(const typename RecordT::id_t& recordId) const {
         RecordT iValue;
         iValue.setId(recordId);
-        auto res = m_connection.executeQuery(makeSimpleQuery(QueryType::SelectOne, iValue));
+        auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::SelectOne, iValue));
         if (!res.has_value() || !res.initFromRecord(res.value())) {
             return {};
         }
@@ -69,7 +69,7 @@ public:
     std::vector<RecordT> getAllRecords() const {
         std::vector<RecordT> outputValues;
         RecordT singleValue;
-        auto res = m_connection.executeQuery(makeSimpleQuery(QueryType::SelectAll, singleValue));
+        auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::SelectAll, singleValue));
         if (!res.has_value()) {
             return {};
         }
@@ -84,7 +84,7 @@ public:
 
 private:
     // Connection info
-    DBConnection m_connection;
+    AbstractConnectionPtr m_connection;
 
     // Value conversions for simplicity
     std::string recordToColumns(const record_t& rec) const;

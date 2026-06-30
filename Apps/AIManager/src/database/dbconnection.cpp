@@ -113,41 +113,6 @@ std::vector<record_t> resultToRecords(const drogon::orm::Result& execResult) {
     return res;
 }
 
-
-
-DBConnection::DBConnection(const std::string &appName, const std::string &connectionName) :
-    m_appName { appName },
-    m_connectionName{ connectionName } {
-
-}
-
-void DBConnection::setAppName(const std::string &appName)
-{
-    m_appName = appName;
-}
-
-void DBConnection::setName(const std::string &conName)
-{
-    m_connectionName = conName;
-}
-
-void DBConnection::setServer(const std::string &address, uint16_t port)
-{
-    m_address = address;
-    m_port = port;
-}
-
-void DBConnection::setDatabase(const std::string &databaseName)
-{
-    m_databaseName = databaseName;
-}
-
-void DBConnection::setUser(const std::string &username, const std::string &password)
-{
-    m_username = username;
-    m_password = password;
-}
-
 void DBConnection::init()
 {
     m_pClient = drogon::orm::DbClient::newPgClient(createConnectionString(), 2);
@@ -192,35 +157,15 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
     }
 }
 
-std::string DBConnection::cellDataToString(const recordValue_t &val) const
-{
-    return std::visit([](auto& v) -> std::string {
-        using valueType_t = std::decay_t<decltype(v)>;
-        if constexpr (std::is_same_v<valueType_t, std::string>) {
-            return v;
-        } else
-            if constexpr (std::is_same_v<valueType_t, DataObjects::id_t>) {
-                if (v == DataObjects::NULL_ID) {
-                    return "NULL";
-                }
-                return std::to_string(v);
-            } else
-                if constexpr (std::is_same_v<valueType_t, double>) {
-                    return std::to_string(v);
-                }
-        return {};
-    }, val);
-}
-
 std::string DBConnection::createConnectionString() const
 {
     // "host=127.0.0.1 port=5432 dbname=test user=user password=pass"
-    std::string connString = "host=" + m_address +
-                             " port=" + std::to_string(m_port) +
-                             " dbname=" + m_databaseName +
-                             " user=" + m_username +
-                             " password=" + m_password +
-                             " application_name=" + m_appName;
+    std::string connString = "host=" + getServer() +
+                             " port=" + std::to_string(getServerPort()) +
+                             " dbname=" + getDatabase() +
+                             " user=" + getUsername() +
+                             " password=" + getPassword() +
+                             " application_name=" + getAppName();
     return connString;
 }
 

@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "backendhandle/aibackendhandler.hpp"
+#include <ProjectAgency/DB/RecordManager.h>
 
-#include "database/recordmanager.hpp"
+#include "backendhandle/aibackendhandler.hpp"
 
 /**
  * @brief The AIManager class AIBackend handler class

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <ProjectAgency/DB/AIRole.h>
-#include "database/recordmanager.hpp"
+#include <ProjectAgency/DB/RecordManager.h>
 
 class AIRoleManager
 {

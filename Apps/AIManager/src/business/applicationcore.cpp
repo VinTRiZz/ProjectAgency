@@ -6,6 +6,7 @@
 #include "aimanager.hpp"
 #include "airolemanager.hpp"
 #include "common/settings.hpp"
+#include "database/dbconnection.hpp"
 
 #include "httpcontrollers/aiservicecontroller.hpp"
 #include "httpcontrollers/aistatuscontroller.hpp"
@@ -92,13 +93,14 @@ void ApplicationCore::initDatabase()
     auto& appSettings = Common::ApplicationSettings::getInstance();
 
     d->m_pRecordManager = std::make_shared<Database::RecordManager>();
-    auto& con = d->m_pRecordManager->getConnection();
-    con.setAppName("AIManager");
-    con.setName("main");
-    con.setUser(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USERNAME)->getValueString(),
+    auto pCon = std::make_shared<Database::DBConnection>();
+    pCon->setAppName("AIManager");
+    pCon->setName("main");
+    pCon->setUser(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USERNAME)->getValueString(),
                 appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USER_PASS)->getValueString());
-    con.setServer(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_ADDRESS)->getValueString(),
+    pCon->setServer(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_ADDRESS)->getValueString(),
                   appSettings.getSetting(Settings::SECTION_DB, Settings::DB_PORT)->getValue<int64_t>());
-    con.setDatabase(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_DBNAME)->getValueString());
-    con.init();
+    pCon->setDatabase(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_DBNAME)->getValueString());
+    pCon->init();
+    d->m_pRecordManager->setConnection(pCon);
 }

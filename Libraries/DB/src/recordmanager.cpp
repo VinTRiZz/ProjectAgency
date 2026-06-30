@@ -1,22 +1,15 @@
 #include "recordmanager.hpp"
 
-#include <drogon/drogon.h>
-
 #include <Components/Logger/Logger.h>
 
 namespace Database {
 
-RecordManager::RecordManager()
+void RecordManager::setConnection(const AbstractConnectionPtr &pCon)
 {
-
+    m_connection = pCon;
 }
 
-RecordManager::~RecordManager()
-{
-
-}
-
-DBConnection &RecordManager::getConnection()
+AbstractConnectionPtr RecordManager::getConnection() const
 {
     return m_connection;
 }
@@ -35,7 +28,7 @@ std::string RecordManager::recordToColumns(const record_t &rec) const {
 std::string RecordManager::recordToValues(const record_t &rec) const {
     std::string query;
     for (auto& [colName, colValue] : rec) {
-        query += m_connection.cellDataToString(colValue) + ",";
+        query += m_connection->cellDataToString(colValue) + ",";
     }
     if (!query.empty()) {
         query.pop_back(); // last ','
@@ -46,7 +39,7 @@ std::string RecordManager::recordToValues(const record_t &rec) const {
 std::string RecordManager::recordToValueAssignList(const record_t &rec) const {
     std::string query;
     for (auto& [colName, colValue] : rec) {
-        query += colName + "=" + m_connection.cellDataToString(colValue) + ",";
+        query += colName + "=" + m_connection->cellDataToString(colValue) + ",";
     }
     if (!query.empty()) {
         query.pop_back(); // last ','
