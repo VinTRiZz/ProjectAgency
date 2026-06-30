@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <variant>
-#include <map>
 #include <algorithm>
 
 #include <ProjectAgency/Types.h>
@@ -17,6 +15,8 @@ namespace Database {
 template <typename IdT>
 class RecordBase {
 public:
+    using id_t = IdT;
+
     explicit RecordBase(const std::string& tableName, const std::string& idColumn = "id") {
         m_table = tableName;
         m_idColumnName = idColumn;

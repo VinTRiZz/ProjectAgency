@@ -19,7 +19,6 @@ Database::record_t AIRole::toRecord() const
 
 bool AIRole::initFromRecord(const Database::record_t &iRecord)
 {
-    *this = {}; // erase self values
     Database::RecordBaseI::initFromRecord(iRecord);
 
     auto colIt = iRecord.find("version");
@@ -38,7 +37,7 @@ bool AIRole::initFromRecord(const Database::record_t &iRecord)
     if (iRecord.end() == colIt) {
         return false;
     }
-    m_type = std::get<std::string>(colIt->second);
+    m_type = (std::holds_alternative<std::monostate>(colIt->second) ? std::string() : std::get<std::string>(colIt->second));
 
     colIt = iRecord.find("config");
     if (iRecord.end() == colIt) {

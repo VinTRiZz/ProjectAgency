@@ -11,7 +11,7 @@
 
 struct ApplicationCore::Impl
 {
-    Database::RecordManager m_dbManager {"AIManager", "main_connection"};
+    Database::RecordManager m_dbManager;
 
     AIManager m_aiManager;
     AIRoleManager m_aiRoleManager {m_dbManager};
@@ -37,10 +37,13 @@ bool ApplicationCore::init()
 {
     // TODO: Move into config
     COMPLOG_INFO_SYNC("Configuring DB connection...");
-    d->m_dbManager.setUser("server", "serv_auth_password");
-    d->m_dbManager.setServer("127.0.0.1", 10001);
-    d->m_dbManager.setDatabase("pag_main");
-    d->m_dbManager.init();
+    auto& con = d->m_dbManager.getConnection();
+    con.setAppName("AIManager");
+    con.setName("main");
+    con.setUser("server", "serv_auth_password");
+    con.setServer("127.0.0.1", 10001);
+    con.setDatabase("pag_main");
+    con.init();
 
     COMPLOG_INFO_SYNC("Reading roles from DB...");
     d->m_aiRoleManager.readDatabase();
