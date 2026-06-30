@@ -29,7 +29,7 @@ void SettingsConfigurator::setupSettings()
 
     // App common
     initSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
-    initSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
+    initSettingValue(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT, 9001);
     initSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_INPUT_MODEL);
 
     // DB
@@ -42,7 +42,7 @@ void SettingsConfigurator::setupSettings()
     // Check DB Values
     auto portValue = settingsInstance.getSetting(Settings::SECTION_DB, Settings::DB_PORT)->getValue<int64_t>();
     if (0 > portValue || 65535 < portValue) {
-        throw std::invalid_argument("database port");
+        throw std::invalid_argument(std::string("database port (") + std::to_string(portValue) + ")");
     }
 
     settingsInstance.saveSettings();
