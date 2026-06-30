@@ -5,7 +5,7 @@
 
 #include "business/aimanager.hpp"
 
-#include <ProjectAgency/ExchangeHTTP.h>
+#include <ProjectAgency/Exchange/HTTP.h>
 
 /**
  * @brief The AIStatusController class Handles status of AIBackend, such as current prompt, system resources, etc.

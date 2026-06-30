@@ -5,7 +5,7 @@
 #include "business/aimanager.hpp"
 #include "controllerbase.hpp"
 
-#include <ProjectAgency/ExchangeHTTP.h>
+#include <ProjectAgency/Exchange/HTTP.h>
 
 /**
  * @brief The UserRequestController class Handles user requests (user tasks)

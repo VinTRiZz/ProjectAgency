@@ -3,7 +3,7 @@
 #include "client_base/httpclientbase.hpp"
 
 #include <ProjectAgency/DeviceStatus.h>
-#include <ProjectAgency/ExchangeHTTP.h>
+#include <ProjectAgency/Exchange/HTTP.h>
 
 #include <QTimer>
 

@@ -5,7 +5,7 @@
 
 #include "business/aimanager.hpp"
 
-#include <ProjectAgency/ExchangeHTTP.h>
+#include <ProjectAgency/Exchange/HTTP.h>
 
 /**
  * @brief The AIServiceController class Handles service of AIBackend instance
