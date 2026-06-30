@@ -26,7 +26,6 @@ Database::record_t BackendInfo::toRecord() const
     res["type"] = m_type;
     res["ip_addr"] = m_ip;
     res["ip_port"] = m_port;
-    res["ip_token"] = m_token;
     res["display_name"] = std::string("0x") +Encryption::encodeHex(m_displayName);
     return res;
 }
@@ -55,12 +54,6 @@ bool BackendInfo::initFromRecord(const Database::record_t &iRecord)
         return false;
     }
     m_port = std::get<int64_t>(colIt->second);
-
-    colIt = iRecord.find("ip_token");
-    if (iRecord.end() == colIt) {
-        return false;
-    }
-    m_token = std::get<std::string>(colIt->second);
 
     colIt = iRecord.find("display_name");
     if (iRecord.end() == colIt) {

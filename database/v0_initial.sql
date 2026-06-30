@@ -42,11 +42,10 @@ CREATE TABLE sch_manager.t_backends (
 	type			INT NOT NULL DEFAULT 0,				-- Type of a backend (PC, Android, etc.)
 	ip_addr			TEXT NOT NULL DEFAULT '0.0.0.0',
 	ip_port			INT CHECK (ip_port >= 0 AND ip_port <= 65535) NOT NULL,
-	ip_token		VARCHAR(65) NOT NULL,
 	model_role		BIGINT,
 
 	-- Displayable info
-	display_name 	TEXT NOT NULL DEFAULT '4149204261636b656e640a',
+	display_name 	TEXT NOT NULL,
 	last_online		TIMESTAMP(0), -- If NULL then is online now
 
 	-- Constraints

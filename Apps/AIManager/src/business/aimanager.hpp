@@ -20,7 +20,7 @@ public:
     void setRecordManager(const Database::RecordManagerPtr& pManager);
 
     void setToken(const std::string& tokenString);
-    void setPlanningModel(const std::string& modelName);
+    void setInputModel(const std::string& modelName);
 
     void init();
     void start();

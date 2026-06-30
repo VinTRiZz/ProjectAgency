@@ -22,4 +22,6 @@ public:
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
+
+    void initDatabase();
 };

@@ -41,6 +41,7 @@ public:
 
     /**
      * @throws std::invalid_argument if ID length is not 64
+     * @note Token is not saved to DB. Get it from app settings
      */
     void setToken(const std::string& token);
     std::string getToken() const;

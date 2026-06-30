@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "business/applicationcore.hpp"
+#include "common/settingsconfigurator.hpp"
 #include "common/settings.hpp"
 
 namespace bpo = boost::program_options;
@@ -66,18 +67,13 @@ int main(int argc, char* argv[]) {
     auto& settingsInstance = Common::ApplicationSettings::getInstance();
     auto settingsFile = dirManager.getDirectory(Common::Config) / "aimanager.ini";
     settingsInstance.loadSettings(settingsFile);
-
-    // Add expected settings
-    if (!settingsInstance.hasSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN)) {
-        settingsInstance.addSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
+    AIManagerCommon::SettingsConfigurator settingsConfigurator;
+    try {
+        settingsConfigurator.setupSettings();
+    } catch (const std::exception& ex) {
+        COMPLOG_ERROR("Invalid setting value:", ex.what());
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
-    if (!settingsInstance.hasSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT)) {
-        settingsInstance.addSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
-    }
-    if (!settingsInstance.hasSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL)) {
-        settingsInstance.addSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_PLANNER_MODEL);
-    }
-    settingsInstance.saveSettings();
 
     // Check API port
     if (httpAPIPort == 0) {

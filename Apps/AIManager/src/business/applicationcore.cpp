@@ -1,9 +1,11 @@
 #include "applicationcore.hpp"
 
 #include <Components/Logger/Logger.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
 
 #include "aimanager.hpp"
 #include "airolemanager.hpp"
+#include "common/settings.hpp"
 
 #include "httpcontrollers/aiservicecontroller.hpp"
 #include "httpcontrollers/aistatuscontroller.hpp"
@@ -35,16 +37,11 @@ void ApplicationCore::setToken(const std::string &tokenString)
 
 bool ApplicationCore::init()
 {
+    auto& appSettings = Common::ApplicationSettings::getInstance();
+
     // TODO: Move into config
     COMPLOG_INFO_SYNC("Configuring DB connection...");
-    d->m_pRecordManager = std::make_shared<Database::RecordManager>();
-    auto& con = d->m_pRecordManager->getConnection();
-    con.setAppName("AIManager");
-    con.setName("main");
-    con.setUser("server", "serv_auth_password");
-    con.setServer("127.0.0.1", 10001);
-    con.setDatabase("pag_main");
-    con.init();
+    initDatabase();
 
     // Setup roles
     COMPLOG_INFO_SYNC("Reading roles from DB...");
@@ -54,6 +51,8 @@ bool ApplicationCore::init()
     // Setup AI roles
     COMPLOG_INFO_SYNC("Reading AIBackend configurations...");
     d->m_aiManager.setRecordManager(d->m_pRecordManager);
+    auto inputModel = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_INPUT_MODEL)->getValueString(); // Expected existance here
+    d->m_aiManager.setInputModel(inputModel);
     d->m_aiManager.init();
 
     COMPLOG_OK("AIManager init complete");
@@ -86,4 +85,20 @@ void ApplicationCore::stop()
     }
     d->m_aiManager.stop();
     drogon::app().quit();
+}
+
+void ApplicationCore::initDatabase()
+{
+    auto& appSettings = Common::ApplicationSettings::getInstance();
+
+    d->m_pRecordManager = std::make_shared<Database::RecordManager>();
+    auto& con = d->m_pRecordManager->getConnection();
+    con.setAppName("AIManager");
+    con.setName("main");
+    con.setUser(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USERNAME)->getValueString(),
+                appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USER_PASS)->getValueString());
+    con.setServer(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_ADDRESS)->getValueString(),
+                  appSettings.getSetting(Settings::SECTION_DB, Settings::DB_PORT)->getValue<int64_t>());
+    con.setDatabase(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_DBNAME)->getValueString());
+    con.init();
 }

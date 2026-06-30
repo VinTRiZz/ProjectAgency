@@ -7,6 +7,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "common/settings.hpp"
+
 AIManager::AIManager()
 {
 
@@ -27,17 +29,20 @@ void AIManager::setToken(const std::string &tokenString)
     m_token = tokenString;
 }
 
-void AIManager::setPlanningModel(const std::string &modelName)
+void AIManager::setInputModel(const std::string &modelName)
 {
     m_plannerModel = modelName;
 }
 
 void AIManager::init()
 {
+    auto& appSettings = Common::ApplicationSettings::getInstance();
+    auto token = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN)->getValueString(); // Expected existance here
     auto backendRecords = m_pRecordManager->getAllRecords<DBRecords::BackendInfo>();
     for (auto& bck : backendRecords) {
         COMPLOG_DEBUG("Loaded backend:", bck.getId(), bck.getDisplayName(), "(", bck.getFullAddress(), ")");
         auto pBackend = std::make_shared<AIBackendHandler>();
+        bck.setToken(token);
         pBackend->getInfo() = bck;
         m_backends.push_back(pBackend);
     }
