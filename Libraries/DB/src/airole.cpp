@@ -101,4 +101,14 @@ std::string AIRole::getConfig() const
     return m_configJson;
 }
 
+std::string AIRole::toJson() const
+{
+    return {};
+}
+
+bool AIRole::fromJson(const std::string &iJson)
+{
+    return false;
+}
+
 } // namespace DBRecords

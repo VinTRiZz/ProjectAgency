@@ -9,16 +9,6 @@
 
 #include "common/settings.hpp"
 
-AIManager::AIManager()
-{
-
-}
-
-AIManager::~AIManager()
-{
-    stop();
-}
-
 void AIManager::setRecordManager(const Database::RecordManagerPtr &pManager)
 {
     m_pRecordManager = pManager;
@@ -31,7 +21,7 @@ void AIManager::setToken(const std::string &tokenString)
 
 void AIManager::setInputModel(const std::string &modelName)
 {
-    m_plannerModel = modelName;
+    m_inputModelName = modelName;
 }
 
 void AIManager::init()
@@ -61,6 +51,12 @@ void AIManager::stop()
     for (auto& pBackend : m_backends) {
         pBackend->disconnect();
     }
+}
+
+void AIManager::setCurrentTask(const std::string &taskText)
+{
+    // TODO: Use input model to handle task
+    COMPLOG_INFO("Got user task:\n", taskText);
 }
 
 

@@ -122,4 +122,14 @@ std::string BackendInfo::getFullAddress() const
     return m_ip + ":" + std::to_string(m_port);
 }
 
+std::string BackendInfo::toJson() const
+{
+    return {};
+}
+
+bool BackendInfo::fromJson(const std::string &iJson)
+{
+    return false;
+}
+
 } // namespace DBRecords

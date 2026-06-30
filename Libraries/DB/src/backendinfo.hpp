@@ -48,6 +48,10 @@ public:
 
     std::string getFullAddress() const;
 
+    // For editting from user's GUI
+    virtual std::string toJson() const;
+    virtual bool fromJson(const std::string& iJson);
+
 private:
     BackendType m_type {BackendType::Default};
     std::string m_ip;

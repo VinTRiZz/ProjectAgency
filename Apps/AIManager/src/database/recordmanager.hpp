@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include "recordobjects.hpp"
+#include <ProjectAgency/DB/AIRole.h>
 #include "dbconnection.hpp"
 
 namespace drogon::orm {

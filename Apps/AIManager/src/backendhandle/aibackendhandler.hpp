@@ -4,8 +4,7 @@
 #include <functional>
 
 #include <ProjectAgency/WSEvent.h>
-
-#include "database/backendinfo.hpp"
+#include <ProjectAgency/DB/BackendInfo.h>
 
 class AIBackendHandler
 {

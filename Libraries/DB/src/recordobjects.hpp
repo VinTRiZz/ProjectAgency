@@ -2,12 +2,16 @@
 
 #include <string>
 #include <algorithm>
+#include <variant>
+#include <map>
 
 #include <ProjectAgency/Types.h>
 
-#include "dbconnection.hpp"
-
 namespace Database {
+
+// Common
+using recordValue_t = std::variant<std::monostate, std::string, int64_t, double>;
+using record_t = std::map<std::string, recordValue_t>;
 
 /**
  * @brief The RecordBase class Basic class for converting from/to DB records

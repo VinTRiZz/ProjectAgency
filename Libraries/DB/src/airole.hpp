@@ -25,6 +25,10 @@ public:
     void setConfig(const std::string& configJson);
     std::string getConfig() const;
 
+    // For editting from user's GUI
+    virtual std::string toJson() const;
+    virtual bool fromJson(const std::string& iJson);
+
 private:
     unsigned m_version {};
     std::string m_name;
