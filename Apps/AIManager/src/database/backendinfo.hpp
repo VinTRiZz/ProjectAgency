@@ -1,8 +1,5 @@
 #pragma once
 
-#include <array>
-#include <optional>
-
 #include "recordobjects.hpp"
 
 namespace DBRecords {
@@ -18,6 +15,7 @@ enum BackendType : int
 
 /**
  * @brief The BackendInfo class Backend info record
+ * @note Last online time must be proceed using DB functions
  */
 class BackendInfo : public Database::RecordBaseS
 {
@@ -32,11 +30,29 @@ public:
     Database::record_t toRecord() const override;
     bool initFromRecord(const Database::record_t &iRecord) override;
 
+    void setIp(const std::string& ip);
+    std::string getIp() const;
+
+    void setPort(const uint16_t &port);
+    int64_t getPort() const;
+
+    void setDisplayName(const std::string& displayName);
+    std::string getDisplayName() const;
+
+    /**
+     * @throws std::invalid_argument if ID length is not 64
+     */
+    void setToken(const std::string& token);
+    std::string getToken() const;
+
+    std::string getFullAddress() const;
+
 private:
     BackendType m_type {BackendType::Default};
     std::string m_ip;
     uint16_t    m_port;
-    std::optional<int64_t> m_modelRole;
+    std::string m_displayName;
+    std::string m_token;
 };
 
 } // namespace DBRecords

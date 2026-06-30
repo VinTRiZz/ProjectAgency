@@ -8,7 +8,7 @@
 class AIRoleManager
 {
 public:
-    AIRoleManager(Database::RecordManager& recordManager);
+    void setRecordManager(const Database::RecordManagerPtr& pManager);
 
     void readDatabase();
 
@@ -17,6 +17,6 @@ public:
     void removeRole(const DBRecords::AIRole& role);
 
 private:
-    Database::RecordManager& m_recordManager;
+    Database::RecordManagerPtr m_pRecordManager;
     std::vector<DBRecords::AIRole> m_roles;
 };

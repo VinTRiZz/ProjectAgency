@@ -38,18 +38,19 @@ GRANT INSERT, DELETE, SELECT, UPDATE ON TABLE sch_manager.t_model_roles TO "serv
 
 -- Backends metadata
 CREATE TABLE sch_manager.t_backends (
-	device			VARCHAR(64) NOT NULL PRIMARY KEY,	-- SHA-256 sum of device identification data
+	device			VARCHAR(65) NOT NULL PRIMARY KEY,	-- SHA-256 sum of device identification data
 	type			INT NOT NULL DEFAULT 0,				-- Type of a backend (PC, Android, etc.)
 	ip_addr			TEXT NOT NULL DEFAULT '0.0.0.0',
 	ip_port			INT CHECK (ip_port >= 0 AND ip_port <= 65535) NOT NULL,
+	ip_token		VARCHAR(65) NOT NULL,
 	model_role		BIGINT,
 
 	-- Displayable info
-	display_name 	TEXT NOT NULL DEFAULT 'AI Backend',
-	last_online		TIMESTAMP(2) NOT NULL,
+	display_name 	TEXT NOT NULL DEFAULT '4149204261636b656e640a',
+	last_online		TIMESTAMP(0), -- If NULL then is online now
 
 	-- Constraints
-	FOREIGN KEY (model_role) REFERENCES sch_manager.t_model_roles (id)
+	FOREIGN KEY (model_role) REFERENCES sch_manager.t_model_roles (id) ON DELETE SET NULL
 );
 COMMENT ON TABLE sch_manager.t_backends IS 'AI backends';
 GRANT INSERT, DELETE, SELECT, UPDATE ON TABLE sch_manager.t_backends TO "server";

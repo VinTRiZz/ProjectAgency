@@ -11,10 +11,10 @@
 
 struct ApplicationCore::Impl
 {
-    Database::RecordManager m_dbManager;
+    Database::RecordManagerPtr m_pRecordManager;
 
     AIManager m_aiManager;
-    AIRoleManager m_aiRoleManager {m_dbManager};
+    AIRoleManager m_aiRoleManager;
 };
 
 ApplicationCore::ApplicationCore() :
@@ -37,7 +37,8 @@ bool ApplicationCore::init()
 {
     // TODO: Move into config
     COMPLOG_INFO_SYNC("Configuring DB connection...");
-    auto& con = d->m_dbManager.getConnection();
+    d->m_pRecordManager = std::make_shared<Database::RecordManager>();
+    auto& con = d->m_pRecordManager->getConnection();
     con.setAppName("AIManager");
     con.setName("main");
     con.setUser("server", "serv_auth_password");
@@ -45,13 +46,15 @@ bool ApplicationCore::init()
     con.setDatabase("pag_main");
     con.init();
 
+    // Setup roles
     COMPLOG_INFO_SYNC("Reading roles from DB...");
+    d->m_aiRoleManager.setRecordManager(d->m_pRecordManager);
     d->m_aiRoleManager.readDatabase();
 
+    // Setup AI roles
     COMPLOG_INFO_SYNC("Reading AIBackend configurations...");
-    if (!d->m_aiManager.init()) {
-        return true;
-    }
+    d->m_aiManager.setRecordManager(d->m_pRecordManager);
+    d->m_aiManager.init();
 
     COMPLOG_OK("AIManager init complete");
     return true;

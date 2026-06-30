@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "backendhandle/backendhandlerbuilder.hpp"
 #include "backendhandle/aibackendhandler.hpp"
+
+#include "database/recordmanager.hpp"
 
 /**
  * @brief The AIManager class AIBackend handler class
@@ -16,10 +17,12 @@ public:
     AIManager();
     ~AIManager();
 
+    void setRecordManager(const Database::RecordManagerPtr& pManager);
+
     void setToken(const std::string& tokenString);
     void setPlanningModel(const std::string& modelName);
 
-    bool init();
+    void init();
     void start();
     void stop();
 
@@ -29,6 +32,7 @@ private:
     std::string m_token;
     std::string m_plannerModel;
 
-    BackendHandlerBuilder m_backendBuilder;
+    Database::RecordManagerPtr m_pRecordManager;
+
     std::vector<std::shared_ptr<AIBackendHandler> > m_backends;
 };

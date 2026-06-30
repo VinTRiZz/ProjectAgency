@@ -1,5 +1,8 @@
 #include "airole.hpp"
 
+#include <Components/Logger/Logger.h>
+#include <Components/Encryption/Encoding.h>
+
 namespace DBRecords {
 
 AIRole::AIRole() :
@@ -11,7 +14,7 @@ Database::record_t AIRole::toRecord() const
 {
     auto res = Database::RecordBaseI::toRecord();
     res["version"] = m_version;
-    res["name"] = m_name;
+    res["name"] = std::string("0x") + Encryption::encodeHex(m_name);
     res["type"] = m_type;
     res["config"] = m_configJson;
     return res;
@@ -31,7 +34,16 @@ bool AIRole::initFromRecord(const Database::record_t &iRecord)
     if (iRecord.end() == colIt) {
         return false;
     }
-    m_name = std::get<std::string>(colIt->second);
+    try {
+        auto hexStr = std::get<std::string>(colIt->second);
+        if (hexStr.size() >= 2) {
+            hexStr = hexStr.substr(2);
+        }
+        m_name = Encryption::decodeHex(hexStr);
+    } catch (const std::exception& ex) {
+        COMPLOG_ERROR("Failed to load AIRole:", ex.what());
+        return false;
+    }
 
     colIt = iRecord.find("type");
     if (iRecord.end() == colIt) {
@@ -61,7 +73,6 @@ unsigned int AIRole::getVersion() const
 void AIRole::setName(const std::string &name)
 {
     m_name = name;
-    fixStringValueIssues(m_name);
 }
 
 std::string AIRole::getName() const
@@ -77,7 +88,7 @@ void AIRole::setType(const std::string &type)
 
 std::string AIRole::getType() const
 {
-    return m_name;
+    return m_type;
 }
 
 void AIRole::setConfig(const std::string &configJson)

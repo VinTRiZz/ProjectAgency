@@ -1,19 +1,19 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <functional>
 
 #include <ProjectAgency/WSEvent.h>
 
+#include "database/backendinfo.hpp"
+
 class AIBackendHandler
 {
 public:
-    explicit AIBackendHandler(const std::string& backendAddress);
+    AIBackendHandler();
     ~AIBackendHandler();
 
     // Common connection things
-    void setToken(const std::string& token);
     void connect();
     void disconnect();
     bool isConnected() const;
@@ -23,9 +23,8 @@ public:
     bool sendEvent(const DataObjects::Events::WSEvent& ev);
     void setEventCallback(DataObjects::Events::EventType etype, EventCallback_t&& cbk);
 
-    // Display name for GUI or other
-    void setDisplayName(const std::string& displayName);
-    std::string_view getDisplayName() const;
+    DBRecords::BackendInfo& getInfo();
+    const DBRecords::BackendInfo& getInfo() const;
 
 private:
     struct Impl;

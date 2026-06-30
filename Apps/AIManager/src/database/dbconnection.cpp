@@ -7,7 +7,7 @@
 namespace Database {
 
 /**
- * @brief The CellType enum Cell value type. Created because no way in drogon ORM to get it normal way
+ * @brief The CellType enum Cell value type. Created because no way in Drogon ORM to get it normal way
  */
 enum CellType : int
 {
@@ -17,8 +17,22 @@ enum CellType : int
     CT_string
 };
 
+/**
+ * @brief deduceCellType Issue of Drogon ORM working
+ * @param rowCell
+ * @return Type of a cell (actually, it's column)
+ */
 CellType deduceCellType(const drogon::orm::Field& rowCell) {
+    if (rowCell.isNull()) { // Can not deduce NULL field type
+        return CT_unknown;
+    }
+
     auto strVal = rowCell.as<std::string>();
+
+    // Process HEX
+    if (strVal.size() > 2 && strVal[0] == '0' && strVal[1] == 'x') {
+        return CellType::CT_string;
+    }
 
     // Try integer
     try {
@@ -64,6 +78,7 @@ recordValue_t cellToRecord(const drogon::orm::Field& rowCell, CellType columnTyp
     case CellType::CT_integer: return rowCell.as<int64_t>();
     case CellType::CT_double: return rowCell.as<double>();
     case CellType::CT_string: return rowCell.as<std::string>();
+    case CellType::CT_unknown: return std::monostate(); // Treat unknown type as NULL (actually, proceed in deduceType function)
     default: break;
     }
     throw std::runtime_error(std::string("Unexpected type of column: ") + std::to_string(columnType));
@@ -145,6 +160,7 @@ std::optional<std::vector<record_t> > DBConnection::executeQuery(const std::stri
         if (std::string::npos != queryStr.find(';')) {
             throw std::runtime_error("[DBConnection] Invalid query. Expected query with no ';' symbol");
         }
+        // COMPLOG_DEBUG("Executing:", queryStr);
         auto execRes = m_pClient->execSqlSync(queryStr);
         res = resultToRecords(execRes);
     } catch (const drogon::orm::DrogonDbException& ex) {
@@ -160,6 +176,7 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
         if (std::string::npos != queryStr.find(';')) {
             throw std::runtime_error("[DBConnection] Invalid query. Expected query with no ';' symbol");
         }
+        // COMPLOG_DEBUG("Executing:", queryStr);
         auto cbkCopy = cbk;
         m_pClient->execSqlAsync(queryStr,
             [cbk = std::move(cbk)](const drogon::orm::Result& execRes){

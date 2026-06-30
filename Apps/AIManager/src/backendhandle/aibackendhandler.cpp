@@ -16,10 +16,6 @@ using MessagePtr = websocketpp::config::asio_client::message_type::ptr;
 
 struct AIBackendHandler::Impl
 {
-    std::string backendAddress;
-    std::string token;
-    std::string displayName;
-
     std::map<DataObjects::Events::EventType, EventCallback_t> eventCallbacks;
 
     std::atomic<bool>  mustStopExecution {false};
@@ -28,13 +24,13 @@ struct AIBackendHandler::Impl
     websocketpp::lib::asio::io_service  ioService;
     ConnectionHdl                       eventConnection;
     std::atomic<bool>                   connected {false};
+
+    DBRecords::BackendInfo m_backendRecord;
 };
 
-AIBackendHandler::AIBackendHandler(const std::string &backendAddress) :
+AIBackendHandler::AIBackendHandler() :
     d {new Impl()}
 {
-    d->backendAddress = backendAddress;
-
     d->eventClient.init_asio(&d->ioService);
 
     d->eventClient.set_open_handler([this](ConnectionHdl hdl) {
@@ -89,14 +85,9 @@ AIBackendHandler::~AIBackendHandler()
     disconnect();
 }
 
-void AIBackendHandler::setToken(const std::string &token)
-{
-    d->token = token;
-}
-
 void AIBackendHandler::connect()
 {
-    std::string uri = "ws://" + d->backendAddress + "/?manager=" + d->token;
+    std::string uri = "ws://" + d->m_backendRecord.getFullAddress() + "/?manager=" + d->m_backendRecord.getToken();
     COMPLOG_SYNC_DEBUG(uri);
     websocketpp::lib::error_code ec;
     auto con = d->eventClient.get_connection(uri, ec);
@@ -137,12 +128,13 @@ void AIBackendHandler::setEventCallback(DataObjects::Events::EventType etype, Ev
     d->eventCallbacks.emplace(etype, std::move(cbk));
 }
 
-void AIBackendHandler::setDisplayName(const std::string &displayName)
+DBRecords::BackendInfo &AIBackendHandler::getInfo()
 {
-    d->displayName = displayName;
+    return d->m_backendRecord;
 }
 
-std::string_view AIBackendHandler::getDisplayName() const
+const DBRecords::BackendInfo &AIBackendHandler::getInfo() const
 {
-    return d->displayName;
+    return d->m_backendRecord;
 }
+
