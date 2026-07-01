@@ -37,19 +37,19 @@ public:
     AbstractConnectionPtr getConnection() const;
 
     template <typename IdT, bool isSync = true>
-    bool addRecord(RecordBase<IdT>&& iValue) {
+    bool addRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Insert, iValue));
         return (res.has_value());
     }
 
     template <typename IdT, bool isSync = true>
-    bool updateRecord(RecordBase<IdT>&& iValue) {
+    bool updateRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Update, iValue));
         return (res.has_value());
     }
 
     template <typename IdT, bool isSync = true>
-    bool removeRecord(RecordBase<IdT>&& iValue) {
+    bool removeRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Delete, iValue));
         return (res.has_value());
     }

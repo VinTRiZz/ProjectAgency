@@ -2,8 +2,16 @@
 
 #include "recordobjects.hpp"
 
+#include <memory>
+
 namespace DBRecords {
 
+class AIRole;
+using AIRolePtr = std::shared_ptr<AIRole>;
+
+/**
+ * @brief The AIRole class Class, describing model role
+ */
 class AIRole : public Database::RecordBaseI
 {
 public:

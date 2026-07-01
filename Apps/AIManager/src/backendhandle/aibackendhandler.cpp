@@ -25,7 +25,8 @@ struct AIBackendHandler::Impl
     ConnectionHdl                       eventConnection;
     std::atomic<bool>                   connected {false};
 
-    DBRecords::BackendInfo m_backendRecord;
+    DBRecords::BackendInfoPtr   m_backendRecord;
+    DBRecords::AIRolePtr        m_aiRole;
 };
 
 AIBackendHandler::AIBackendHandler() :
@@ -87,7 +88,11 @@ AIBackendHandler::~AIBackendHandler()
 
 void AIBackendHandler::connect()
 {
-    std::string uri = "ws://" + d->m_backendRecord.getFullAddress() + "/?manager=" + d->m_backendRecord.getToken();
+    if (!d->m_backendRecord) {
+        COMPLOG_ERROR("Backend can not connect: no info provided");
+        return;
+    }
+    std::string uri = "ws://" + d->m_backendRecord->getFullAddress() + "/?manager=" + d->m_backendRecord->getToken();
     COMPLOG_SYNC_DEBUG(uri);
     websocketpp::lib::error_code ec;
     auto con = d->eventClient.get_connection(uri, ec);
@@ -128,13 +133,23 @@ void AIBackendHandler::setEventCallback(Exchange::Events::EventType etype, Event
     d->eventCallbacks.emplace(etype, std::move(cbk));
 }
 
-DBRecords::BackendInfo &AIBackendHandler::getInfo()
+void AIBackendHandler::setInfo(const DBRecords::BackendInfoPtr &info)
+{
+    d->m_backendRecord = info;
+}
+
+DBRecords::BackendInfoPtr AIBackendHandler::getInfo() const
 {
     return d->m_backendRecord;
 }
 
-const DBRecords::BackendInfo &AIBackendHandler::getInfo() const
+void AIBackendHandler::setModelRole(const DBRecords::AIRolePtr &aiRole)
 {
-    return d->m_backendRecord;
+    d->m_aiRole = aiRole;
+}
+
+DBRecords::AIRolePtr AIBackendHandler::getModelRole() const
+{
+    return d->m_aiRole;
 }
 

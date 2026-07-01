@@ -12,11 +12,11 @@ public:
 
     void readDatabase();
 
-    bool addRole(const DBRecords::AIRole& role);
-    bool updateRole(const DBRecords::AIRole& role);
-    void removeRole(const DBRecords::AIRole& role);
+    bool addRole(const DBRecords::AIRolePtr& role);
+    bool updateRole(const DBRecords::AIRolePtr& role);
+    void removeRole(const DBRecords::AIRole::id_t& id);
 
 private:
     Database::RecordManagerPtr m_pRecordManager;
-    std::vector<DBRecords::AIRole> m_roles;
+    std::vector<DBRecords::AIRolePtr> m_roles;
 };

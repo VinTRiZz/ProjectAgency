@@ -9,26 +9,75 @@ void AIRoleManager::setRecordManager(const Database::RecordManagerPtr &pManager)
 
 void AIRoleManager::readDatabase()
 {
-    m_roles = m_pRecordManager->getAllRecords<DBRecords::AIRole>();
-    for (auto& role : m_roles) {
-        COMPLOG_DEBUG("Loaded model role:", role.getId(), role.getVersion(), role.getName(), role.getType(), role.getConfig());
+    auto roleRecords = m_pRecordManager->getAllRecords<DBRecords::AIRole>();
+    for (auto& roleRec : roleRecords) {
+        auto pRole = std::make_shared<DBRecords::AIRole>(std::move(roleRec));
+        m_roles.push_back(pRole);
     }
-    COMPLOG_DEBUG("Loaded model role total count:", m_roles.size());
+    COMPLOG_OK("Loaded model role total count:", m_roles.size());
 }
 
-bool AIRoleManager::addRole(const DBRecords::AIRole &role)
+bool AIRoleManager::addRole(const DBRecords::AIRolePtr &role)
 {
-    COMPLOG_WARNING("Add role not implemented");
+    if (!role || (Exchange::NULL_ID == role->getId())) {
+        COMPLOG_WARNING("Invalid AI role passed for add (not inited)");
+        return false;
+    }
+
+    for (auto pRole : m_roles) {
+        if (role->getId() == pRole->getId()) {
+            COMPLOG_WARNING("Failed to add AI role (same id exist)");
+            return false;
+        }
+    }
+
+    if (!m_pRecordManager->addRecord(*role)) {
+        COMPLOG_WARNING("Failed to add AI role (DB error)");
+        return false;
+    }
+    m_roles.push_back(role);
+    return true;
+}
+
+bool AIRoleManager::updateRole(const DBRecords::AIRolePtr &role)
+{
+    if (!role || (Exchange::NULL_ID == role->getId())) {
+        COMPLOG_WARNING("Invalid AI role passed for update (not inited)");
+        return false;
+    }
+    for (auto pRole : m_roles) {
+        if (role->getId() != pRole->getId()) {
+            continue;
+        }
+        if (!m_pRecordManager->updateRecord(*role)) {
+            COMPLOG_WARNING("Failed to update AI role (DB error)");
+            return false;
+        }
+        COMPLOG_INFO("AI role with id [", role->getId(), "] configuration updated");
+        *pRole = std::move(*role);
+        return true;
+    }
     return false;
 }
 
-bool AIRoleManager::updateRole(const DBRecords::AIRole &role)
+void AIRoleManager::removeRole(const DBRecords::AIRole::id_t &id)
 {
-    COMPLOG_WARNING("Update role not implemented");
-    return false;
-}
-
-void AIRoleManager::removeRole(const DBRecords::AIRole &role)
-{
-    COMPLOG_WARNING("Remove role not implemented");
+    if (Exchange::NULL_ID == id) {
+        COMPLOG_WARNING("Invalid AI role passed for remove (NULL id)");
+        return;
+    }
+    auto targetIt = std::find_if(m_roles.begin(), m_roles.end(), [&id](auto pRole){
+        return (id == pRole->getId());
+    });
+    if (m_roles.end() == targetIt) {
+        COMPLOG_WARNING("AI role with id [", id, "] not found for removing");
+        return;
+    }
+    auto pRole = *targetIt;
+    if (!m_pRecordManager->removeRecord(*pRole)) {
+        COMPLOG_WARNING("Failed to remove AI role (DB error)");
+        return;
+    }
+    m_roles.erase(targetIt);
+    COMPLOG_INFO("AI role with id [", id, "] removed");
 }

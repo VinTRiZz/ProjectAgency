@@ -2,6 +2,8 @@
 
 #include "recordobjects.hpp"
 
+#include <memory>
+
 namespace DBRecords {
 
 /**
@@ -12,6 +14,9 @@ enum BackendType : int
     Default = 0, // PC
     Android,
 };
+
+class BackendInfo;
+using BackendInfoPtr = std::shared_ptr<BackendInfo>;
 
 /**
  * @brief The BackendInfo class Backend info record

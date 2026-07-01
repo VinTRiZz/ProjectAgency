@@ -14,6 +14,11 @@ void AIManager::setRecordManager(const Database::RecordManagerPtr &pManager)
     m_pRecordManager = pManager;
 }
 
+Database::RecordManagerPtr AIManager::getRecordManager() const
+{
+    return m_pRecordManager;
+}
+
 void AIManager::setToken(const std::string &tokenString)
 {
     m_token = tokenString;
@@ -27,16 +32,16 @@ void AIManager::setInputModel(const std::string &modelName)
 void AIManager::init()
 {
     auto& appSettings = Common::ApplicationSettings::getInstance();
-    auto token = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN)->getValueString(); // Expected existance here
+    m_token = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN)->getValueString(); // Expected existance here
     auto backendRecords = m_pRecordManager->getAllRecords<DBRecords::BackendInfo>();
-    for (auto& bck : backendRecords) {
-        COMPLOG_DEBUG("Loaded backend:", bck.getId(), bck.getDisplayName(), "(", bck.getFullAddress(), ")");
+    for (auto& bckRec : backendRecords) {
+        auto bck = std::make_shared<DBRecords::BackendInfo>(std::move(bckRec));
         auto pBackend = std::make_shared<AIBackendHandler>();
-        bck.setToken(token);
-        pBackend->getInfo() = bck;
+        bck->setToken(m_token);
+        pBackend->setInfo(bck);
         m_backends.push_back(pBackend);
     }
-    COMPLOG_DEBUG("Loaded backend total count:", backendRecords.size());
+    COMPLOG_OK("Loaded backend total count:", backendRecords.size());
 }
 
 void AIManager::start()
@@ -55,8 +60,105 @@ void AIManager::stop()
 
 void AIManager::setCurrentTask(const std::string &taskText)
 {
-    // TODO: Use input model to handle task
     COMPLOG_INFO("Got user task:\n", taskText);
+    m_currentTask = taskText;
+
+    // TODO: Use input model to handle task
+}
+
+std::string AIManager::getCurrentTask() const
+{
+    return m_currentTask;
+}
+
+bool AIManager::isSolvingTask() const
+{
+    return !m_currentTask.empty();
+}
+
+void AIManager::stopCurrentTask()
+{
+    // TODO: Stop task processing
+    m_currentTask = {};
+}
+
+bool AIManager::addBackend(const DBRecords::BackendInfoPtr &backendInfo)
+{
+    if (!backendInfo || backendInfo->getId().empty()) {
+        COMPLOG_WARNING("Invalid backend passed for add (not inited)");
+        return false;
+    }
+
+    for (auto pBck : m_backends) {
+        if (backendInfo->getId() == pBck->getInfo()->getId()) {
+            COMPLOG_WARNING("Failed to add backend (same id exist)");
+            return false;
+        }
+    }
+
+    if (!m_pRecordManager->addRecord(*backendInfo)) {
+        COMPLOG_WARNING("Failed to add backend (DB error)");
+        return false;
+    }
+
+    auto pBackend = std::make_shared<AIBackendHandler>();
+    backendInfo->setToken(m_token);
+    pBackend->setInfo(backendInfo);
+    m_backends.push_back(pBackend);
+
+    COMPLOG_INFO_SYNC("Added backend configuration. Trying to connect...");
+
+    pBackend->connect();
+    return true;
+}
+
+bool AIManager::updateBackend(const DBRecords::BackendInfoPtr &backendInfo)
+{
+    if (!backendInfo || backendInfo->getId().empty()) {
+        COMPLOG_WARNING("Invalid backend passed for update (not inited)");
+        return false;
+    }
+    for (auto pBck : m_backends) {
+        if (backendInfo->getId() != pBck->getInfo()->getId()) {
+            continue;
+        }
+        if (!m_pRecordManager->updateRecord(*backendInfo)) {
+            COMPLOG_WARNING("Failed to update backend (DB error)");
+            return false;
+        }
+        pBck->setInfo(backendInfo);
+        COMPLOG_INFO("Backend with id [", backendInfo->getId(), "] configuration updated");
+        return true;
+    }
+    COMPLOG_WARNING("Backend with id [", backendInfo->getId(), "] not found for configuration update");
+    return false;
+}
+
+std::vector<std::shared_ptr<AIBackendHandler> > AIManager::getBackends() const
+{
+    return m_backends;
+}
+
+void AIManager::removeBackend(const DBRecords::BackendInfo::id_t &backendId)
+{
+    if (backendId.empty()) {
+        COMPLOG_WARNING("Invalid backend passed for remove (empty)");
+        return;
+    }
+    auto targetIt = std::find_if(m_backends.begin(), m_backends.end(), [&backendId](auto pBackend){
+        return (backendId == pBackend->getInfo()->getId());
+    });
+    if (m_backends.end() == targetIt) {
+        COMPLOG_WARNING("Backend with id [", backendId, "] not found for removing");
+        return;
+    }
+    auto pBackend = *targetIt;
+    if (!m_pRecordManager->removeRecord(*pBackend->getInfo())) {
+        COMPLOG_WARNING("Failed to remove backend (DB error)");
+        return;
+    }
+    m_backends.erase(targetIt);
+    COMPLOG_INFO("Backend with id [", backendId, "] removed");
 }
 
 

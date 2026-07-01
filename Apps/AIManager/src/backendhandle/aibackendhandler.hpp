@@ -5,8 +5,13 @@
 
 #include <ProjectAgency/Exchange/Types.h>
 #include <ProjectAgency/Exchange/WSEvent.h>
-#include <ProjectAgency/DB/BackendInfo.h>
 
+#include <ProjectAgency/DB/BackendInfo.h>
+#include <ProjectAgency/DB/AIRole.h>
+
+/**
+ * @brief The AIBackendHandler class Interface to control remote AIBackend instance
+ */
 class AIBackendHandler
 {
 public:
@@ -23,8 +28,11 @@ public:
     bool sendEvent(const Exchange::Events::WSEvent& ev);
     void setEventCallback(Exchange::Events::EventType etype, EventCallback_t&& cbk);
 
-    DBRecords::BackendInfo& getInfo();
-    const DBRecords::BackendInfo& getInfo() const;
+    // Backend's AI handling
+    void setInfo(const DBRecords::BackendInfoPtr& info);
+    DBRecords::BackendInfoPtr getInfo() const;
+    void setModelRole(const DBRecords::AIRolePtr& aiRole);
+    DBRecords::AIRolePtr getModelRole() const;
 
 private:
     struct Impl;

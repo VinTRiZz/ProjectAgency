@@ -10,16 +10,24 @@ const std::string API_V {"/api/v1"};
 const auto SERVER_BASE {API_V + "/manager"};
 const auto SERVER_STATUS {SERVER_BASE + "/status"};
 
-// Backends
-const auto BACKENDS_GET {API_V + "/backends"};
+// All backend id list
+const auto BACKENDS_ID_LIST {API_V + "/backends"};
 
-const auto BACKEND_STATUS {API_V + "/backend/{backendId}/status"};
+// Target backend
+const auto BACKEND_BASE {API_V + "/backend"};
+const auto BACKEND_STATUS {BACKEND_BASE + "/{backendId}/status"};
 
-const auto BACKEND_CONFIG_GET {API_V + "/backend/{backendId}/config"};
-const auto BACKEND_CONFIG_SET {API_V + "/backend/{backendId}/config"};
+// CRUD of backend information
+const auto BACKEND_CONFIG_ADD {BACKEND_BASE + "?action=create"};
+const auto BACKEND_CONFIG_GET {BACKEND_BASE + "/{backendId}/config"};
+const auto BACKEND_CONFIG_SET {BACKEND_BASE + "/{backendId}/config"};
+const auto BACKEND_CONFIG_REM {BACKEND_BASE + "/{backendId}/config"};
 
-const auto QT_BACKEND_CONFIG_GET {API_V + "/backend/%1/config"};
-const auto QT_BACKEND_CONFIG_SET {API_V + "/backend/%1/config"};
+// CRUD of backend information
+const auto QT_BACKEND_CONFIG_ADD {BACKEND_BASE + "?action=create"};
+const auto QT_BACKEND_CONFIG_GET {BACKEND_BASE + "/%1/config"};
+const auto QT_BACKEND_CONFIG_SET {BACKEND_BASE + "/%1/config"};
+const auto QT_BACKEND_CONFIG_REM {BACKEND_BASE + "/%1/config"};
 
 
 // User tasks processing

@@ -18,9 +18,14 @@ public:
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(
-            AIServiceController::processGetCommonInfo,
-            Exchange::HTTPv1::BACKENDS_GET,
+            AIServiceController::processGetBackendIdList,
+            Exchange::HTTPv1::BACKENDS_ID_LIST,
             drogon::Get);
+
+        ADD_METHOD_TO(
+            AIServiceController::processAddConfiguration,
+            Exchange::HTTPv1::BACKEND_CONFIG_ADD,
+            drogon::Post);
 
         ADD_METHOD_TO(
             AIServiceController::processGetConfiguration,
@@ -31,20 +36,34 @@ public:
             AIServiceController::processSetConfiguration,
             Exchange::HTTPv1::BACKEND_CONFIG_SET,
             drogon::Put);
+
+        ADD_METHOD_TO(
+            AIServiceController::processRemoveConfiguration,
+            Exchange::HTTPv1::BACKEND_CONFIG_REM,
+            drogon::Delete);
     METHOD_LIST_END
 
     // ID, name, role, current status, last online, etc. (basic info to display)
-    void processGetCommonInfo(
+    void processGetBackendIdList(
         const drogon::HttpRequestPtr &req,
         ResponseCallback_t &&callback);
 
     // Configuration of a device
+    void processAddConfiguration(
+        const drogon::HttpRequestPtr &req,
+        ResponseCallback_t &&callback);
+
     void processGetConfiguration(
         const drogon::HttpRequestPtr &req,
         ResponseCallback_t &&callback,
         const std::string& backendId);
 
     void processSetConfiguration(
+        const drogon::HttpRequestPtr &req,
+        ResponseCallback_t &&callback,
+        const std::string& backendId);
+
+    void processRemoveConfiguration(
         const drogon::HttpRequestPtr &req,
         ResponseCallback_t &&callback,
         const std::string& backendId);
