@@ -31,7 +31,7 @@ public:
     void stop();
 
 signals:
-    void sig_gotStatus(const Exchange::DeviceStatus& devStatus);
+    void sig_responseStatus(const Exchange::DeviceStatus& devStatus);
 
 public slots:
     void requestStatus();

@@ -60,8 +60,7 @@ public:
 
     void processSetConfiguration(
         const drogon::HttpRequestPtr &req,
-        ResponseCallback_t &&callback,
-        const std::string& backendId);
+        ResponseCallback_t &&callback);
 
     void processRemoveConfiguration(
         const drogon::HttpRequestPtr &req,

@@ -37,9 +37,9 @@ public:
     AbstractConnectionPtr getConnection() const;
 
     template <typename IdT, bool isSync = true>
-    bool addRecord(const RecordBase<IdT>& iValue) {
+    std::optional<IdT> addRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Insert, iValue));
-        return (res.has_value());
+        return (res.has_value() ? std::optional<IdT>(std::get<IdT>(res.value()[0][iValue.getIdColumn().data()])) : std::nullopt);
     }
 
     template <typename IdT, bool isSync = true>
@@ -100,7 +100,7 @@ private:
             return std::string("INSERT INTO ") +
                 iRecord.getTable().data() +
                 + " (" + recordToColumns(recordV) + ") VALUES ("
-                + recordToValues(recordV) + ")"
+                + recordToValues(recordV) + ") RETURNING " + iRecord.getIdColumn().data()
             ;
         case QueryType::SelectOne:
             return std::string("SELECT ")

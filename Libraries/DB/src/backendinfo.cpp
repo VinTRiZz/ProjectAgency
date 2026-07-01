@@ -127,7 +127,7 @@ std::string BackendInfo::toJson() const
     return {};
 }
 
-bool BackendInfo::fromJson(const std::string &iJson)
+bool BackendInfo::readJson(const std::string &iJson)
 {
     return false;
 }

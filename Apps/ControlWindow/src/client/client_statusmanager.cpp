@@ -38,6 +38,6 @@ void Client_StatusManager::requestStatus()
         if (!status.readJson(resp->readAll().toStdString())) {
             return;
         }
-        emit sig_gotStatus(status);
+        emit sig_responseStatus(status);
     });
 }

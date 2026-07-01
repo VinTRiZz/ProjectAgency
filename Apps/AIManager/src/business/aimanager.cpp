@@ -84,7 +84,7 @@ void AIManager::stopCurrentTask()
 
 bool AIManager::addBackend(const DBRecords::BackendInfoPtr &backendInfo)
 {
-    if (!backendInfo || backendInfo->getId().empty()) {
+    if (!backendInfo || !backendInfo->getId().empty()) {
         COMPLOG_WARNING("Invalid backend passed for add (not inited)");
         return false;
     }
@@ -96,10 +96,12 @@ bool AIManager::addBackend(const DBRecords::BackendInfoPtr &backendInfo)
         }
     }
 
-    if (!m_pRecordManager->addRecord(*backendInfo)) {
+    auto backendId = m_pRecordManager->addRecord(*backendInfo);
+    if (!backendId.has_value()) {
         COMPLOG_WARNING("Failed to add backend (DB error)");
         return false;
     }
+    backendInfo->setId(backendId.value());
 
     auto pBackend = std::make_shared<AIBackendHandler>();
     backendInfo->setToken(m_token);

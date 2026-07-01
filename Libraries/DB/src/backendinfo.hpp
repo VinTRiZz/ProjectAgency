@@ -55,7 +55,7 @@ public:
 
     // For editting from user's GUI
     virtual std::string toJson() const;
-    virtual bool fromJson(const std::string& iJson);
+    virtual bool readJson(const std::string& iJson);
 
 private:
     BackendType m_type {BackendType::Default};

@@ -31,10 +31,12 @@ bool AIRoleManager::addRole(const DBRecords::AIRolePtr &role)
         }
     }
 
-    if (!m_pRecordManager->addRecord(*role)) {
+    auto addRes = m_pRecordManager->addRecord(*role);
+    if (!addRes.has_value()) {
         COMPLOG_WARNING("Failed to add AI role (DB error)");
         return false;
     }
+    role->setId(addRes.value());
     m_roles.push_back(role);
     return true;
 }

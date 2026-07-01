@@ -22,12 +22,12 @@ void AIServiceController::processGetBackendIdList(const drogon::HttpRequestPtr &
 void AIServiceController::processAddConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     DBRecords::BackendInfoPtr bckInfo = std::make_shared<DBRecords::BackendInfo>();
-    if (!bckInfo->fromJson(req->getBody().data())) {
+    if (!bckInfo->readJson(req->getBody().data())) {
         sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
         return;
     }
     if (m_aiManager.addBackend(bckInfo)) {
-        sendTextMessage(drogon::k200OK, "Added backend", std::move(callback));
+        sendTextMessage(drogon::k200OK, bckInfo->toJson(), std::move(callback));
         return;
     }
     sendTextMessage(drogon::k400BadRequest, "Backend exist or failed to save", std::move(callback));
@@ -43,10 +43,10 @@ void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &
     sendTextMessage(drogon::k404NotFound, "No such backend found", std::move(callback));
 }
 
-void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
+void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     DBRecords::BackendInfoPtr bckInfo = std::make_shared<DBRecords::BackendInfo>();
-    if (!bckInfo->fromJson(req->getBody().data())) {
+    if (!bckInfo->readJson(req->getBody().data())) {
         sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
         return;
     }
