@@ -4,8 +4,8 @@
 #include <memory>
 #include <functional>
 
-#include <ProjectAgency/AIRequest.h>
-#include <ProjectAgency/AIResponse.h>
+#include <ProjectAgency/AIObjects/AIResponse.h>
+#include <ProjectAgency/AIObjects/AIRequest.h>
 
 class OllamaInterface
 {
@@ -15,12 +15,12 @@ public:
 
     void setAPIserver(const std::string& serverHost, uint16_t apiPort);
 
-    DataObjects::AIResponse askSync(const DataObjects::AIRequest& req);
-    void ask(const DataObjects::AIRequest& req);
+    AIObjects::AIResponse askSync(const AIObjects::AIRequest& req);
+    void ask(const AIObjects::AIRequest& req);
 
     void askInterrupt();
 
-    void setResponseCallback(const std::function<void(std::optional<DataObjects::AIResponse>&&)>&& responseCallback);
+    void setResponseCallback(const std::function<void(std::optional<AIObjects::AIResponse>&&)>&& responseCallback);
 
 private:
     struct Impl;

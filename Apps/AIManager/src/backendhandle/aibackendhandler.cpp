@@ -5,8 +5,8 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 
-#include <ProjectAgency/AIRequest.h>
-#include <ProjectAgency/AIResponse.h>
+#include <ProjectAgency/AIObjects/AIRequest.h>
+#include <ProjectAgency/AIObjects/AIResponse.h>
 
 #include <Components/Logger/Logger.h>
 
@@ -16,7 +16,7 @@ using MessagePtr = websocketpp::config::asio_client::message_type::ptr;
 
 struct AIBackendHandler::Impl
 {
-    std::map<DataObjects::Events::EventType, EventCallback_t> eventCallbacks;
+    std::map<Exchange::Events::EventType, EventCallback_t> eventCallbacks;
 
     std::atomic<bool>  mustStopExecution {false};
 
@@ -44,7 +44,7 @@ AIBackendHandler::AIBackendHandler() :
             std::string payload = msg->get_payload();
             COMPLOG_DEBUG("[WS] Text got:", payload);
 
-            DataObjects::Events::WSEvent ev;
+            Exchange::Events::WSEvent ev;
             if (!ev.readJson(msg->get_payload())) {
                 COMPLOG_WARNING("[AIBackendHandler]", this, "Failed to parse event response");
                 return;
@@ -114,7 +114,7 @@ bool AIBackendHandler::isConnected() const
     return d->connected.load(std::memory_order_acquire);
 }
 
-bool AIBackendHandler::sendEvent(const DataObjects::Events::WSEvent &ev)
+bool AIBackendHandler::sendEvent(const Exchange::Events::WSEvent &ev)
 {
     if (!isConnected()) {
         return false;
@@ -123,7 +123,7 @@ bool AIBackendHandler::sendEvent(const DataObjects::Events::WSEvent &ev)
     return true;
 }
 
-void AIBackendHandler::setEventCallback(DataObjects::Events::EventType etype, EventCallback_t &&cbk)
+void AIBackendHandler::setEventCallback(Exchange::Events::EventType etype, EventCallback_t &&cbk)
 {
     d->eventCallbacks.emplace(etype, std::move(cbk));
 }

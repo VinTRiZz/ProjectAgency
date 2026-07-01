@@ -24,7 +24,7 @@ struct WebsocketEventListener::Impl
 
     // Connection required
     std::string token;
-    std::map<DataObjects::Events::EventType, std::function<void(DataObjects::Events::WSEvent&&)> > eventCallbacks;
+    std::map<Exchange::Events::EventType, std::function<void(Exchange::Events::WSEvent&&)> > eventCallbacks;
 
     void stop() {
         if (!deviceEventServer.is_listening()) {
@@ -89,7 +89,7 @@ void WebsocketEventListener::stop()
     d->stop();
 }
 
-void WebsocketEventListener::setEventCallback(DataObjects::Events::EventType evType, std::function<void (DataObjects::Events::WSEvent &&)> &&eventCallback)
+void WebsocketEventListener::setEventCallback(Exchange::Events::EventType evType, std::function<void (Exchange::Events::WSEvent &&)> &&eventCallback)
 {
     d->eventCallbacks[evType] = std::move(eventCallback);
 }
@@ -186,7 +186,7 @@ void WebsocketEventListener::initMessageProcessing()
             return;
         }
 
-        DataObjects::Events::WSEvent ev;
+        Exchange::Events::WSEvent ev;
         if (!ev.readJson(msg->get_payload())) {
             COMPLOG_ERROR("[WS] Failed to process event:", msg->get_payload());
             return;

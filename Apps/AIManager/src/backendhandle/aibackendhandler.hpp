@@ -3,7 +3,8 @@
 #include <memory>
 #include <functional>
 
-#include <ProjectAgency/WSEvent.h>
+#include <ProjectAgency/Exchange/Types.h>
+#include <ProjectAgency/Exchange/WSEvent.h>
 #include <ProjectAgency/DB/BackendInfo.h>
 
 class AIBackendHandler
@@ -18,9 +19,9 @@ public:
     bool isConnected() const;
 
     // Event processing (mostly used by internal)
-    using EventCallback_t = std::function<void(DataObjects::Events::WSEvent&&)>;
-    bool sendEvent(const DataObjects::Events::WSEvent& ev);
-    void setEventCallback(DataObjects::Events::EventType etype, EventCallback_t&& cbk);
+    using EventCallback_t = std::function<void(Exchange::Events::WSEvent&&)>;
+    bool sendEvent(const Exchange::Events::WSEvent& ev);
+    void setEventCallback(Exchange::Events::EventType etype, EventCallback_t&& cbk);
 
     DBRecords::BackendInfo& getInfo();
     const DBRecords::BackendInfo& getInfo() const;

@@ -9,7 +9,7 @@
 struct OllamaInterface::Impl
 {
     HTTP::Client httpClient;
-    std::function<void(std::optional<DataObjects::AIResponse>&&)> responseCallback;
+    std::function<void(std::optional<AIObjects::AIResponse>&&)> responseCallback;
 };
 
 OllamaInterface::OllamaInterface() :
@@ -31,7 +31,7 @@ void OllamaInterface::setAPIserver(const std::string &serverHost, uint16_t apiPo
     d->httpClient.setHost(serverHost, apiPort);
 }
 
-DataObjects::AIResponse OllamaInterface::askSync(const DataObjects::AIRequest &req)
+AIObjects::AIResponse OllamaInterface::askSync(const AIObjects::AIRequest &req)
 {
     // Prepare packet
     HTTP::Packet requestPacket;
@@ -45,12 +45,12 @@ DataObjects::AIResponse OllamaInterface::askSync(const DataObjects::AIRequest &r
     COMPLOG_INFO("[OLLAMA] Model answer generation complete");
 
     // Parse answer
-    DataObjects::AIResponse res;
+    AIObjects::AIResponse res;
     res.readJson(responsePacket.body);
     return res;
 }
 
-void OllamaInterface::ask(const DataObjects::AIRequest &req)
+void OllamaInterface::ask(const AIObjects::AIRequest &req)
 {
     // Prepare packet
     HTTP::Packet requestPacket;
@@ -75,7 +75,7 @@ void OllamaInterface::ask(const DataObjects::AIRequest &req)
                 return;
             }
 
-            DataObjects::AIResponse res;
+            AIObjects::AIResponse res;
             res.readJson(responseOpt->body);
             COMPLOG_INFO("[OLLAMA] Model async answer generation complete");
             d->responseCallback(res);
@@ -87,7 +87,7 @@ void OllamaInterface::askInterrupt()
     d->httpClient.interruptRequestProcessing();
 }
 
-void OllamaInterface::setResponseCallback(const std::function<void (std::optional<DataObjects::AIResponse> &&)> &&responseCallback)
+void OllamaInterface::setResponseCallback(const std::function<void (std::optional<AIObjects::AIResponse> &&)> &&responseCallback)
 {
     d->responseCallback = std::move(responseCallback);
 }

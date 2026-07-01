@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProjectAgency/WSEvent.h>
+#include <ProjectAgency/Exchange/WSEvent.h>
 #include <functional>
 #include <memory>
 
@@ -31,8 +31,8 @@ public:
      * @param eventCallback     Callback to process events
      */
     void setEventCallback(
-        DataObjects::Events::EventType evType,
-        std::function<void(DataObjects::Events::WSEvent&&)>&& eventCallback);
+        Exchange::Events::EventType evType,
+        std::function<void(Exchange::Events::WSEvent&&)>&& eventCallback);
 
     void sendResponse(const std::string_view& respText);
 

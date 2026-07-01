@@ -2,8 +2,9 @@
 
 #include "client_base/httpclientbase.hpp"
 
-#include <ProjectAgency/DeviceStatus.h>
+#include <ProjectAgency/Exchange/Types.h>
 #include <ProjectAgency/Exchange/HTTP.h>
+#include <ProjectAgency/Exchange/DeviceStatus.h>
 
 #include <QTimer>
 
@@ -30,7 +31,7 @@ public:
     void stop();
 
 signals:
-    void sig_gotStatus(const DataObjects::DeviceStatus& devStatus);
+    void sig_gotStatus(const Exchange::DeviceStatus& devStatus);
 
 public slots:
     void requestStatus();

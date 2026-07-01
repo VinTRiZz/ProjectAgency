@@ -1,6 +1,6 @@
 #include "abstractdbconnection.hpp"
 
-#include <ProjectAgency/Types.h>
+#include <ProjectAgency/Exchange/Types.h>
 
 namespace Database {
 
@@ -79,8 +79,8 @@ std::string AbstractConnection::cellDataToString(const recordValue_t &val) const
         if constexpr (std::is_same_v<valueType_t, std::string>) {
             return v;
         } else
-            if constexpr (std::is_same_v<valueType_t, DataObjects::id_t>) {
-                if (v == DataObjects::NULL_ID) {
+            if constexpr (std::is_same_v<valueType_t, Exchange::id_t>) {
+                if (v == Exchange::NULL_ID) {
                     return "NULL";
                 }
                 return std::to_string(v);

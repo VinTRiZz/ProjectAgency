@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include <ProjectAgency/DeviceStatus.h>
+#include <ProjectAgency/Exchange/DeviceStatus.h>
 
 namespace Ui {
 class SystemStatusWidget;
@@ -17,7 +17,7 @@ public:
     ~SystemStatusWidget();
 
     void setInvalidState();
-    void setDisplayInfo(const DataObjects::DeviceStatus& status);
+    void setDisplayInfo(const Exchange::DeviceStatus& status);
 
 signals:
     void requestedPoweroff();

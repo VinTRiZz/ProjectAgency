@@ -3,7 +3,7 @@
 #include "websocketeventlistener.hpp"
 #include "ollama/ollamainterface.hpp"
 
-#include <ProjectAgency/OllamaConfigMaster.h>
+#include <ProjectAgency/AIObjects/OllamaConfigMaster.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/DirectoryManager.h>
@@ -16,10 +16,10 @@ struct AIBackend::Impl
     WebsocketEventListener  eventListener;
     OllamaInterface         ollamaInterface;
 
-    DataObjects::OllamaConfigMaster             configMaster;
-    std::shared_ptr<DataObjects::OllamaConfig>  currentOllamaConfig;
+    AIObjects::OllamaConfigMaster             configMaster;
+    std::shared_ptr<AIObjects::OllamaConfig>  currentOllamaConfig;
 
-    DataObjects::AIRequest requestBase;
+    AIObjects::AIRequest requestBase;
 
     std::atomic<bool> isAnswering {false};
 };
@@ -78,7 +78,7 @@ void AIBackend::initEventProcessing()
 void AIBackend::initEventProcessingAIAsk()
 {
     // AI asking processors
-    namespace Events = DataObjects::Events;
+    namespace Events = Exchange::Events;
     d->eventListener.setEventCallback(Events::AIAsk, [this](auto&& wsEvent){
         auto req = d->requestBase;
         req.setRequest(wsEvent.getPayload().data());
@@ -96,7 +96,7 @@ void AIBackend::initEventProcessingAIAsk()
         d->eventListener.sendResponse(wsEvent.toJson());
     });
     d->eventListener.setEventCallback(Events::AIAskSetConfig, [this](auto&& wsEvent) {
-        auto pConfig = DataObjects::OllamaConfigMaster::fromText(wsEvent.getPayload().data());
+        auto pConfig = AIObjects::OllamaConfigMaster::fromText(wsEvent.getPayload().data());
         auto readSucceed = (pConfig.use_count() != 0);
         if (readSucceed) {
             d->currentOllamaConfig = pConfig;
@@ -108,7 +108,7 @@ void AIBackend::initEventProcessingAIAsk()
 
 void AIBackend::initOllamaInterface()
 {
-    namespace Events = DataObjects::Events;
+    namespace Events = Exchange::Events;
     d->ollamaInterface.setResponseCallback([this](auto&& response) -> void {
         d->isAnswering.store(false, std::memory_order_release);
         Events::WSEvent resp(Events::AIAsk);

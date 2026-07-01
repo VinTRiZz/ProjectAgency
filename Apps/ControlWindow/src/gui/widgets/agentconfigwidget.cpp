@@ -13,12 +13,12 @@ AgentConfigWidget::~AgentConfigWidget()
     delete ui;
 }
 
-void AgentConfigWidget::setConfig(DataObjects::OllamaConfigPtr pConfig)
+void AgentConfigWidget::setConfig(AIObjects::OllamaConfigPtr pConfig)
 {
     m_pConfig = pConfig;
 }
 
-DataObjects::OllamaConfigPtr AgentConfigWidget::getConfig() const
+AIObjects::OllamaConfigPtr AgentConfigWidget::getConfig() const
 {
     return m_pConfig;
 }

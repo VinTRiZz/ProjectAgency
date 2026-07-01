@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include <ProjectAgency/OllamaConfig.h>
+#include <ProjectAgency/AIObjects/OllamaConfig.h>
 
 namespace Ui {
 class AgentConfigWidget;
@@ -16,11 +16,11 @@ public:
     explicit AgentConfigWidget(QWidget *parent = nullptr);
     ~AgentConfigWidget();
 
-    void setConfig(DataObjects::OllamaConfigPtr pConfig);
-    DataObjects::OllamaConfigPtr getConfig() const;
+    void setConfig(AIObjects::OllamaConfigPtr pConfig);
+    AIObjects::OllamaConfigPtr getConfig() const;
 
 private:
     Ui::AgentConfigWidget *ui;
 
-    DataObjects::OllamaConfigPtr m_pConfig;
+    AIObjects::OllamaConfigPtr m_pConfig;
 };

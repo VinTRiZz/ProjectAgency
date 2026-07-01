@@ -2,7 +2,7 @@
 
 #include <Components/Logger/Logger.h>
 
-#include <ProjectAgency/Types.h>
+#include <ProjectAgency/Exchange/Types.h>
 
 namespace Database {
 

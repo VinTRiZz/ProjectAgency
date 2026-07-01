@@ -34,7 +34,7 @@ void Client_StatusManager::requestStatus()
         if (resp->error() != QNetworkReply::NoError) {
             return;
         }
-        DataObjects::DeviceStatus status;
+        Exchange::DeviceStatus status;
         if (!status.readJson(resp->readAll().toStdString())) {
             return;
         }

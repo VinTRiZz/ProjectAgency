@@ -5,7 +5,7 @@
 #include <variant>
 #include <map>
 
-#include <ProjectAgency/Types.h>
+#include <ProjectAgency/Exchange/Types.h>
 
 namespace Database {
 
@@ -44,7 +44,7 @@ public:
         if (iRecord.end() == idColIt) {
             return false;
         }
-        if constexpr (std::is_arithmetic_v<IdT> || std::is_same_v<IdT, DataObjects::id_t>) {
+        if constexpr (std::is_arithmetic_v<IdT> || std::is_same_v<IdT, Exchange::id_t>) {
             m_id = std::get<int64_t>(idColIt->second);
         } else {
             m_id = std::get<std::string>(idColIt->second);
@@ -57,7 +57,7 @@ public:
     virtual std::string getIdString() const {
         if constexpr (std::is_same_v<IdT, std::string>) {
             return m_id;
-        } else if constexpr (std::is_same_v<IdT, DataObjects::id_t>) {
+        } else if constexpr (std::is_same_v<IdT, Exchange::id_t>) {
             return std::to_string(m_id);
         }
         return {};
@@ -78,7 +78,7 @@ protected:
     }
 };
 
-using RecordBaseI = RecordBase<DataObjects::id_t>;
+using RecordBaseI = RecordBase<Exchange::id_t>;
 using RecordBaseS = RecordBase<std::string>;
 
 } // namespace Database
