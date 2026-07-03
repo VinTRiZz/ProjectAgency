@@ -29,10 +29,11 @@ public:
     bool isSolvingTask() const;
     void stopCurrentTask();
 
-    bool addBackend(const DBRecords::BackendInfoPtr& backendInfo);
-    bool updateBackend(const DBRecords::BackendInfoPtr& backendInfo);
+    bool addBackend(const DBRecords::AIBackendInfoPtr& backendInfo);
+    bool updateBackend(const DBRecords::AIBackendInfoPtr& backendInfo);
+    std::shared_ptr<AIBackendHandler> getBackend(const DBRecords::AIBackendInfo::id_t& backendId) const;
     std::vector<std::shared_ptr<AIBackendHandler> > getBackends() const;
-    void removeBackend(const DBRecords::BackendInfo::id_t& backendId);
+    void removeBackend(const DBRecords::AIBackendInfo::id_t& backendId);
 
 private:
     std::string m_token;

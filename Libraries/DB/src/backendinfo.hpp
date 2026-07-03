@@ -7,25 +7,27 @@
 namespace DBRecords {
 
 /**
- * @brief The BackendType enum Device type of backend runner
+ * @brief The AIBackendDeviceType enum Device type of backend runner
  */
-enum BackendType : int
+enum AIBackendDeviceType : int
 {
     Default = 0, // PC
     Android,
+
+    SYS_Devtype_max // To check if type is valid
 };
 
-class BackendInfo;
-using BackendInfoPtr = std::shared_ptr<BackendInfo>;
+class AIBackendInfo;
+using AIBackendInfoPtr = std::shared_ptr<AIBackendInfo>;
 
 /**
- * @brief The BackendInfo class Backend info record
+ * @brief The AIBackendInfo class Backend info record
  * @note Last online time must be proceed using DB functions
  */
-class BackendInfo : public Database::RecordBaseS
+class AIBackendInfo : public Database::RecordBaseS
 {
 public:
-    BackendInfo();
+    AIBackendInfo();
 
     // RecordBase interface
     /**
@@ -34,6 +36,9 @@ public:
     void setId(const std::string &id) noexcept(false) override;
     Database::record_t toRecord() const override;
     bool initFromRecord(const Database::record_t &iRecord) override;
+
+    void setType(AIBackendDeviceType typ);
+    AIBackendDeviceType getType() const;
 
     void setIp(const std::string& ip);
     std::string getIp() const;
@@ -58,7 +63,7 @@ public:
     virtual bool readJson(const std::string& iJson);
 
 private:
-    BackendType m_type {BackendType::Default};
+    AIBackendDeviceType m_type {AIBackendDeviceType::Default};
     std::string m_ip;
     uint16_t    m_port;
     std::string m_displayName;

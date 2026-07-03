@@ -6,7 +6,7 @@
 #include <ProjectAgency/Exchange/Types.h>
 #include <ProjectAgency/Exchange/WSEvent.h>
 
-#include <ProjectAgency/DB/BackendInfo.h>
+#include <ProjectAgency/DB/AIBackendInfo.h>
 #include <ProjectAgency/DB/AIRole.h>
 
 /**
@@ -29,8 +29,8 @@ public:
     void setEventCallback(Exchange::Events::EventType etype, EventCallback_t&& cbk);
 
     // Backend's AI handling
-    void setInfo(const DBRecords::BackendInfoPtr& info);
-    DBRecords::BackendInfoPtr getInfo() const;
+    void setInfo(const DBRecords::AIBackendInfoPtr& info);
+    DBRecords::AIBackendInfoPtr getInfo() const;
     void setModelRole(const DBRecords::AIRolePtr& aiRole);
     DBRecords::AIRolePtr getModelRole() const;
 

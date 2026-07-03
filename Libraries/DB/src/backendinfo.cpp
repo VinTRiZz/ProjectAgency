@@ -7,12 +7,12 @@
 
 namespace DBRecords {
 
-BackendInfo::BackendInfo() :
+AIBackendInfo::AIBackendInfo() :
     Database::RecordBaseS("sch_manager.t_backends", "device") {
 
 }
 
-void BackendInfo::setId(const std::string &id) noexcept(false)
+void AIBackendInfo::setId(const std::string &id) noexcept(false)
 {
     if (id.size() != 64) {
         throw std::invalid_argument("Invalid id length (expected 64 symbols)");
@@ -20,7 +20,7 @@ void BackendInfo::setId(const std::string &id) noexcept(false)
     Database::RecordBaseS::setId(id);
 }
 
-Database::record_t BackendInfo::toRecord() const
+Database::record_t AIBackendInfo::toRecord() const
 {
     auto res = Database::RecordBaseS::toRecord();
     res["type"] = m_type;
@@ -30,7 +30,7 @@ Database::record_t BackendInfo::toRecord() const
     return res;
 }
 
-bool BackendInfo::initFromRecord(const Database::record_t &iRecord)
+bool AIBackendInfo::initFromRecord(const Database::record_t &iRecord)
 {
     auto initRes = Database::RecordBaseS::initFromRecord(iRecord);
     if (!initRes) {
@@ -41,7 +41,7 @@ bool BackendInfo::initFromRecord(const Database::record_t &iRecord)
     if (iRecord.end() == colIt) {
         return false;
     }
-    m_type = BackendType(std::get<int64_t>(colIt->second));
+    m_type = AIBackendDeviceType(std::get<int64_t>(colIt->second));
 
     colIt = iRecord.find("ip_addr");
     if (iRecord.end() == colIt) {
@@ -73,38 +73,48 @@ bool BackendInfo::initFromRecord(const Database::record_t &iRecord)
     return true;
 }
 
-void BackendInfo::setIp(const std::string &ip)
+void AIBackendInfo::setType(AIBackendDeviceType typ)
+{
+    m_type = typ;
+}
+
+AIBackendDeviceType AIBackendInfo::getType() const
+{
+    return m_type;
+}
+
+void AIBackendInfo::setIp(const std::string &ip)
 {
     m_ip = ip;
     fixStringValueIssues(m_ip);
 }
 
-std::string BackendInfo::getIp() const
+std::string AIBackendInfo::getIp() const
 {
     return m_ip;
 }
 
-void BackendInfo::setPort(const uint16_t &port)
+void AIBackendInfo::setPort(const uint16_t &port)
 {
     m_port = port;
 }
 
-int64_t BackendInfo::getPort() const
+int64_t AIBackendInfo::getPort() const
 {
     return m_port;
 }
 
-void BackendInfo::setDisplayName(const std::string &displayName)
+void AIBackendInfo::setDisplayName(const std::string &displayName)
 {
     m_displayName = displayName;
 }
 
-std::string BackendInfo::getDisplayName() const
+std::string AIBackendInfo::getDisplayName() const
 {
     return m_displayName;
 }
 
-void BackendInfo::setToken(const std::string &token)
+void AIBackendInfo::setToken(const std::string &token)
 {
     if (token.size() != 64) {
         throw std::invalid_argument("Invalid token length (expected 64 symbols)");
@@ -112,22 +122,22 @@ void BackendInfo::setToken(const std::string &token)
     m_token = token;
 }
 
-std::string BackendInfo::getToken() const
+std::string AIBackendInfo::getToken() const
 {
     return m_token;
 }
 
-std::string BackendInfo::getFullAddress() const
+std::string AIBackendInfo::getFullAddress() const
 {
     return m_ip + ":" + std::to_string(m_port);
 }
 
-std::string BackendInfo::toJson() const
+std::string AIBackendInfo::toJson() const
 {
     return {};
 }
 
-bool BackendInfo::readJson(const std::string &iJson)
+bool AIBackendInfo::readJson(const std::string &iJson)
 {
     return false;
 }

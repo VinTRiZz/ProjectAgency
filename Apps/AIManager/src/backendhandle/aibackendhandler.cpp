@@ -25,7 +25,7 @@ struct AIBackendHandler::Impl
     ConnectionHdl                       eventConnection;
     std::atomic<bool>                   connected {false};
 
-    DBRecords::BackendInfoPtr   m_backendRecord;
+    DBRecords::AIBackendInfoPtr   m_backendRecord;
     DBRecords::AIRolePtr        m_aiRole;
 };
 
@@ -133,12 +133,12 @@ void AIBackendHandler::setEventCallback(Exchange::Events::EventType etype, Event
     d->eventCallbacks.emplace(etype, std::move(cbk));
 }
 
-void AIBackendHandler::setInfo(const DBRecords::BackendInfoPtr &info)
+void AIBackendHandler::setInfo(const DBRecords::AIBackendInfoPtr &info)
 {
     d->m_backendRecord = info;
 }
 
-DBRecords::BackendInfoPtr AIBackendHandler::getInfo() const
+DBRecords::AIBackendInfoPtr AIBackendHandler::getInfo() const
 {
     return d->m_backendRecord;
 }

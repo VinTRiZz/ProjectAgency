@@ -21,7 +21,7 @@ void AIServiceController::processGetBackendIdList(const drogon::HttpRequestPtr &
 
 void AIServiceController::processAddConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
-    DBRecords::BackendInfoPtr bckInfo = std::make_shared<DBRecords::BackendInfo>();
+    DBRecords::AIBackendInfoPtr bckInfo = std::make_shared<DBRecords::AIBackendInfo>();
     if (!bckInfo->readJson(req->getBody().data())) {
         sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
         return;
@@ -35,17 +35,16 @@ void AIServiceController::processAddConfiguration(const drogon::HttpRequestPtr &
 
 void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
 {
-    for (auto pBck : m_aiManager.getBackends()) {
-        if (backendId == pBck->getInfo()->getId()) {
-            sendJsonMessage(drogon::k200OK, pBck->getInfo()->toJson(), std::move(callback));
-        }
+    auto pBackend = m_aiManager.getBackend(backendId);
+    if (pBackend) {
+        sendJsonMessage(drogon::k200OK, pBackend->getInfo()->toJson(), std::move(callback));
     }
     sendTextMessage(drogon::k404NotFound, "No such backend found", std::move(callback));
 }
 
 void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
-    DBRecords::BackendInfoPtr bckInfo = std::make_shared<DBRecords::BackendInfo>();
+    DBRecords::AIBackendInfoPtr bckInfo = std::make_shared<DBRecords::AIBackendInfo>();
     if (!bckInfo->readJson(req->getBody().data())) {
         sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
         return;
@@ -59,6 +58,9 @@ void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &
 
 void AIServiceController::processRemoveConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
 {
+    auto pBackend = m_aiManager.getBackend(backendId);
+    if (pBackend) {
+        sendJsonMessage(drogon::k200OK, backendId, std::move(callback));
+    }
     m_aiManager.removeBackend(backendId);
-    sendJsonMessage(drogon::k200OK, "Backend removed", std::move(callback));
 }

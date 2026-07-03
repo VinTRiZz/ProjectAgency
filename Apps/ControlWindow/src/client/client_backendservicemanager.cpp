@@ -30,7 +30,7 @@ void Client_BackendServiceManager::requestIdList()
                 }
                 try {
                     auto responseJson = nlohmann::json::parse(resp->readAll().toStdString());
-                    std::vector<DBRecords::BackendInfo::id_t> ids;
+                    std::vector<DBRecords::AIBackendInfo::id_t> ids;
                     for (auto& js : responseJson) {
                         ids.push_back(js);
                     }
@@ -43,7 +43,7 @@ void Client_BackendServiceManager::requestIdList()
             });
 }
 
-void Client_BackendServiceManager::requestConfigAdd(const DBRecords::BackendInfoPtr &pBackendInfo)
+void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendInfoPtr &pBackendInfo)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_ADD, pBackendInfo));
@@ -61,7 +61,7 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::BackendInfo
             });
 }
 
-void Client_BackendServiceManager::requestConfigGet(const DBRecords::BackendInfo::id_t &backendId)
+void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendInfo::id_t &backendId)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_GET, backendId));
@@ -74,13 +74,13 @@ void Client_BackendServiceManager::requestConfigGet(const DBRecords::BackendInfo
                     emit sig_responseConfigGet(false, errText);
                     return;
                 }
-                DBRecords::BackendInfoPtr pBackendInfo;
+                DBRecords::AIBackendInfoPtr pBackendInfo;
                 pBackendInfo->readJson(resp->readAll().toStdString());
                 emit sig_responseConfigGet(true, {}, pBackendInfo);
             });
 }
 
-void Client_BackendServiceManager::requestConfigSet(const DBRecords::BackendInfoPtr &pBackendInfo)
+void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendInfoPtr &pBackendInfo)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_SET, pBackendInfo));
@@ -93,13 +93,13 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::BackendInfo
                     emit sig_responseConfigRemove(false, errText);
                     return;
                 }
-                DBRecords::BackendInfoPtr pBackendInfo;
+                DBRecords::AIBackendInfoPtr pBackendInfo;
                 pBackendInfo->readJson(resp->readAll().toStdString());
                 emit sig_responseConfigSet(true, {}, pBackendInfo);
             });
 }
 
-void Client_BackendServiceManager::requestConfigRemove(const DBRecords::BackendInfo::id_t &backendId)
+void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBackendInfo::id_t &backendId)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_REM, backendId));
@@ -116,13 +116,13 @@ void Client_BackendServiceManager::requestConfigRemove(const DBRecords::BackendI
             });
 }
 
-QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::BackendInfoPtr &pBackend) const
+QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::AIBackendInfoPtr &pBackend) const
 {
     auto res = QString::fromStdString(apiUrl);
     return res.arg(QString::fromStdString(pBackend->getId()));
 }
 
-QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::BackendInfo::id_t &backendId) const
+QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::AIBackendInfo::id_t &backendId) const
 {
     auto res = QString::fromStdString(apiUrl);
     return res.arg(QString::fromStdString(backendId));

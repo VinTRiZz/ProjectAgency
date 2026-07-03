@@ -33,9 +33,9 @@ void AIManager::init()
 {
     auto& appSettings = Common::ApplicationSettings::getInstance();
     m_token = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN)->getValueString(); // Expected existance here
-    auto backendRecords = m_pRecordManager->getAllRecords<DBRecords::BackendInfo>();
+    auto backendRecords = m_pRecordManager->getAllRecords<DBRecords::AIBackendInfo>();
     for (auto& bckRec : backendRecords) {
-        auto bck = std::make_shared<DBRecords::BackendInfo>(std::move(bckRec));
+        auto bck = std::make_shared<DBRecords::AIBackendInfo>(std::move(bckRec));
         auto pBackend = std::make_shared<AIBackendHandler>();
         bck->setToken(m_token);
         pBackend->setInfo(bck);
@@ -82,7 +82,7 @@ void AIManager::stopCurrentTask()
     m_currentTask = {};
 }
 
-bool AIManager::addBackend(const DBRecords::BackendInfoPtr &backendInfo)
+bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     if (!backendInfo || !backendInfo->getId().empty()) {
         COMPLOG_WARNING("Invalid backend passed for add (not inited)");
@@ -114,7 +114,7 @@ bool AIManager::addBackend(const DBRecords::BackendInfoPtr &backendInfo)
     return true;
 }
 
-bool AIManager::updateBackend(const DBRecords::BackendInfoPtr &backendInfo)
+bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     if (!backendInfo || backendInfo->getId().empty()) {
         COMPLOG_WARNING("Invalid backend passed for update (not inited)");
@@ -136,12 +136,22 @@ bool AIManager::updateBackend(const DBRecords::BackendInfoPtr &backendInfo)
     return false;
 }
 
+std::shared_ptr<AIBackendHandler> AIManager::getBackend(const DBRecords::AIBackendInfo::id_t& backendId) const
+{
+    for (auto pBck : m_backends) {
+        if (backendId == pBck->getInfo()->getId()) {
+            return pBck;
+        }
+    }
+    return {};
+}
+
 std::vector<std::shared_ptr<AIBackendHandler> > AIManager::getBackends() const
 {
     return m_backends;
 }
 
-void AIManager::removeBackend(const DBRecords::BackendInfo::id_t &backendId)
+void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
 {
     if (backendId.empty()) {
         COMPLOG_WARNING("Invalid backend passed for remove (empty)");
