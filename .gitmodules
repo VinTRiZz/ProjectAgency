@@ -46,3 +46,9 @@
 [submodule "ComponentsSystem/Components-Styles"]
 	path = ComponentsSystem/Components-Styles
 	url = https://github.com/VinTRiZz/Components-Styles.git
+[submodule "ComponentsSystem/Components-Qt-Custom"]
+	path = ComponentsSystem/Components-Qt-Custom
+	url = git@github.com:VinTRiZz/Components-Qt-Custom.git
+[submodule "ComponentsSystem/Components-Maths"]
+	path = ComponentsSystem/Components-Maths
+	url = git@github.com:VinTRiZz/Components-Maths.git

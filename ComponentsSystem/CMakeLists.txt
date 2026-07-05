@@ -9,3 +9,12 @@ add_subdirectory(Components-Database)
 add_subdirectory(Components-SystemProcessing)
 add_subdirectory(Components-Thread)
 add_subdirectory(Components-Network)
+add_subdirectory(Components-Maths)
+
+if (NOT PAG_BUILD_CWINDOW)
+    message(STATUS "Control window build disabled")
+    return()
+endif()
+
+COMPONENTS_CCR_ADD_QT(5 Core Widgets)
+add_subdirectory(Components-Qt-Custom)

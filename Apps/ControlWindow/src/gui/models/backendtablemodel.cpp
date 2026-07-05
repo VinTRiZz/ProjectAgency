@@ -1,4 +1,4 @@
-#include "backendtreemodel.hpp"
+#include "backendtablemodel.hpp"
 
 #include <QColor>
 
@@ -8,13 +8,13 @@
 #include "business/aibackendservicemanager.hpp"
 #include "business/aibackenddynamicmanager.hpp"
 
-BackendTreeModel::BackendTreeModel(QObject *parent)
+BackendTableModel::BackendTableModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
 
 }
 
-QVariant BackendTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant BackendTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal) {
         return {};
@@ -34,14 +34,14 @@ QVariant BackendTreeModel::headerData(int section, Qt::Orientation orientation, 
     return QAbstractTableModel::headerData(section, orientation, role);
 }
 
-int BackendTreeModel::rowCount(const QModelIndex &parent) const
+int BackendTableModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid() || !m_backends.isValid())
         return 0;
     return m_backends->size();
 }
 
-int BackendTreeModel::columnCount(const QModelIndex &parent) const
+int BackendTableModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
@@ -49,7 +49,7 @@ int BackendTreeModel::columnCount(const QModelIndex &parent) const
     return Columns::C_SYS_columnCount;
 }
 
-QVariant BackendTreeModel::data(const QModelIndex &index, int role) const
+QVariant BackendTableModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() >= rowCount() || index.row() < 0)
         return QVariant();
@@ -112,7 +112,7 @@ QVariant BackendTreeModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool BackendTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool BackendTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (!index.isValid() || index.row() >= rowCount() || index.row() < 0)
         return false;
@@ -125,9 +125,9 @@ bool BackendTreeModel::setData(const QModelIndex &index, const QVariant &value, 
 
         switch (index.column())
         {
-        case C_host:    return setData(index, value, R_host);
+        case C_address: return setData(index, value, R_address);
         case C_name:    return setData(index, value, R_name);
-        case C_port:    return setData(index, value, R_port);
+        case C_type:    return setData(index, value, R_type);
         }
         return false;
     }
@@ -179,7 +179,7 @@ bool BackendTreeModel::setData(const QModelIndex &index, const QVariant &value, 
     return false;
 }
 
-Qt::ItemFlags BackendTreeModel::flags(const QModelIndex &index) const
+Qt::ItemFlags BackendTableModel::flags(const QModelIndex &index) const
 {
     if (index.column() == C_id || index.column() == C_status) {
         return QAbstractItemModel::flags(index) &~ Qt::ItemIsEditable;
@@ -187,7 +187,7 @@ Qt::ItemFlags BackendTreeModel::flags(const QModelIndex &index) const
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
 
-void BackendTreeModel::setBackendContext(AIManagerContext *pContext)
+void BackendTableModel::setBackendContext(AIManagerContext *pContext)
 {
     beginResetModel();
     // if (m_pBackendRegistry) {
@@ -215,7 +215,7 @@ void BackendTreeModel::setBackendContext(AIManagerContext *pContext)
     endResetModel();
 }
 
-DBRecords::AIBackendInfoPtr BackendTreeModel::getBackend(const QModelIndex &idx) const
+DBRecords::AIBackendInfoPtr BackendTableModel::getBackend(const QModelIndex &idx) const
 {
     if (idx.row() >= rowCount() || idx.row() < 0) {
         return {};

@@ -12,13 +12,13 @@ using AIBackendInfoPtr = std::shared_ptr<AIBackendInfo>;
 }
 
 /**
- * @brief The BackendTreeModel class Backend instances tree model to view AIManager's contains
+ * @brief The BackendTableModel class Backend instances model to view AIManager's contains
  */
-class BackendTreeModel : public QAbstractTableModel
+class BackendTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit BackendTreeModel(QObject *parent = nullptr);
+    explicit BackendTableModel(QObject *parent = nullptr);
 
     enum Columns : int {
         C_id = 0,
