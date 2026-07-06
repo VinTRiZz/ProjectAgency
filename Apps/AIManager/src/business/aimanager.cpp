@@ -5,6 +5,8 @@
 #include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Filework/Common.h>
 
+#include <ProjectAgency/DB/TEST/BackendInfoGenerator.h>
+
 #include <nlohmann/json.hpp>
 
 #include "common/settings.hpp"
@@ -40,6 +42,14 @@ void AIManager::init()
         bck->setToken(m_token);
         pBackend->setInfo(bck);
         m_backends.push_back(pBackend);
+
+        // Debug needs
+        // COMPLOG_DEBUG(
+        //     "Loaded:",
+        //     bck->getFullAddress(), " | ",
+        //     bck->getDisplayName(), " | ",
+        //     static_cast<int>(bck->getType()), " | ",
+        //     bck->getId());
     }
     COMPLOG_OK("Loaded backend total count:", backendRecords.size());
 }
