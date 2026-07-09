@@ -6,7 +6,12 @@
 
 #include <ProjectAgency/DB/AIBackendInfo.h>
 
+#include <Components/ExtraClasses/Containers/HandlerBase.h>
+
 class Client_BackendServiceManager;
+
+using BackendArrayHdl = ExtraClasses::HandlerBase<std::set<DBRecords::AIBackendInfoPtr> >;
+using BackendArrayConstHdl = ExtraClasses::HandlerBase<const std::set<DBRecords::AIBackendInfoPtr> >;
 
 /**
  * @brief The AIBackendServiceManager class Instance to work with backend info stated in AIManager
@@ -17,22 +22,15 @@ class AIBackendServiceManager : public QObject
     Q_OBJECT
 public:
     explicit AIBackendServiceManager(QObject *parent = nullptr);
+    ~AIBackendServiceManager();
+
+    void setDebugEnabled(bool enableDebugMode);
 
     void updateBackends();
     Client_BackendServiceManager* getClient() const;
 
-    // Sorter for std::set
-    struct BackendLess
-    {
-        bool operator()(const DBRecords::AIBackendInfoPtr& pLeft,
-                        const DBRecords::AIBackendInfoPtr& pRight) const {
-            return ((!pLeft && pRight) ||
-                    (pLeft && pRight && (pLeft->getId() < pRight->getId())));
-        }
-    };
-
     DBRecords::AIBackendInfoPtr getBackend(const DBRecords::AIBackendInfo::id_t& id) const;
-    const std::set<DBRecords::AIBackendInfoPtr, BackendLess>& getAllBackends() const;
+    BackendArrayHdl getAllBackends() const;
 
 signals:
     void sig_backendAdded(const DBRecords::AIBackendInfoPtr& pBackend);
@@ -42,6 +40,7 @@ signals:
     void sig_errorOccurs(const QString& errorText);
 
 private:
-    std::set<DBRecords::AIBackendInfoPtr, BackendLess> m_backends;
+    bool m_enableDebugMode {false}; // Allows generating test samples
+    BackendArrayHdl m_backends;
     Client_BackendServiceManager* m_pBackendServiceManager {nullptr};
 };

@@ -40,6 +40,13 @@ public:
     void setType(AIBackendDeviceType typ);
     AIBackendDeviceType getType() const;
 
+    /**
+     * @brief getTypeString Get english name of a device type
+     * @return NOT NULL string always
+     * @throws std::invalid_argument If type is invalid (not in AIBackendDeviceType or is SYS_Devtype_max)
+     */
+    std::string getTypeString() const noexcept(false);
+
     void setIp(const std::string& ip);
     std::string getIp() const;
 
@@ -71,3 +78,8 @@ private:
 };
 
 } // namespace DBRecords
+
+#ifdef QT_CORE_LIB
+#include <QtCore>
+Q_DECLARE_METATYPE(DBRecords::AIBackendInfoPtr);
+#endif // QT_CORE_LIB

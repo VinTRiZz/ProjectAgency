@@ -1,15 +1,12 @@
 #pragma once
 
 #include <QAbstractTableModel>
-#include <memory>
 
 #include <Components/ExtraClasses/Containers/HandlerBase.h>
 
+#include "business/aibackendservicemanager.hpp"
+
 class AIManagerContext;
-namespace DBRecords {
-class AIBackendInfo;
-using AIBackendInfoPtr = std::shared_ptr<AIBackendInfo>;
-}
 
 /**
  * @brief The BackendTableModel class Backend instances model to view AIManager's contains
@@ -48,11 +45,11 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     void setBackendContext(AIManagerContext* pContext);
+    DBRecords::AIBackendInfoPtr getBackend(int row) const;
+    DBRecords::AIBackendInfoPtr getBackend(const QModelIndex& idx) const;
 
 private:
     AIManagerContext* m_pBackendContext {nullptr};
-    ExtraClasses::HandlerBase<std::vector<DBRecords::AIBackendInfoPtr> > m_backends;
-
-    DBRecords::AIBackendInfoPtr getBackend(const QModelIndex& idx) const;
+    BackendArrayHdl m_backends;
 };
 

@@ -83,6 +83,20 @@ AIBackendDeviceType AIBackendInfo::getType() const
     return m_type;
 }
 
+std::string AIBackendInfo::getTypeString() const
+{
+    switch (m_type)
+    {
+    case AIBackendDeviceType::Default:
+        return "Computer";
+    case AIBackendDeviceType::Android:
+        return "Android";
+    default:
+        throw std::invalid_argument("Invalid device type to get name");
+    }
+    return {};
+}
+
 void AIBackendInfo::setIp(const std::string &ip)
 {
     m_ip = ip;

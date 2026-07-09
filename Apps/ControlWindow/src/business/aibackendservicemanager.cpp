@@ -2,10 +2,13 @@
 
 #include <Components/Logger/Logger.h>
 
+#include <ProjectAgency/DB/TEST/BackendInfoGenerator.h>
+
 #include "client/client_backendservicemanager.hpp"
 
-AIBackendServiceManager::AIBackendServiceManager(QObject *parent)
-    : QObject{parent}
+AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
+    QObject{parent},
+    m_backends {new BackendArrayHdl::value_t}
 {
     m_pBackendServiceManager = new Client_BackendServiceManager(this);
 
@@ -30,7 +33,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent)
         if (pBackend) {
             *pBackend = *pBackendInfo;
         } else {
-            m_backends.insert(pBackendInfo);
+            m_backends->insert(pBackendInfo);
         }
         emit sig_backendAdded(pBackend);
     });
@@ -45,7 +48,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent)
         if (pBackend) {
             *pBackend = *pBackendInfo;
         } else {
-            m_backends.insert(pBackendInfo);
+            m_backends->insert(pBackendInfo);
         }
         emit sig_backendUpdated(pBackend);
     });
@@ -73,7 +76,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent)
         }
         auto pBackend = getBackend(backendId);
         if (pBackend) {
-            m_backends.erase(pBackend);
+            m_backends->erase(pBackend);
         }
         emit sig_backendRemoved(pBackend);
     });
@@ -81,9 +84,31 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent)
 
 }
 
+AIBackendServiceManager::~AIBackendServiceManager()
+{
+    delete m_backends.get();
+}
+
+void AIBackendServiceManager::setDebugEnabled(bool enableDebugMode)
+{
+    m_enableDebugMode = enableDebugMode;
+}
+
 void AIBackendServiceManager::updateBackends()
 {
-    m_pBackendServiceManager->requestIdList();
+    if (m_enableDebugMode) {
+        AITest::BackendInfoGenerator gen;
+        gen.setSeed(150);
+        auto testRecords = gen.generate(10);
+        for (auto trec : testRecords) {
+            m_backends->insert(std::make_shared<DBRecords::AIBackendInfo>(trec));
+        }
+        for (const auto& bck : *m_backends) {
+            emit sig_backendAdded(bck);
+        }
+    } else {
+        m_pBackendServiceManager->requestIdList();
+    }
 }
 
 Client_BackendServiceManager *AIBackendServiceManager::getClient() const
@@ -93,16 +118,16 @@ Client_BackendServiceManager *AIBackendServiceManager::getClient() const
 
 DBRecords::AIBackendInfoPtr AIBackendServiceManager::getBackend(const DBRecords::AIBackendInfo::id_t &id) const
 {
-    auto lbnd = std::lower_bound(m_backends.begin(), m_backends.end(), id, [](const auto& pLeft, const auto& id){
+    auto lbnd = std::lower_bound(m_backends->begin(), m_backends->end(), id, [](const auto& pLeft, const auto& id){
         return (pLeft->getId() < id);
     });
-    if (m_backends.end() == lbnd) {
+    if (m_backends->end() == lbnd) {
         return {};
     }
     return ((*lbnd)->getId() == id ? (*lbnd) : DBRecords::AIBackendInfoPtr{});
 }
 
-const std::set<DBRecords::AIBackendInfoPtr, AIBackendServiceManager::BackendLess> &AIBackendServiceManager::getAllBackends() const
+BackendArrayHdl AIBackendServiceManager::getAllBackends() const
 {
     return m_backends;
 }

@@ -101,11 +101,11 @@ QVariant BackendTableModel::data(const QModelIndex &index, int role) const
         }
         switch (role)
         {
-        case C_id:      return QString::fromStdString(pBackend->getId());
-        case C_address: return QString::fromStdString(pBackend->getFullAddress());
-        case C_type:    return pBackend->getType();
-        case C_name:    return QString::fromStdString(pBackend->getDisplayName());
-        case C_status:  return m_pBackendContext->getBackendDynamicManager()->isBackendOnline(pBackend->getId());
+        case R_id:      return QString::fromStdString(pBackend->getId());
+        case R_address: return QString::fromStdString(pBackend->getFullAddress());
+        case R_type:    return pBackend->getType();
+        case R_name:    return QString::fromStdString(pBackend->getDisplayName());
+        case R_status:  return m_pBackendContext->getBackendDynamicManager()->isBackendOnline(pBackend->getId());
         }
     }
 
@@ -190,29 +190,24 @@ Qt::ItemFlags BackendTableModel::flags(const QModelIndex &index) const
 void BackendTableModel::setBackendContext(AIManagerContext *pContext)
 {
     beginResetModel();
-    // if (m_pBackendRegistry) {
-    //     disconnect(m_pBackendRegistry, nullptr, this, nullptr);
-    // }
-    // m_pBackendContext = pContext;
-    // if (m_pBackendRegistry) {
-    //     connect(m_pBackendRegistry, &Web::ServerRegistry::serverAdded,
-    //             this, [this](const auto& serverHdl){
-    //                 // TODO: soft update, obviously
-    //                 beginResetModel();
-    //                 m_serversCache.insert(serverHdl);
-    //                 endResetModel();
-    //             });
-
-    //     connect(m_pBackendRegistry, &Web::ServerRegistry::serverAboutToRemove,
-    //             this, [this](const auto& serverHdl){
-    //                 // TODO: soft update, obviously
-    //                 beginResetModel();
-    //                 m_serversCache.erase(serverHdl);
-    //                 endResetModel();
-    //             });
-    //     m_serversCache = m_pBackendRegistry->getServers();
-    // }
+    if (m_pBackendContext) {
+        disconnect(m_pBackendContext, nullptr, this, nullptr);
+    }
+    m_pBackendContext = pContext;
+    if (m_pBackendContext) {
+        m_backends = m_pBackendContext->getBackendServiceManager()->getAllBackends();
+    }
     endResetModel();
+}
+
+DBRecords::AIBackendInfoPtr BackendTableModel::getBackend(int row) const
+{
+    if (row >= rowCount() || row < 0) {
+        return {};
+    }
+    auto sPos = m_backends->begin();
+    std::advance(sPos, row);
+    return *sPos;
 }
 
 DBRecords::AIBackendInfoPtr BackendTableModel::getBackend(const QModelIndex &idx) const
