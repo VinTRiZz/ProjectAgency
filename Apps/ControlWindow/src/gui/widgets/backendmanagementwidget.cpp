@@ -24,6 +24,8 @@ BackendManagementWidget::BackendManagementWidget(QWidget *parent)
     ui->treeViewBackendTree->setTreePosition(BackendTableModel::C_type);
     ui->treeViewBackendTree->hideColumn(BackendTableModel::C_id);
     ui->treeViewBackendTree->hideColumn(BackendTableModel::C_address);
+
+    ui->treeViewBackendTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 BackendManagementWidget::~BackendManagementWidget()

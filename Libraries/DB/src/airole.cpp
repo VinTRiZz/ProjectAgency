@@ -1,5 +1,7 @@
 #include "airole.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <Components/Logger/Logger.h>
 #include <Components/Encryption/Encoding.h>
 
@@ -103,12 +105,43 @@ std::string AIRole::getConfig() const
 
 std::string AIRole::toJson() const
 {
-    return {};
+    auto cols = toRecord();
+    nlohmann::json res;
+    for (auto& col : cols) {
+        res[col.first] = std::visit([](auto& v) -> nlohmann::json::value_type {
+            using valType_t = std::decay_t<decltype(v)>;
+            if constexpr(std::is_same_v<valType_t, std::monostate>) {
+                return {};
+            } else if constexpr(std::is_same_v<valType_t, std::string>) {
+                return nlohmann::json::value_type(Encryption::encodeHex(v));
+            } else {
+                return nlohmann::json::value_type(v);
+            }
+        }, col.second);
+    }
+    return res.dump();
 }
 
 bool AIRole::fromJson(const std::string &iJson)
 {
-    return false;
+    try {
+        auto iJsonV = nlohmann::json::parse(iJson);
+        Database::record_t iRec;
+        for (const auto& [key, value] : iJsonV.items()) {
+            if (value.is_number_integer()) {
+                iRec[key] = int64_t(value);
+            } else if (value.is_number_float()) {
+                iRec[key] = double(value);
+            } else {
+                iRec[key] = std::string(Encryption::decodeHex(value)); // Treat anything as a string
+            }
+        }
+        return initFromRecord(iRec);
+    } catch (const nlohmann::json::exception& ex) {
+        COMPLOG_WARNING("Failed to parse AIBackendInfo:", ex.what());
+        return false;
+    }
+    return true;
 }
 
 } // namespace DBRecords

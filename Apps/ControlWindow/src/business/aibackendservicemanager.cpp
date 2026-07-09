@@ -12,6 +12,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 {
     m_pBackendServiceManager = new Client_BackendServiceManager(this);
 
+    connect(this, &AIBackendServiceManager::sig_errorOccurs, [](const auto& errText){
+        COMPLOG_ERROR("AIBackendServiceManager (exchange):", errText.toStdString());
+    });
+
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& ids){
         if (!isSucceed) {
@@ -31,10 +35,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
         }
         auto pBackend = getBackend(pBackendInfo->getId());
         if (pBackend) {
-            *pBackend = *pBackendInfo;
-        } else {
-            m_backends->insert(pBackendInfo);
+            COMPLOG_WARNING("AIBackendServiceManager: Existing backend added");
+            return;
         }
+        m_backends->insert(pBackendInfo);
         emit sig_backendAdded(pBackend);
     });
 
@@ -47,10 +51,11 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
         auto pBackend = getBackend(pBackendInfo->getId());
         if (pBackend) {
             *pBackend = *pBackendInfo;
-        } else {
-            m_backends->insert(pBackendInfo);
+            emit sig_backendUpdated(pBackend);
+            return;
         }
-        emit sig_backendUpdated(pBackend);
+        m_backends->insert(pBackendInfo);
+        emit sig_backendAdded(pBackendInfo);
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigSet,

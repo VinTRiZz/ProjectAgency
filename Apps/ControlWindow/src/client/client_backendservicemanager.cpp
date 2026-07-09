@@ -45,8 +45,12 @@ void Client_BackendServiceManager::requestIdList()
 
 void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendInfoPtr &pBackendInfo)
 {
+    if (!pBackendInfo) {
+        COMPLOG_WARNING("Client_BackendServiceManager::requestConfigAdd: Skipped invalid backend info");
+        return;
+    }
     auto& requester = getRequester();
-    auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_ADD, pBackendInfo));
+    auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_ADD, pBackendInfo));
     auto resp = requester.get(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp, pBackendInfo](){
@@ -64,7 +68,7 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendIn
 void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendInfo::id_t &backendId)
 {
     auto& requester = getRequester();
-    auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_GET, backendId));
+    auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_GET, backendId));
     auto resp = requester.get(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp](){
@@ -74,14 +78,18 @@ void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendIn
                     emit sig_responseConfigGet(false, errText);
                     return;
                 }
-                DBRecords::AIBackendInfoPtr pBackendInfo;
-                pBackendInfo->readJson(resp->readAll().toStdString());
-                emit sig_responseConfigGet(true, {}, pBackendInfo);
+                DBRecords::AIBackendInfo pBackendInfo;
+                pBackendInfo.readJson(resp->readAll().toStdString());
+                emit sig_responseConfigGet(true, {}, pBackendInfo.toPointer());
             });
 }
 
 void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendInfoPtr &pBackendInfo)
 {
+    if (!pBackendInfo) {
+        COMPLOG_WARNING("Client_BackendServiceManager::requestConfigSet: Skipped invalid backend info");
+        return;
+    }
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_SET, pBackendInfo));
     auto resp = requester.get(req);
@@ -93,16 +101,16 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendIn
                     emit sig_responseConfigRemove(false, errText);
                     return;
                 }
-                DBRecords::AIBackendInfoPtr pBackendInfo;
-                pBackendInfo->readJson(resp->readAll().toStdString());
-                emit sig_responseConfigSet(true, {}, pBackendInfo);
+                DBRecords::AIBackendInfo pBackendInfo;
+                pBackendInfo.readJson(resp->readAll().toStdString());
+                emit sig_responseConfigSet(true, {}, pBackendInfo.toPointer());
             });
 }
 
 void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBackendInfo::id_t &backendId)
 {
     auto& requester = getRequester();
-    auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_REM, backendId));
+    auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_REM, backendId));
     auto resp = requester.get(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp, backendId](){

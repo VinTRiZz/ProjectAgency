@@ -36,9 +36,9 @@ QVariant BackendTableModel::headerData(int section, Qt::Orientation orientation,
 
 int BackendTableModel::rowCount(const QModelIndex &parent) const
 {
-    if (parent.isValid() || !m_backends.isValid())
+    if (parent.isValid())
         return 0;
-    return m_backends->size();
+    return m_backends.size();
 }
 
 int BackendTableModel::columnCount(const QModelIndex &parent) const
@@ -195,7 +195,37 @@ void BackendTableModel::setBackendContext(AIManagerContext *pContext)
     }
     m_pBackendContext = pContext;
     if (m_pBackendContext) {
-        m_backends = m_pBackendContext->getBackendServiceManager()->getAllBackends();
+        auto pBackManager = m_pBackendContext->getBackendServiceManager();
+        m_backends = *pBackManager->getAllBackends();
+
+        connect(pBackManager, &AIBackendServiceManager::sig_backendAdded,
+                this, [this](auto pBackend){
+                    auto lb = m_backends.lower_bound(pBackend);
+                    auto insRow = std::distance(m_backends.begin(), lb);
+                    beginInsertRows(QModelIndex(), insRow, insRow);
+                    m_backends.insert(pBackend);
+                    endInsertRows();
+                });
+        connect(pBackManager, &AIBackendServiceManager::sig_backendUpdated,
+                this, [this](auto pBackend){
+                    auto lb = m_backends.find(pBackend);
+                    if (m_backends.end() == lb) {
+                                return;
+                    }
+                    auto bckRow = std::distance(m_backends.begin(), lb);
+                    emit dataChanged(createIndex(bckRow, 0), createIndex(bckRow, columnCount() - 1));
+                });
+        connect(pBackManager, &AIBackendServiceManager::sig_backendRemoved,
+                this, [this](auto pBackend){
+                    auto lb = m_backends.find(pBackend);
+                    if (m_backends.end() == lb) {
+                        return;
+                    }
+                    auto bckRow = std::distance(m_backends.begin(), lb);
+                    beginRemoveRows(QModelIndex(), bckRow, bckRow);
+                    m_backends.erase(pBackend);
+                    endRemoveRows();
+                });
     }
     endResetModel();
 }
@@ -205,17 +235,12 @@ DBRecords::AIBackendInfoPtr BackendTableModel::getBackend(int row) const
     if (row >= rowCount() || row < 0) {
         return {};
     }
-    auto sPos = m_backends->begin();
+    auto sPos = m_backends.begin();
     std::advance(sPos, row);
     return *sPos;
 }
 
 DBRecords::AIBackendInfoPtr BackendTableModel::getBackend(const QModelIndex &idx) const
 {
-    if (idx.row() >= rowCount() || idx.row() < 0) {
-        return {};
-    }
-    auto sPos = m_backends->begin();
-    std::advance(sPos, idx.row());
-    return *sPos;
+    return getBackend(idx.row());
 }

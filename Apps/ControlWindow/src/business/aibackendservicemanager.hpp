@@ -10,8 +10,8 @@
 
 class Client_BackendServiceManager;
 
-using BackendArrayHdl = ExtraClasses::HandlerBase<std::set<DBRecords::AIBackendInfoPtr> >;
-using BackendArrayConstHdl = ExtraClasses::HandlerBase<const std::set<DBRecords::AIBackendInfoPtr> >;
+using BackendArray = std::set<DBRecords::AIBackendInfoPtr>;
+using BackendArrayHdl = ExtraClasses::HandlerBase<BackendArray>;
 
 /**
  * @brief The AIBackendServiceManager class Instance to work with backend info stated in AIManager

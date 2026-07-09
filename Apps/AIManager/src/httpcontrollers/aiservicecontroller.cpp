@@ -38,6 +38,7 @@ void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &
     auto pBackend = m_aiManager.getBackend(backendId);
     if (pBackend) {
         sendJsonMessage(drogon::k200OK, pBackend->getInfo()->toJson(), std::move(callback));
+        return;
     }
     sendTextMessage(drogon::k404NotFound, "No such backend found", std::move(callback));
 }
@@ -61,6 +62,7 @@ void AIServiceController::processRemoveConfiguration(const drogon::HttpRequestPt
     auto pBackend = m_aiManager.getBackend(backendId);
     if (pBackend) {
         sendJsonMessage(drogon::k200OK, backendId, std::move(callback));
+        return;
     }
     m_aiManager.removeBackend(backendId);
 }

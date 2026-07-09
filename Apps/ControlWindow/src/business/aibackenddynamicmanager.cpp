@@ -29,6 +29,5 @@ void AIBackendDynamicManager::setServiceManager(AIBackendServiceManager *pManage
 bool AIBackendDynamicManager::isBackendOnline(const DBRecords::AIBackendInfo::id_t &id) const
 {
     // TODO: Implement
-    COMPLOG_DEBUG("isBackendOnline not implemented");
     return false;
 }

@@ -49,7 +49,7 @@ public:
     DBRecords::AIBackendInfoPtr getBackend(const QModelIndex& idx) const;
 
 private:
-    AIManagerContext* m_pBackendContext {nullptr};
-    BackendArrayHdl m_backends;
+    AIManagerContext*   m_pBackendContext {nullptr};
+    BackendArray        m_backends;
 };
 

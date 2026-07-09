@@ -29,6 +29,17 @@ class AIBackendInfo : public Database::RecordBaseS
 public:
     AIBackendInfo();
 
+    /**
+     * @brief toPointer Create pointer with object data
+     * @return
+     * @note            Invalidates caller (uses move semantic)
+     */
+    AIBackendInfoPtr toPointer();
+
+    // Create pointer to a class
+    static AIBackendInfoPtr create();
+    static AIBackendInfoPtr create(AIBackendInfo&& src);
+
     // RecordBase interface
     /**
      * @throws std::invalid_argument if ID length is not 64
