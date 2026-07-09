@@ -10,6 +10,17 @@ AIBackendDynamicManager::AIBackendDynamicManager(QObject *parent) :
 
 }
 
+void AIBackendDynamicManager::setAddress(const QString &addr)
+{
+    // TODO: Implement
+}
+
+QString AIBackendDynamicManager::getAddress() const
+{
+    // TODO: Implement
+    return {};
+}
+
 void AIBackendDynamicManager::setServiceManager(AIBackendServiceManager *pManager)
 {
     m_pServiceManager = pManager;

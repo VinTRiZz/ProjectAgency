@@ -30,3 +30,13 @@ BackendManagementWidget::~BackendManagementWidget()
 {
     delete ui;
 }
+
+void BackendManagementWidget::setAIManagerAddress(const QString &addr, uint16_t apiPort)
+{
+    m_pManagerContext->setAddress(addr + ":" + QString::number(apiPort));
+}
+
+QString BackendManagementWidget::getAIManagerAddress() const
+{
+    return m_pManagerContext->getAddress();
+}

@@ -15,6 +15,9 @@ class AIBackendDynamicManager : public QObject
 public:
     explicit AIBackendDynamicManager(QObject* parent = nullptr);
 
+    void setAddress(const QString& addr);
+    QString getAddress() const;
+
     void setServiceManager(AIBackendServiceManager* pManager);
 
     bool isBackendOnline(const DBRecords::AIBackendInfo::id_t& id) const;

@@ -26,6 +26,9 @@ public:
 
     void setDebugEnabled(bool enableDebugMode);
 
+    void setAddress(const QString& addr);
+    QString getAddress() const;
+
     void updateBackends();
     Client_BackendServiceManager* getClient() const;
 

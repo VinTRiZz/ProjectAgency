@@ -16,6 +16,7 @@ public:
      * @param serverAddress Already checked, correct server address if format ip:port
      */
     void setServer(const QString& serverAddress);
+    QString getServer() const;
 
     /**
      * @brief startFileUpload   Start file upload as multipart HTTP item

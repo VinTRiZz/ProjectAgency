@@ -21,6 +21,11 @@ void HTTPClientBase::setServer(const QString &serverAddress)
     m_serverAddress = serverAddress;
 }
 
+QString HTTPClientBase::getServer() const
+{
+    return m_serverAddress;
+}
+
 QNetworkReply *HTTPClientBase::startFileUpload(const QString &localFilePath, const QString &fileTarget)
 {
     std::shared_ptr<QFile> file = std::make_shared<QFile>(localFilePath);

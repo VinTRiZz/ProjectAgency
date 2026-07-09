@@ -94,6 +94,16 @@ void AIBackendServiceManager::setDebugEnabled(bool enableDebugMode)
     m_enableDebugMode = enableDebugMode;
 }
 
+void AIBackendServiceManager::setAddress(const QString &addr)
+{
+    m_pBackendServiceManager->setServer(addr);
+}
+
+QString AIBackendServiceManager::getAddress() const
+{
+    return m_pBackendServiceManager->getServer();
+}
+
 void AIBackendServiceManager::updateBackends()
 {
     if (m_enableDebugMode) {
