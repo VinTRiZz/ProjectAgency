@@ -19,7 +19,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& ids){
         if (!isSucceed) {
-            emit sig_errorOccurs(errorMsg);
+            emit sig_errorOccurs("Failed to get backend list", errorMsg);
             return;
         }
         for (auto& id : ids) {
@@ -30,7 +30,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigAdd,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs(errorMsg);
+            emit sig_errorOccurs("Failed to add backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -45,7 +45,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigGet,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs(errorMsg);
+            emit sig_errorOccurs("Failed to get info about backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -61,7 +61,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigSet,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs(errorMsg);
+            emit sig_errorOccurs("Failed to save backend configuration", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -76,7 +76,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigRemove,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& backendId){
         if (!isSucceed) {
-            emit sig_errorOccurs(errorMsg);
+            emit sig_errorOccurs("Failed to remove backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(backendId);

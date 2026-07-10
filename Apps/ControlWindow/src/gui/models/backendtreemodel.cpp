@@ -27,6 +27,25 @@ void BackendTreeModel::removeGroup(uint8_t level)
     resetTree();
 }
 
+uint8_t BackendTreeModel::getMaxGroupLevel() const
+{
+    if (m_groupingRules.empty()) {
+        return {};
+    }
+    // dirty, but optimal :)
+    auto it = m_groupingRules.end();
+    std::advance(it, -1);
+    return it->first;
+}
+
+std::optional<BackendTreeModel::GroupingRule> BackendTreeModel::getGroupingRule(uint8_t level) const
+{
+    if (m_groupingRules.count(level)) {
+        return m_groupingRules.at(level);
+    }
+    return {};
+}
+
 QString BackendTreeModel::getGroupName(const DBRecords::AIBackendInfoPtr &pBackend, GroupingRule grRule) const
 {
     switch (grRule)

@@ -11,6 +11,8 @@ class BackendManagementWidget;
 class BackendTableModel;
 class BackendTreeModel;
 class AIManagerContext;
+class BackendContextMenu;
+class QMessageBox;
 
 class BackendManagementWidget : public QWidget
 {
@@ -23,10 +25,16 @@ public:
     void setAIManagerAddress(const QString& addr, uint16_t apiPort);
     QString getAIManagerAddress() const;
 
+private slots:
+    void slot_processError(const QString& errText, const QString &detailText);
+
 private:
     Ui::BackendManagementWidget *ui;
+
+    QMessageBox* m_pErrorMessageBox {nullptr};
 
     AIManagerContext*  m_pManagerContext {nullptr};
     BackendTableModel* m_pBackendTableModel {nullptr};
     BackendTreeModel*  m_pBackendTreeModel {nullptr};
+    BackendContextMenu* m_pBackendContextMenu {nullptr};
 };

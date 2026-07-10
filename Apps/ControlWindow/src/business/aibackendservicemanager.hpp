@@ -40,7 +40,7 @@ signals:
     void sig_backendUpdated(const DBRecords::AIBackendInfoPtr& pBackend);
     void sig_backendRemoved(const DBRecords::AIBackendInfoPtr& backendId);
 
-    void sig_errorOccurs(const QString& errorText);
+    void sig_errorOccurs(const QString& errorText, const QString& errDetail);
 
 private:
     bool m_enableDebugMode {false}; // Allows generating test samples

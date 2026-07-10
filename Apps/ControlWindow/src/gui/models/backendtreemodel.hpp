@@ -1,6 +1,9 @@
 #pragma once
 
 #include <QObject>
+
+#include <optional>
+
 #include <Components/CustomQt/Models/TreeGroupingProxyModel.h>
 
 #include <ProjectAgency/DB/AIBackendInfo.h>
@@ -23,6 +26,8 @@ public:
 
     void setGroupingRule(uint8_t level, GroupingRule grRule);
     void removeGroup(uint8_t level);
+    std::optional<GroupingRule> getGroupingRule(uint8_t level) const;
+    uint8_t getMaxGroupLevel() const;
 
 private:
     std::map<uint8_t, GroupingRule> m_groupingRules;

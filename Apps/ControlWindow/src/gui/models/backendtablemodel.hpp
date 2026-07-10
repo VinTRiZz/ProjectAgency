@@ -34,6 +34,7 @@ public:
         R_type,
         R_name,
         R_status, // Work / idle, etc.
+        R_backendPtr,
     };
 
     // QAbstractTableModel interface

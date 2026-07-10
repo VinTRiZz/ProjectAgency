@@ -106,6 +106,7 @@ QVariant BackendTableModel::data(const QModelIndex &index, int role) const
         case R_type:    return pBackend->getType();
         case R_name:    return QString::fromStdString(pBackend->getDisplayName());
         case R_status:  return m_pBackendContext->getBackendDynamicManager()->isBackendOnline(pBackend->getId());
+        case R_backendPtr: return QVariant::fromValue(pBackend);
         }
     }
 
