@@ -1,61 +1,51 @@
 #pragma once
 
 #include <string>
-#include <map>
+
+#include "errorcodedefinitions.hpp"
 
 namespace Exchange
 {
-
-/**
- * @brief The ErrorCodes enum Error codes for internal usage
- */
-enum ErrorCodes : unsigned
-{
-    NoError = 0,
-
-
-    // 0*** --> System errors
-    SystemUnknown = 1,
-
-
-    // 1*** --> Protocol errors
-    ProtocolUnknown = 1000,
-    ProtocolInvalidVersion,
-    ProtocolNoData,
-    ProtocolInvalidData,
-    ProtocolJsonException,
-
-
-    // 2*** --> Interface errors
-    InterfaceUnknown = 2000,
-    InterfaceInvalidHostname,
-    InterfaceInvalidPort,
-
-
-    // 3*** --> Implementation errors
-    ImplUnknown = 3000,
-    ImplNotImplemented
-};
 
 
 /**
  * @brief The ErrorObject class Class for error describing
  */
-class Error
+class Error : public std::exception
 {
 public:
-    void setErrorCode(unsigned errCode);
+    Error() = default;
+    Error(ErrorCode errCode, const std::string& detailText = {});
+
+    // exception interface
+    const char *what() const noexcept override;
+
+    // USED IN CONDITIONS WITH NO LOGGER AVAILABLE
+    void printSelfStd() const;
+
+    // USED IN CONDITIONS WITH LOGGER "ALIVE"
+    void printSelf();
+    static void printSelf(
+        ErrorCode errCode,
+        const std::string& detailText = {});
+
+    // Reset restores to NoError state (sugar)
+    void reset();
+    void setCode(ErrorCode errCode);
+    ErrorCode getCode() const;
+
     bool isOk() const;
+    operator bool() const;
+
     std::string getErrorText() const;
 
-    /**
-     * @brief getDefinitionInstance Get definitions map, defined in DB, for init or use
-     * @return
-     */
-    static std::map<unsigned, std::string>& getDefinitionInstance();
+    void setDetailText(const std::string& errText);
+    std::string getErrorDetailText() const;
 
 private:
-    unsigned m_errorCode {0};
+    ErrorCode           m_errorCode {ErrorCode::NoError};
+    std::string         m_detailText;
+    mutable std::string m_dumpText; // std::exception inherit workaround (see method what() )
 };
 
 
@@ -65,12 +55,9 @@ private:
 class ErrorUser
 {
 public:
-    bool isValid() const {
-        return m_error.isOk();
-    }
-    std::string getLastErrorString() const {
-        return m_error.getErrorText();
-    }
+    bool isValid() const;
+
+    Error getError() const;
 
 protected:
     mutable Error m_error;

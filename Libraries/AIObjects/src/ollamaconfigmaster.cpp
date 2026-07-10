@@ -58,7 +58,9 @@ OllamaConfigPtr OllamaConfigMaster::fromText(const std::string &content)
         config = std::make_unique<OllamaConfig>();
     }
 
-    config->readJson(content);
+    if (!config->readJson(content)) {
+        return {};
+    }
     return config;
 }
 

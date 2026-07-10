@@ -28,12 +28,16 @@ bool AIRole::initFromRecord(const Database::record_t &iRecord)
 
     auto colIt = iRecord.find("version");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: version");
         return false;
     }
     m_version = std::get<int64_t>(colIt->second);
 
     colIt = iRecord.find("name");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: name");
         return false;
     }
     try {
@@ -43,22 +47,28 @@ bool AIRole::initFromRecord(const Database::record_t &iRecord)
         }
         m_name = Encryption::decodeHex(hexStr);
     } catch (const std::exception& ex) {
-        COMPLOG_ERROR("Failed to load AIRole:", ex.what());
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText(ex.what());
         return false;
     }
 
     colIt = iRecord.find("type");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: type");
         return false;
     }
     m_type = (std::holds_alternative<std::monostate>(colIt->second) ? std::string() : std::get<std::string>(colIt->second));
 
     colIt = iRecord.find("config");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: config");
         return false;
     }
     m_configJson = std::get<std::string>(colIt->second);
 
+    m_error.reset();
     return true;
 }
 
@@ -136,9 +146,11 @@ bool AIRole::fromJson(const std::string &iJson)
                 iRec[key] = std::string(Encryption::decodeHex(value)); // Treat anything as a string
             }
         }
+        m_error.reset();
         return initFromRecord(iRec);
     } catch (const nlohmann::json::exception& ex) {
-        COMPLOG_WARNING("Failed to parse AIBackendInfo:", ex.what());
+        m_error.setCode(Exchange::ErrorCode::ProtocolJsonException);
+        m_error.setDetailText(ex.what());
         return false;
     }
     return true;

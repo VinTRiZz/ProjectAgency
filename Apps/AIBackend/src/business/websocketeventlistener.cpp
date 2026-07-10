@@ -2,6 +2,8 @@
 
 #include <Components/Logger/Logger.h>
 
+#include <ProjectAgency/Exchange/Error.h>
+
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <nlohmann/json.hpp>
@@ -31,18 +33,26 @@ struct WebsocketEventListener::Impl
             return;
         }
 
+        Exchange::Error err;
+
         websocketpp::lib::error_code ec;
         deviceEventServer.stop_listening(ec);
         if (ec) {
-            COMPLOG_ERROR("[WS] Error stopping server:", ec.message());
+            err.setCode(Exchange::ErrorCode::InterfaceStopFailed);
+            err.setDetailText(std::string("[WS] ") + ec.message());
+            err.printSelfStd();
         }
 
         try {
             deviceEventServer.close(managerConnection, websocketpp::close::status::going_away, "Server shutdown");
         } catch (const std::exception& ex) {
-            COMPLOG_WARNING("Close exception:", ex.what());
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::InterfaceStopFailed,
+                std::string("[WS] ") + ex.what());
         } catch (...) {
-            COMPLOG_WARNING("Unknown close exception");
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::InterfaceStopFailed,
+                std::string("[WS] ") + ec.message());
         }
 
         deviceEventServer.stop();
@@ -126,18 +136,24 @@ void WebsocketEventListener::initConnectionProcessing()
         std::regex devnameRegexp("\\/[?&]manager=([a-f0-9]{64})");
         std::smatch devnameMatch;
         if (!std::regex_match(parameters, devnameMatch, devnameRegexp)) {
-            COMPLOG_WARNING("[WS] (invalid target) Rejected connection from:", remote);
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::InterfaceConnectionError,
+                std::string("[WS] (incoming rejected) invalid target - ") + remote);
             return false;
         }
 
         auto managerToken = devnameMatch[1].str();
         if (managerToken != d->token) {
-            COMPLOG_WARNING("[WS] (invalid token) Rejected connection from:", remote);
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::InterfaceConnectionError,
+                std::string("[WS] (incoming rejected) invalid token - ") + remote);
             return false;
         }
 
         if (!d->managerConnection.expired()) {
-            COMPLOG_WARNING("[WS] (already authorized) Rejected connection from:", remote);
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::InterfaceConnectionError,
+                std::string("[WS] (incoming rejected) already authorized - ") + remote);
             return false;
         }
 
@@ -162,7 +178,7 @@ void WebsocketEventListener::initConnectionProcessing()
             break;
 
         case websocketpp::close::status::protocol_error:
-            COMPLOG_WARNING("[WS] Client", con->get_remote_endpoint(), "disconnected:", reasonStr, "(protocol error)");
+            COMPLOG_WARNING("[WS] Client", con->get_remote_endpoint(), "disconnected:", reasonStr, "(WS protocol error)");
             break;
 
         default:
@@ -173,7 +189,9 @@ void WebsocketEventListener::initConnectionProcessing()
     d->deviceEventServer.set_fail_handler([this](ConnectionHdl hdl) {
         auto con = d->deviceEventServer.get_con_from_hdl(hdl);
         auto ec = con->get_ec();
-        COMPLOG_ERROR("[WS] Connection:", ec.message());
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::InterfaceConnectionError,
+            std::string("[WS] ") + ec.message());
     });
 }
 
@@ -182,19 +200,19 @@ void WebsocketEventListener::initMessageProcessing()
     // Message processing
     d->deviceEventServer.set_message_handler([this](ConnectionHdl hdl, MessagePtr msg) {
         if (msg->get_opcode() != websocketpp::frame::opcode::text) {
-            COMPLOG_WARNING("[WS] Received binary data (skipped)");
+            COMPLOG_WARNING("[WS] Skipped binary data");
             return;
         }
 
         Exchange::Events::WSEvent ev;
         if (!ev.readJson(msg->get_payload())) {
-            COMPLOG_ERROR("[WS] Failed to process event:", msg->get_payload());
+            ev.getError().printSelfStd();
             return;
         }
 
         auto processor = d->eventCallbacks.find(ev.getType());
         if (processor == d->eventCallbacks.end()) {
-            COMPLOG_WARNING("[WS] Skipped event of type:", (int)ev.getType());
+            COMPLOG_WARNING("[WS] Skipped event of type (no processor found):", (int)ev.getType());
             return;
         }
         processor->second(std::move(ev));

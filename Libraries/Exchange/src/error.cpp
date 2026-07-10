@@ -1,65 +1,89 @@
 #include "error.hpp"
 
+#include <Components/Logger/Logger.h>
+
 namespace Exchange
 {
 
-// TODO: Move to database for initialization?
-bool initErrorDefinitions() {
-    auto& codeMap = Error::getDefinitionInstance();
+Error::Error(ErrorCode errCode, const std::string &detailText) :
+    std::exception(),
+    m_errorCode {errCode},
+    m_detailText {detailText}
+{
 
-    codeMap[ErrorCodes::NoError] = "No error";
-
-    // 0*** --> System errors
-    codeMap[ErrorCodes::SystemUnknown] = "Unknown system error";
-
-
-    // 1*** --> Protocol errors
-    codeMap[ErrorCodes::ProtocolUnknown]            = "Unknown protocol error";
-    codeMap[ErrorCodes::ProtocolInvalidVersion]     = "Invalid version";
-    codeMap[ErrorCodes::ProtocolNoData]             = "No data";
-    codeMap[ErrorCodes::ProtocolInvalidData]        = "Invalid data";
-    codeMap[ErrorCodes::ProtocolJsonException]      = "JSON parse exception";
-
-
-    // 2*** --> Interface errors
-    codeMap[ErrorCodes::InterfaceUnknown]           = "Unknown exchange interface error";
-    codeMap[ErrorCodes::InterfaceInvalidHostname]   = "Invalid hostname";
-    codeMap[ErrorCodes::InterfaceInvalidPort]       = "Invalid port";
-
-
-    // 3*** --> Implementation errors
-    codeMap[ErrorCodes::ImplUnknown]        = "Unknown internal error";
-    codeMap[ErrorCodes::ImplNotImplemented] = "Not implemented";
-
-    return true;
 }
-static bool initResult = initErrorDefinitions();
 
+const char *Error::what() const noexcept
+{
+    m_dumpText = getErrorText() + (m_detailText.empty() ? std::string() : std::string(" (") + m_detailText + ")");
+    return m_dumpText.c_str();
+}
 
-void Error::setErrorCode(unsigned int errCode)
+void Error::printSelfStd() const
+{
+    std::cerr << what() << std::endl; // Logger can not be stated or invalid
+}
+
+void Error::printSelf()
+{
+    COMPLOG_ERROR(what());
+}
+
+void Error::printSelf(ErrorCode errCode, const std::string &detailText)
+{
+    COMPLOG_ERROR(errorCodeToText(errCode), detailText);
+}
+
+void Error::reset() {
+    setCode(ErrorCode::NoError);
+}
+
+void Error::setCode(ErrorCode errCode)
 {
     m_errorCode = errCode;
+    if (m_errorCode == ErrorCode::NoError) {
+        m_detailText.clear();
+    }
+}
+
+ErrorCode Error::getCode() const
+{
+    return m_errorCode;
 }
 
 bool Error::isOk() const
 {
-    return (m_errorCode == ErrorCodes::NoError);
+    return (m_errorCode == ErrorCode::NoError);
+}
+
+Error::operator bool() const
+{
+    return isOk();
 }
 
 std::string Error::getErrorText() const
 {
-    auto& definitionMap = getDefinitionInstance();
-    auto codeDefinition = definitionMap.find(m_errorCode);
-    if (codeDefinition == definitionMap.end()) {
-        return {};
-    }
-    return codeDefinition->second;
+    return errorCodeToText(m_errorCode);
 }
 
-std::map<unsigned int, std::string> &Error::getDefinitionInstance()
+void Error::setDetailText(const std::string &errText)
 {
-    static std::map<unsigned, std::string> codeDefinitions;
-    return codeDefinitions;
+    m_detailText = errText;
+}
+
+std::string Error::getErrorDetailText() const
+{
+    return m_detailText;
+}
+
+
+
+bool ErrorUser::isValid() const {
+    return m_error.isOk();
+}
+
+Error ErrorUser::getError() const {
+    return m_error;
 }
 
 }

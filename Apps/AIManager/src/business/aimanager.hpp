@@ -5,13 +5,15 @@
 #include <vector>
 
 #include <ProjectAgency/DB/RecordManager.h>
+#include <ProjectAgency/Exchange/Error.h>
 
 #include "backendhandle/aibackendhandler.hpp"
 
 /**
  * @brief The AIManager class AIBackend handler class
  */
-class AIManager
+#warning "Error using not implemented"
+class AIManager : public Exchange::ErrorUser
 {
 public:
     void setRecordManager(const Database::RecordManagerPtr& pManager);

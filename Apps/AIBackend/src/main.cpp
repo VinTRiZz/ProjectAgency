@@ -1,16 +1,18 @@
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Ecosystem/ApplicationSettings.h>
+#include <Components/Ecosystem/Utility.h>
+
+#include <ProjectAgency/Exchange/Error.h>
 
 #include <boost/program_options.hpp>
 
-#include <iostream>
-#include <regex>
-
-#include <thread>
+#include <boost/stacktrace.hpp>
 
 #include "business/aibackend.hpp"
 #include "business/settings.hpp"
+
+#include <signal.h>
 
 namespace bpo = boost::program_options;
 
@@ -27,6 +29,7 @@ int main(int argc, char* argv[]) {
     // Common setings
     uint16_t    wsControlPort {0};
     std::string dataDir {"."};
+    Common::setupBacktrace();
 
     bpo::options_description desc;
     desc.add_options()
@@ -41,7 +44,7 @@ int main(int argc, char* argv[]) {
         auto options = bpo::parse_command_line(argc, argv, desc, bpo::command_line_style::unix_style);
         bpo::store(options, vm);
         bpo::notify(vm);
-    } catch (bpo::error& er) {
+    } catch (const bpo::error& er) {
         std::cerr << er.what() << std::endl;
         desc.print(std::cerr);
         std::cerr << std::endl;
@@ -89,7 +92,9 @@ int main(int argc, char* argv[]) {
     auto pPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_CONTROL_PORT);
     if (wsControlPort == 0) {
         if (!pPortSetting->isSet()) {
-            COMPLOG_ERROR("Invalid manager control port. Set it in settings file or arguments of application");
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::SystemInvalidConfig,
+                std::string("Manager control port is invalid"));
             return APP_EXITCODE_CONFIGURATION_ERROR;
         }
 
@@ -98,11 +103,10 @@ int main(int argc, char* argv[]) {
             if (wsControlPort < 0 || wsControlPort > 65535) {
                 throw std::invalid_argument("Port value exception");
             }
-        } catch (std::bad_variant_access& ex) {
-            COMPLOG_ERROR("Invalid port value. Acceptable value - integer, from 0 to 65535");
-            return APP_EXITCODE_CONFIGURATION_ERROR;
-        } catch (std::invalid_argument& ex) {
-            COMPLOG_ERROR("Invalid port value. Acceptable value - integer, from 0 to 65535");
+        } catch (const std::exception& ex) {
+            Exchange::Error::printSelf(
+                Exchange::ErrorCode::SystemInvalidConfig,
+                std::string("Invalid WS control port"));
             return APP_EXITCODE_CONFIGURATION_ERROR;
         }
     }
@@ -111,16 +115,9 @@ int main(int argc, char* argv[]) {
     auto pOllamaPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_PORT);
     auto pOllamaAddressSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_SERVER);
     if (!pOllamaPortSetting->isSet() || !pOllamaAddressSetting->isSet()) {
-        COMPLOG_ERROR("Ollama server not set. Configure it in configuration file");
-        return APP_EXITCODE_CONFIGURATION_ERROR;
-    }
-
-    // Check Ollama server IP
-    const std::regex pattern(
-        R"(^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$)"
-        );
-    if (!std::regex_match(pOllamaAddressSetting->getValueString(), pattern)) {
-        COMPLOG_ERROR("Invalid ollama server address. Acceptable: IPv4 address");
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::SystemInvalidConfig,
+            std::string("Ollama server not set"));
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
@@ -131,11 +128,10 @@ int main(int argc, char* argv[]) {
         if (ollamaAPIport < 0 || ollamaAPIport > 65535) {
             throw std::invalid_argument("Port value exception");
         }
-    } catch (std::bad_variant_access& ex) {
-        COMPLOG_ERROR("Invalid ollama server port value. Acceptable value - integer, from 0 to 65535");
-        return APP_EXITCODE_CONFIGURATION_ERROR;
-    } catch (std::invalid_argument& ex) {
-        COMPLOG_ERROR("Invalid ollama server port value. Acceptable value - integer, from 0 to 65535");
+    } catch (const std::exception& ex) {
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::SystemInvalidConfig,
+            std::string("Ollama port is invalid"));
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
@@ -143,27 +139,36 @@ int main(int argc, char* argv[]) {
     auto tokenSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_MANAGER_TOKEN);
 
     try {
-    backend.start(tokenSetting->getValueString(),
-                  wsControlPort,
-                  pOllamaAddressSetting->getValueString(),
-                  ollamaAPIport);
-    } catch (const std::exception& ex) {
+        backend.start(tokenSetting->getValueString(),
+                      wsControlPort,
+                      pOllamaAddressSetting->getValueString(),
+                      ollamaAPIport);
+    } catch (const Exchange::Error& ex) {
+        ex.printSelfStd();
+        Common::printStacktraceNoLogger();
         try {
             backend.stop();
         } catch (...) {
-            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
-            return APP_EXITCODE_FAILURE;
+            throw;
         }
-        std::cerr << "CRITICAL: EXCEPTION: " << ex.what() << std::endl;
+        return APP_EXITCODE_EXCEPTION;
+    } catch (const std::exception& ex) {
+        std::cout << std::endl << ex.what() << std::endl;
+        Common::printStacktraceNoLogger();
+        try {
+            backend.stop();
+        } catch (...) {
+            throw;
+        }
         return APP_EXITCODE_EXCEPTION;
     } catch (...) {
+        std::cout << "UNKNOWN EXCEPTION" << std::endl;
+        Common::printStacktraceNoLogger();
         try {
             backend.stop();
         } catch (...) {
-            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
-            return APP_EXITCODE_FAILURE;
+            throw;
         }
-        std::cerr << "CRITICAL: UNKNOWN EXCEPTION" << std::endl;
         return APP_EXITCODE_UNKNOWN_EXCEPTION;
     }
     return APP_EXITCODE_OK;

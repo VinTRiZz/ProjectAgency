@@ -10,5 +10,5 @@ AIStatusController::AIStatusController(AIManager& aiManager) :
 
 void AIStatusController::processGetStatus(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
 {
-    sendTextMessage(drogon::k501NotImplemented, "Can not get status of a backend", std::move(callback));
+    sendTextMessage(drogon::k501NotImplemented, Exchange::Error(Exchange::ErrorCode::SystemNotImplemented, "Get status").what(), std::move(callback));
 }

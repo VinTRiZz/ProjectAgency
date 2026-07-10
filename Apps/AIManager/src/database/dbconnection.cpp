@@ -3,6 +3,7 @@
 #include <Components/Logger/Logger.h>
 
 #include <ProjectAgency/Exchange/Types.h>
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace Database {
 
@@ -81,7 +82,7 @@ recordValue_t cellToRecord(const drogon::orm::Field& rowCell, CellType columnTyp
     case CellType::CT_unknown: return std::monostate(); // Treat unknown type as NULL (actually, proceed in deduceType function)
     default: break;
     }
-    throw std::runtime_error(std::string("Unexpected type of column: ") + std::to_string(columnType));
+    throw Exchange::Error(Exchange::ErrorCode::SystemInvalidArgument, "Unexpected column type");
 }
 
 std::vector<record_t> resultToRecords(const drogon::orm::Result& execResult) {
@@ -123,13 +124,13 @@ std::optional<std::vector<record_t> > DBConnection::executeQuery(const std::stri
     std::vector<record_t> res;
     try {
         if (std::string::npos != queryStr.find(';')) {
-            throw std::runtime_error("[DBConnection] Invalid query. Expected query with no ';' symbol");
+            throw Exchange::Error(Exchange::ErrorCode::SystemDBError, "Invalid query (contain ';' symbol)");
         }
         // COMPLOG_DEBUG("Executing:", queryStr);
         auto execRes = m_pClient->execSqlSync(queryStr);
         res = resultToRecords(execRes);
     } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[DBConnection] SYNC Record exec error:", ex.base().what());
+        Exchange::Error::printSelf(Exchange::ErrorCode::SystemDBError, ex.base().what());
         return {};
     }
     return res;
@@ -139,7 +140,7 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
 {
     try {
         if (std::string::npos != queryStr.find(';')) {
-            throw std::runtime_error("[DBConnection] Invalid query. Expected query with no ';' symbol");
+            throw Exchange::Error(Exchange::ErrorCode::SystemDBError, "Invalid query (contain ';' symbol)");
         }
         // COMPLOG_DEBUG("Executing:", queryStr);
         auto cbkCopy = cbk;
@@ -149,11 +150,11 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
             cbk(std::move(res), {});
         },
             [cbk = std::move(cbkCopy)](const drogon::orm::DrogonDbException& ex){
-            COMPLOG_ERROR("[DBConnection] ASYNC Record exec error:", ex.base().what());
+            Exchange::Error::printSelf(Exchange::ErrorCode::SystemDBError, ex.base().what());
             cbk({}, ex.base().what());
         });
     } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[DBConnection] ASYNC Record start exec error:", ex.base().what());
+        Exchange::Error::printSelf(Exchange::ErrorCode::SystemDBError, ex.base().what());
     }
 }
 

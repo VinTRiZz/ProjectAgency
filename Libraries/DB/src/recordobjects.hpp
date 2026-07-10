@@ -6,6 +6,7 @@
 #include <map>
 
 #include <ProjectAgency/Exchange/Types.h>
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace Database {
 
@@ -17,7 +18,7 @@ using record_t = std::map<std::string, recordValue_t>;
  * @brief The RecordBase class Basic class for converting from/to DB records
  */
 template <typename IdT>
-class RecordBase {
+class RecordBase : public Exchange::ErrorUser {
 public:
     using id_t = IdT;
 
@@ -42,6 +43,8 @@ public:
     virtual bool initFromRecord(const record_t& iRecord) {
         auto idColIt = iRecord.find(m_idColumnName);
         if (iRecord.end() == idColIt) {
+            m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+            m_error.setDetailText(std::string("No such column: ") + getIdColumn().data());
             return false;
         }
         if constexpr (std::is_arithmetic_v<IdT> || std::is_same_v<IdT, Exchange::id_t>) {

@@ -7,6 +7,7 @@
 
 #include <ProjectAgency/DB/AIRole.h>
 #include <ProjectAgency/DB/AbstractConnection.h>
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace drogon::orm {
 class DbClient;
@@ -18,7 +19,8 @@ namespace Database {
 class RecordManager;
 using RecordManagerPtr = std::shared_ptr<RecordManager>;
 
-class RecordManager
+#warning "Not defined error using"
+class RecordManager : public Exchange::ErrorUser
 {
     // CRUD operations (simple queries)
     enum class QueryType

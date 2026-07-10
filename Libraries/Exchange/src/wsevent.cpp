@@ -12,15 +12,14 @@ WSEvent::WSEvent(EventType etype) :
 
 }
 
-bool WSEvent::isValid() const
-{
-    return (m_type != EventType::EtcUnknown &&
-            m_eventId != 0);
-}
-
 void WSEvent::setId(uint64_t eventId)
 {
     m_eventId = eventId;
+    if (m_eventId == 0) {
+        m_error.setCode(ErrorCode::ProtocolWSInvalidEventId);
+    } else {
+        m_error.setCode(ErrorCode::NoError);
+    }
 }
 
 uint64_t WSEvent::getId() const
@@ -31,6 +30,11 @@ uint64_t WSEvent::getId() const
 void WSEvent::setType(EventType etype)
 {
     m_type = etype;
+    if (m_type == EventType::EtcUnknown) {
+        m_error.setCode(ErrorCode::ProtocolWSInvalidEventType);
+    } else {
+        m_error.setCode(ErrorCode::NoError);
+    }
 }
 
 EventType WSEvent::getType() const
@@ -63,9 +67,11 @@ bool WSEvent::readJson(const std::string_view &iString)
         auto parsedJson = nlohmann::json::parse(iString);
         m_type      = parsedJson["type"];
         m_payload   = Encryption::decodeHex(parsedJson["payload"]);
+        m_error.setCode(ErrorCode::NoError);
         return true;
     } catch (const nlohmann::json::exception& ex) {
-        COMPLOG_ERROR("[WSEvent] Parsing error:", ex.what());
+        m_error.setCode(ErrorCode::ProtocolJsonException);
+        m_error.setDetailText(ex.what());
     }
     return false;
 }

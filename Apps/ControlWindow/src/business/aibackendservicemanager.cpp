@@ -14,6 +14,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 
     connect(this, &AIBackendServiceManager::sig_errorOccurs, [](const auto& errText){
         COMPLOG_ERROR("AIBackendServiceManager (exchange):", errText.toStdString());
+        Exchange::Error::printSelf();
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,

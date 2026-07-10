@@ -4,6 +4,7 @@
 #include "ollama/ollamainterface.hpp"
 
 #include <ProjectAgency/AIObjects/OllamaConfigMaster.h>
+#include <ProjectAgency/Exchange/Error.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/DirectoryManager.h>
@@ -47,7 +48,7 @@ void AIBackend::start(
 
     d->currentOllamaConfig = d->configMaster.loadConfig(configFile);
     if (!d->currentOllamaConfig) {
-        throw std::runtime_error("No model configuration found! Add it in configs dir as a model.mf file");
+        throw Exchange::Error(Exchange::ErrorCode::SystemInvalidConfig, "No model configuration found! Add it in configs dir as a model.mf file");
     }
 
     d->requestBase.setStream(d->currentOllamaConfig->m_extra.stream);

@@ -33,7 +33,7 @@ bool AIRoleManager::addRole(const DBRecords::AIRolePtr &role)
 
     auto addRes = m_pRecordManager->addRecord(*role);
     if (!addRes.has_value()) {
-        COMPLOG_WARNING("Failed to add AI role (DB error)");
+        m_pRecordManager->getError().printSelf();
         return false;
     }
     role->setId(addRes.value());
@@ -52,7 +52,7 @@ bool AIRoleManager::updateRole(const DBRecords::AIRolePtr &role)
             continue;
         }
         if (!m_pRecordManager->updateRecord(*role)) {
-            COMPLOG_WARNING("Failed to update AI role (DB error)");
+            m_pRecordManager->getError().printSelf();
             return false;
         }
         COMPLOG_INFO("AI role with id [", role->getId(), "] configuration updated");
@@ -77,7 +77,7 @@ void AIRoleManager::removeRole(const DBRecords::AIRole::id_t &id)
     }
     auto pRole = *targetIt;
     if (!m_pRecordManager->removeRecord(*pRole)) {
-        COMPLOG_WARNING("Failed to remove AI role (DB error)");
+        m_pRecordManager->getError().printSelf();
         return;
     }
     m_roles.erase(targetIt);

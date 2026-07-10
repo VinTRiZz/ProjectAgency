@@ -69,7 +69,9 @@ AIBackendHandler::AIBackendHandler() :
         code = pCon->get_remote_close_code();
         reasonStr = pCon->get_remote_close_reason();
         d->connected.store(false, std::memory_order_release);
-        COMPLOG_WARNING("[AIBackendHandler]", this, "Disconnected from:", pCon->get_remote_endpoint(), "reason:", reasonStr, "code:", code);
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::InterfaceConnectionError,
+            std::string("[WS] Disconnected from ") + pCon->get_remote_endpoint() + "(" + reasonStr + ")");
     });
 
 
@@ -77,7 +79,9 @@ AIBackendHandler::AIBackendHandler() :
         d->connected.store(false, std::memory_order_release);
         auto pCon = d->eventClient.get_con_from_hdl(hdl);
         auto ec = pCon->get_ec();
-        COMPLOG_ERROR("[AIBackendHandler]", this, "Failed to connect to:", pCon->get_remote_endpoint(), "reason:", ec.message());
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::InterfaceConnectionError,
+            std::string("[WS] ") + ec.message());
     });
 }
 
@@ -90,6 +94,8 @@ void AIBackendHandler::connect()
 {
     if (!d->m_backendRecord) {
         COMPLOG_ERROR("Backend can not connect: no info provided");
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::InterfaceInvalidAddress, "No address set");
         return;
     }
     std::string uri = "ws://" + d->m_backendRecord->getFullAddress() + "/?manager=" + d->m_backendRecord->getToken();
@@ -97,7 +103,9 @@ void AIBackendHandler::connect()
     websocketpp::lib::error_code ec;
     auto con = d->eventClient.get_connection(uri, ec);
     if (ec) {
-        COMPLOG_ERROR("[AIBackendHandler]", this, "Connection failed:", ec.message());
+        Exchange::Error::printSelf(
+            Exchange::ErrorCode::InterfaceConnectionError,
+            std::string("[WS] ") + ec.message());
         return;
     }
     d->eventClient.connect(con);

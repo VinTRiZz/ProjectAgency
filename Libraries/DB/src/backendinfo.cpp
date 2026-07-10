@@ -56,24 +56,32 @@ bool AIBackendInfo::initFromRecord(const Database::record_t &iRecord)
 
     auto colIt = iRecord.find("type");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: type");
         return false;
     }
     m_type = AIBackendDeviceType(std::get<int64_t>(colIt->second));
 
     colIt = iRecord.find("ip_addr");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: ip_addr");
         return false;
     }
     m_ip = std::get<std::string>(colIt->second);
 
     colIt = iRecord.find("ip_port");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: ip_port");
         return false;
     }
     m_port = std::get<int64_t>(colIt->second);
 
     colIt = iRecord.find("display_name");
     if (iRecord.end() == colIt) {
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText("No column: display_name");
         return false;
     }
     try {
@@ -83,10 +91,12 @@ bool AIBackendInfo::initFromRecord(const Database::record_t &iRecord)
         }
         m_displayName = Encryption::decodeHex(hexStr);
     } catch (const std::exception& ex) {
-        COMPLOG_ERROR("Failed to load AIBackend name:", ex.what());
+        m_error.setCode(Exchange::ErrorCode::ProtocolInvalidData);
+        m_error.setDetailText(ex.what());
         return false;
     }
 
+    m_error.reset();
     return true;
 }
 
@@ -109,7 +119,8 @@ std::string AIBackendInfo::getTypeString() const
     case AIBackendDeviceType::Android:
         return "Android";
     default:
-        throw std::invalid_argument("Invalid device type to get name");
+        throw Exchange::Error(Exchange::ErrorCode::SystemInvalidArgument,
+                              "Invalid device type to get name");
     }
     return {};
 }
@@ -196,9 +207,11 @@ bool AIBackendInfo::readJson(const std::string &iJson)
                 iRec[key] = std::string(Encryption::decodeHex(value)); // Treat anything as a string
             }
         }
+        m_error.reset();
         return initFromRecord(iRec);
     } catch (const nlohmann::json::exception& ex) {
-        COMPLOG_WARNING("Failed to parse AIBackendInfo:", ex.what());
+        m_error.setCode(Exchange::ErrorCode::ProtocolJsonException);
+        m_error.setDetailText(ex.what());
         return false;
     }
     return true;

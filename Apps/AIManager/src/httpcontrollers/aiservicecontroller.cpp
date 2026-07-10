@@ -21,16 +21,16 @@ void AIServiceController::processGetBackendIdList(const drogon::HttpRequestPtr &
 
 void AIServiceController::processAddConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
-    DBRecords::AIBackendInfoPtr bckInfo = std::make_shared<DBRecords::AIBackendInfo>();
-    if (!bckInfo->readJson(req->getBody().data())) {
-        sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
+    DBRecords::AIBackendInfo bckInfo;
+    if (!bckInfo.readJson(req->getBody().data())) {
+        sendTextMessage(drogon::k400BadRequest, bckInfo.getError().what(), std::move(callback));
         return;
     }
-    if (m_aiManager.addBackend(bckInfo)) {
-        sendTextMessage(drogon::k200OK, bckInfo->toJson(), std::move(callback));
+    if (m_aiManager.addBackend(bckInfo.toPointer())) {
+        sendTextMessage(drogon::k200OK, bckInfo.toJson(), std::move(callback));
         return;
     }
-    sendTextMessage(drogon::k400BadRequest, "Backend exist or failed to save", std::move(callback));
+    sendTextMessage(drogon::k400BadRequest, m_aiManager.getError().what(), std::move(callback));
 }
 
 void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
@@ -40,21 +40,21 @@ void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &
         sendJsonMessage(drogon::k200OK, pBackend->getInfo()->toJson(), std::move(callback));
         return;
     }
-    sendTextMessage(drogon::k404NotFound, "No such backend found", std::move(callback));
+    sendTextMessage(drogon::k404NotFound, "No such backend", std::move(callback));
 }
 
 void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     DBRecords::AIBackendInfoPtr bckInfo = std::make_shared<DBRecords::AIBackendInfo>();
     if (!bckInfo->readJson(req->getBody().data())) {
-        sendTextMessage(drogon::k400BadRequest, "Invalid backend info", std::move(callback));
+        sendTextMessage(drogon::k400BadRequest, bckInfo->getError().what(), std::move(callback));
         return;
     }
     if (m_aiManager.updateBackend(bckInfo)) {
         sendTextMessage(drogon::k200OK, "Configuration changed", std::move(callback));
         return;
     }
-    sendTextMessage(drogon::k404NotFound, "No such backend or failed to update", std::move(callback));
+    sendTextMessage(drogon::k404NotFound, m_aiManager.getError().what(), std::move(callback));
 }
 
 void AIServiceController::processRemoveConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)

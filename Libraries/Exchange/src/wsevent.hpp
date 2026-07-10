@@ -1,6 +1,7 @@
 #pragma once
 
 #include "serializableobject.hpp"
+#include "error.hpp"
 
 namespace Exchange::Events {
 
@@ -30,12 +31,11 @@ enum EventType : int
 /**
  * @brief The WSEvent class Event store class for handling events
  */
-class WSEvent : public SerializableObject
+class WSEvent : public SerializableObject,
+                public ErrorUser
 {
 public:
     WSEvent(EventType etype = EventType::EtcUnknown);
-
-    bool isValid() const;
 
     // ID = 0 --> invalid, so it's required to set ID (even as random number)
     void setId(uint64_t eventId);

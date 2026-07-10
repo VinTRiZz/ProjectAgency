@@ -18,7 +18,7 @@ std::string DeviceStatus::toJson() const
     res["storage"]["space_available"]   = storage.spaceAvailable;
     res["storage"]["space_free"]        = storage.spaceFree;
 
-    m_error.setErrorCode(ErrorCodes::NoError);
+    m_error.setCode(ErrorCode::NoError);
     return res.dump();
 }
 
@@ -37,10 +37,10 @@ bool DeviceStatus::readJson(const std::string_view &iString)
         storage.spaceAvailable   = statusJson["storage"]["space_available"];
         storage.spaceFree        = statusJson["storage"]["space_free"];
 
-        m_error.setErrorCode(ErrorCodes::NoError);
+        m_error.setCode(ErrorCode::NoError);
     } catch (nlohmann::json::exception& ex) {
-        COMPLOG_ERROR("Parse error:", ex.what());
-        m_error.setErrorCode(ErrorCodes::ProtocolJsonException);
+        m_error.setCode(ErrorCode::ProtocolJsonException);
+        m_error.setDetailText(ex.what());
         return false;
     }
     return true;
