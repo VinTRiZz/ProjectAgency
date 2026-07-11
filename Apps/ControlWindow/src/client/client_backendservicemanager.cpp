@@ -49,7 +49,7 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendIn
     }
     auto& requester = getRequester();
     auto req = createRequest(QString::fromStdString(Exchange::HTTPv1::QT_BACKEND_CONFIG_ADD));
-    auto resp = requester.get(req);
+    auto resp = requester.post(req, QByteArray::fromStdString(pBackendInfo->toJson()));
     connect(resp, &QNetworkReply::finished,
             this, [this, resp, pBackendInfo](){
                 if (resp->error() != QNetworkReply::NoError) {
@@ -90,7 +90,7 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendIn
     }
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_SET, pBackendInfo));
-    auto resp = requester.get(req);
+    auto resp = requester.put(req, QByteArray::fromStdString(pBackendInfo->toJson()));
     connect(resp, &QNetworkReply::finished,
             this, [this, resp](){
                 if (resp->error() != QNetworkReply::NoError) {
@@ -110,7 +110,7 @@ void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBacken
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_REM, backendId));
-    auto resp = requester.get(req);
+    auto resp = requester.deleteResource(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp, backendId](){
                 if (resp->error() != QNetworkReply::NoError) {
