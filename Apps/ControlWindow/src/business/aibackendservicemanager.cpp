@@ -12,23 +12,18 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 {
     m_pBackendServiceManager = new Client_BackendServiceManager(this);
 
+    connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_errorOccurs,
+            this, &AIBackendServiceManager::sig_errorOccurs);
+
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,
-            this, [this](bool isSucceed, const auto& errorMsg, const auto& ids){
-        if (!isSucceed) {
-            emitError("Failed to get backend list", errorMsg);
-            return;
-        }
+            this, [this](const auto& ids){
         for (auto& id : ids) {
             m_pBackendServiceManager->requestConfigGet(id);
         }
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigAdd,
-            this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
-        if (!isSucceed) {
-            emitError("Failed to add backend", errorMsg);
-            return;
-        }
+            this, [this](const auto& pBackendInfo){
         auto pBackend = getBackend(pBackendInfo->getId());
         if (pBackend) {
             COMPLOG_WARNING("AIBackendServiceManager: Existing backend added");
@@ -39,11 +34,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigGet,
-            this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
-        if (!isSucceed) {
-            emitError("Failed to get info about backend", errorMsg);
-            return;
-        }
+            this, [this](const auto& pBackendInfo){
         auto pBackend = getBackend(pBackendInfo->getId());
         if (pBackend) {
             *pBackend = *pBackendInfo;
@@ -55,11 +46,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigSet,
-            this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
-        if (!isSucceed) {
-            emitError("Failed to save backend configuration", errorMsg);
-            return;
-        }
+            this, [this](const auto& pBackendInfo){
         auto pBackend = getBackend(pBackendInfo->getId());
         if (!pBackend) {
             COMPLOG_ERROR("Unexpected error: set value of undefined backend");
@@ -70,11 +57,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigRemove,
-            this, [this](bool isSucceed, const auto& errorMsg, const auto& backendId){
-        if (!isSucceed) {
-            emitError("Failed to remove backend", errorMsg);
-            return;
-        }
+            this, [this](const auto& backendId){
         auto pBackend = getBackend(backendId);
         if (pBackend) {
             m_backends->erase(pBackend);

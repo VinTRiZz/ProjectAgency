@@ -24,8 +24,7 @@ void Client_BackendServiceManager::requestIdList()
             this, [this, resp](){
                 if (resp->error() != QNetworkReply::NoError) {
                     auto errText = resp->readAll();
-                    COMPLOG_WARNING("Backend ID list error response:", errText.toStdString());
-                    emit sig_responseIdList(false, errText);
+                    emitError(errText.isEmpty() ? resp->errorString() : errText);
                     return;
                 }
                 try {
@@ -34,10 +33,9 @@ void Client_BackendServiceManager::requestIdList()
                     for (auto& js : responseJson) {
                         ids.push_back(js);
                     }
-                    emit sig_responseIdList(true, {}, ids);
+                    emit sig_responseIdList(ids);
                 } catch (nlohmann::json::exception& ex) {
-                    COMPLOG_ERROR("Backend ID list parsing error:", ex.what());
-                    emit sig_responseIdList(false, "Response parsing error");
+                    emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::ProtocolJsonException, std::string("Backend list failed to parse: ") + ex.what()));
                     return;
                 }
             });
@@ -56,12 +54,11 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendIn
             this, [this, resp, pBackendInfo](){
                 if (resp->error() != QNetworkReply::NoError) {
                     auto errText = resp->readAll();
-                    COMPLOG_WARNING("Backend config add error response:", errText.toStdString());
-                    emit sig_responseConfigAdd(false, errText);
+                    emitError(errText.isEmpty() ? resp->errorString() : errText);
                     return;
                 }
                 pBackendInfo->readJson(resp->readAll().toStdString()); // Apply updates, including ID set
-                emit sig_responseConfigAdd(true, {}, pBackendInfo);
+                emit sig_responseConfigAdd(pBackendInfo);
             });
 }
 
@@ -74,13 +71,14 @@ void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendIn
             this, [this, resp](){
                 if (resp->error() != QNetworkReply::NoError) {
                     auto errText = resp->readAll();
-                    COMPLOG_WARNING("Backend config get error response:", errText.toStdString());
-                    emit sig_responseConfigGet(false, errText);
+                    emitError(errText.isEmpty() ? resp->errorString() : errText);
                     return;
                 }
-                DBRecords::AIBackendInfo pBackendInfo;
-                pBackendInfo.readJson(resp->readAll().toStdString());
-                emit sig_responseConfigGet(true, {}, pBackendInfo.toPointer());
+                DBRecords::AIBackendInfo backendInfo;
+                if (!backendInfo.readJson(resp->readAll().toStdString())) {
+                    emit sig_errorOccurs(backendInfo.getError());
+                }
+                emit sig_responseConfigGet(backendInfo.toPointer());
             });
 }
 
@@ -97,13 +95,14 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendIn
             this, [this, resp](){
                 if (resp->error() != QNetworkReply::NoError) {
                     auto errText = resp->readAll();
-                    COMPLOG_WARNING("Backend config set error response:", errText.toStdString());
-                    emit sig_responseConfigRemove(false, errText);
+                    emitError(errText.isEmpty() ? resp->errorString() : errText);
                     return;
                 }
-                DBRecords::AIBackendInfo pBackendInfo;
-                pBackendInfo.readJson(resp->readAll().toStdString());
-                emit sig_responseConfigSet(true, {}, pBackendInfo.toPointer());
+                DBRecords::AIBackendInfo backendInfo;
+                if (!backendInfo.readJson(resp->readAll().toStdString())) {
+                    emit sig_errorOccurs(backendInfo.getError());
+                }
+                emit sig_responseConfigSet(backendInfo.toPointer());
             });
 }
 
@@ -116,11 +115,10 @@ void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBacken
             this, [this, resp, backendId](){
                 if (resp->error() != QNetworkReply::NoError) {
                     auto errText = resp->readAll();
-                    COMPLOG_WARNING("Backend config remove error response:", errText.toStdString());
-                    emit sig_responseConfigRemove(false, errText);
+                    emitError(errText.isEmpty() ? resp->errorString() : errText);
                     return;
                 }
-                emit sig_responseConfigRemove(true, {}, backendId);
+                emit sig_responseConfigRemove(backendId);
             });
 }
 
@@ -134,4 +132,9 @@ QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, co
 {
     auto res = QString::fromStdString(apiUrl);
     return res.arg(QString::fromStdString(backendId));
+}
+
+void Client_BackendServiceManager::emitError(const QString &errText) const
+{
+    emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::ProtocolInvalidData, errText.toStdString()));
 }

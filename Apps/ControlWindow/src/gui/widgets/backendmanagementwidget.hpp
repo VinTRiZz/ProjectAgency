@@ -39,4 +39,7 @@ private:
     BackendTableModel* m_pBackendTableModel {nullptr};
     BackendTreeModel*  m_pBackendTreeModel {nullptr};
     BackendContextMenu* m_pBackendContextMenu {nullptr};
+
+    void setupBackendTree();
+    void setupBackendContextMenu();
 };

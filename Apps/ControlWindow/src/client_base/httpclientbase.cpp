@@ -16,9 +16,31 @@ HTTPClientBase::HTTPClientBase(QObject *parent)
 
 }
 
-void HTTPClientBase::setServer(const QString &serverAddress)
+bool HTTPClientBase::setServer(const QString &serverAddress)
 {
+    m_error.reset();
+    auto splittedAddr = serverAddress.split(":", Qt::SkipEmptyParts);
+    if (splittedAddr.size() < 2) {
+        m_error.setCode(Exchange::ErrorCode::InterfaceInvalidAddress);
+        m_error.setDetailText("No port in address");
+        emit sig_errorOccurs(m_error);
+        return false;
+    }
+    auto port = splittedAddr.back().toInt();
+    if (port < 0 || port > 65535) {
+        m_error.setCode(Exchange::ErrorCode::InterfaceInvalidAddress);
+        m_error.setDetailText("Invalid port");
+        emit sig_errorOccurs(m_error);
+        return false;
+    }
+    if (!isServerListening(splittedAddr.front(), port)) {
+        m_error.setCode(Exchange::ErrorCode::InterfaceConnectionError);
+        m_error.setDetailText(std::string("Failed to ping server. Is address correct? Address: ") + serverAddress.toStdString());
+        emit sig_errorOccurs(m_error);
+        return false;
+    }
     m_serverAddress = serverAddress;
+    return true;
 }
 
 QString HTTPClientBase::getServer() const
@@ -31,7 +53,10 @@ QNetworkReply *HTTPClientBase::startFileUpload(const QString &localFilePath, con
     std::shared_ptr<QFile> file = std::make_shared<QFile>(localFilePath);
     file->open(QIODevice::ReadOnly);
     if (!file->isOpen()) {
-        throw std::invalid_argument("Download failed: Invalid file path");
+        m_error.setCode(Exchange::ErrorCode::SystemInvalidArgument);
+        m_error.setDetailText("Download failed: Invalid send file path");
+        emit sig_errorOccurs(m_error);
+        return {};
     }
 
     auto request = createRequest(fileTarget);
@@ -46,7 +71,10 @@ QNetworkReply *HTTPClientBase::startFileDownload(const QString &localSavefile, c
 {
     std::shared_ptr<QFile> file = std::make_shared<QFile>(localSavefile);
     if (!file->open(QIODevice::WriteOnly)) {
-        throw std::invalid_argument("Download failed: Invalid file path");
+        m_error.setCode(Exchange::ErrorCode::SystemInvalidArgument);
+        m_error.setDetailText("Download failed: Invalid local save file path");
+        emit sig_errorOccurs(m_error);
+        return {};
     }
 
     auto request = createRequest(fileTarget);
@@ -58,6 +86,16 @@ QNetworkReply *HTTPClientBase::startFileDownload(const QString &localSavefile, c
         file->close();
     });
     return reply;
+}
+
+bool HTTPClientBase::isServerListening(const QString &host, quint16 port) const {
+    QTcpSocket socket;
+    socket.connectToHost(host, port);
+    if (socket.waitForConnected(1000)) {
+        socket.disconnectFromHost();
+        return true;
+    }
+    return false;
 }
 
 void HTTPClientBase::setCommonHeader(const QString &headerName, const QString &headerData)

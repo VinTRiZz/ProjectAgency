@@ -3,9 +3,12 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 
+#include <ProjectAgency/Exchange/Error.h>
+
 #include <map>
 
-class HTTPClientBase : public QObject
+class HTTPClientBase : public QObject,
+                       public Exchange::ErrorUser
 {
     Q_OBJECT
 public:
@@ -15,7 +18,7 @@ public:
      * @brief setServer     Set address of a server to send requests
      * @param serverAddress Already checked, correct server address if format ip:port
      */
-    void setServer(const QString& serverAddress);
+    bool setServer(const QString& serverAddress);
     QString getServer() const;
 
     /**
@@ -36,10 +39,15 @@ public:
      */
     QNetworkReply* startFileDownload(const QString& localSavefile, const QString& fileTarget);
 
+signals:
+    void sig_errorOccurs(const Exchange::Error& err) const;
+
 private:
     QString                             m_serverAddress;
     QNetworkAccessManager               m_requester;
     std::map<QByteArray, QByteArray>    m_commonHeaders;
+
+    bool isServerListening(const QString &host, quint16 port) const;
 
 protected:
     /**
