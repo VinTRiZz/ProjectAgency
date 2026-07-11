@@ -11,8 +11,8 @@ BackendContextMenu::BackendContextMenu(QWidget* parent) :
     QMenu(parent)
 {
     addAction("Add backend", this, &BackendContextMenu::slot_addBackend);
-    addAction("Edit configuration", this, &BackendContextMenu::slot_editBackend);
-    addAction("Remove backend", this, &BackendContextMenu::slot_removeBackend);
+    m_pEditAction = addAction("Edit configuration", this, &BackendContextMenu::slot_editBackend);
+    m_pRemoveAction = addAction("Remove backend", this, &BackendContextMenu::slot_removeBackend);
 }
 
 BackendContextMenu::~BackendContextMenu()
@@ -22,9 +22,16 @@ BackendContextMenu::~BackendContextMenu()
 
 void BackendContextMenu::setTargetIndex(const QModelIndex &idx)
 {
+    if (!m_pModel) {
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidModel, "No model set to process index"));
+        return;
+    }
     m_targetIndex = idx;
 
-    // TODO: Proceed with index
+    auto pBackend = m_targetIndex.data(BackendTableModel::R_backendPtr).value<DBRecords::AIBackendInfoPtr>();
+    auto isBackendSelected = (nullptr != pBackend);
+    m_pEditAction->setEnabled(isBackendSelected);
+    m_pRemoveAction->setEnabled(isBackendSelected);
 }
 
 QModelIndex BackendContextMenu::getTargetIndex() const
@@ -66,9 +73,9 @@ void BackendContextMenu::slot_addBackend() const
     }
 
     // Preconfigure backend according to existing data
-    DBRecords::AIBackendInfo backendPreconfig;
+    DBRecords::AIBackendInfo backendPreconfig {};
     auto maxLevel = m_pModel->getMaxGroupLevel();
-    for (uint8_t curLevel = 0; curLevel < indexLevel && curLevel < maxLevel; ++curLevel) {
+    for (uint8_t curLevel = 0; curLevel <= indexLevel && curLevel <= maxLevel; ++curLevel) {
         auto opt_groupRule = m_pModel->getGroupingRule(maxLevel - curLevel);
         if (!opt_groupRule.has_value()) {
             continue;

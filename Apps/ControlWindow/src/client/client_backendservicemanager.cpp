@@ -48,7 +48,7 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendIn
         return;
     }
     auto& requester = getRequester();
-    auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_ADD, pBackendInfo));
+    auto req = createRequest(QString::fromStdString(Exchange::HTTPv1::QT_BACKEND_CONFIG_ADD));
     auto resp = requester.get(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp, pBackendInfo](){
@@ -89,7 +89,7 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendIn
         return;
     }
     auto& requester = getRequester();
-    auto req = createRequest(createTarget(Exchange::HTTPv1::BACKEND_CONFIG_SET, pBackendInfo));
+    auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_SET, pBackendInfo));
     auto resp = requester.get(req);
     connect(resp, &QNetworkReply::finished,
             this, [this, resp](){

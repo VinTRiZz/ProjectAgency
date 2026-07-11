@@ -39,4 +39,8 @@ private:
     BackendTreeModel* m_pModel {nullptr};
     QAbstractItemView*  m_pView {nullptr};
     QModelIndex m_targetIndex {}; // Index context menu called on
+
+    // To enable / disable
+    QAction* m_pEditAction {nullptr};
+    QAction* m_pRemoveAction {nullptr};
 };
