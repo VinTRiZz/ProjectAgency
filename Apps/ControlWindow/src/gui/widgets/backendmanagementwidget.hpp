@@ -4,6 +4,8 @@
 
 #include <Components/CustomQt/Models/TreeGroupingProxyModel.h>
 
+#include <ProjectAgency/Exchange/Error.h>
+
 namespace Ui {
 class BackendManagementWidget;
 }
@@ -26,7 +28,7 @@ public:
     QString getAIManagerAddress() const;
 
 private slots:
-    void slot_processError(const QString& errText, const QString &detailText);
+    void slot_processError(const Exchange::Error& err);
 
 private:
     Ui::BackendManagementWidget *ui;

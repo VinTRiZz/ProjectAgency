@@ -19,7 +19,6 @@ namespace Database {
 class RecordManager;
 using RecordManagerPtr = std::shared_ptr<RecordManager>;
 
-#warning "Not defined error using"
 class RecordManager : public Exchange::ErrorUser
 {
     // CRUD operations (simple queries)
@@ -41,19 +40,34 @@ public:
     template <typename IdT, bool isSync = true>
     std::optional<IdT> addRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Insert, iValue));
-        return (res.has_value() ? std::optional<IdT>(std::get<IdT>(res.value()[0][iValue.getIdColumn().data()])) : std::nullopt);
+        if (!res.has_value()) {
+            m_error = m_connection->getError();
+            return {};
+        }
+        m_error.reset();
+        return std::get<IdT>(res.value()[0][iValue.getIdColumn().data()]);
     }
 
     template <typename IdT, bool isSync = true>
     bool updateRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Update, iValue));
-        return (res.has_value());
+        if (!res.has_value()) {
+            m_error = m_connection->getError();
+            return false;
+        }
+        m_error.reset();
+        return true;
     }
 
     template <typename IdT, bool isSync = true>
     bool removeRecord(const RecordBase<IdT>& iValue) {
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::Delete, iValue));
-        return (res.has_value());
+        if (!res.has_value()) {
+            m_error = m_connection->getError();
+            return false;
+        }
+        m_error.reset();
+        return true;
     }
 
     template <typename RecordT, bool isSync = true>
@@ -61,9 +75,15 @@ public:
         RecordT iValue;
         iValue.setId(recordId);
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::SelectOne, iValue));
-        if (!res.has_value() || !res.initFromRecord(res.value())) {
+        if (!res.has_value()) {
+            m_error = m_connection->getError();
             return {};
         }
+        if (!res.initFromRecord(res.value())) {
+            m_error = res.getError();
+            return {};
+        }
+        m_error.reset();
         return iValue;
     }
 
@@ -73,6 +93,7 @@ public:
         RecordT singleValue;
         auto res = m_connection->executeQuery(makeSimpleQuery(QueryType::SelectAll, singleValue));
         if (!res.has_value()) {
+            m_error = m_connection->getError();
             return {};
         }
         for (auto& rec : res.value()) {
@@ -81,6 +102,7 @@ public:
             }
             outputValues.push_back(singleValue);
         }
+        m_error.reset();
         return outputValues;
     }
 

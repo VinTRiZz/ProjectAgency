@@ -61,14 +61,14 @@ QString BackendManagementWidget::getAIManagerAddress() const
     return m_pManagerContext->getAddress();
 }
 
-void BackendManagementWidget::slot_processError(const QString &errText, const QString& detailText)
+void BackendManagementWidget::slot_processError(const Exchange::Error &err)
 {
     if (!m_pErrorMessageBox) {
         m_pErrorMessageBox = new QMessageBox(this);
         m_pErrorMessageBox->setWindowTitle("Operation failed");
         m_pErrorMessageBox->setIcon(QMessageBox::Critical);
     }
-    m_pErrorMessageBox->setText(errText);
-    m_pErrorMessageBox->setDetailedText(detailText);
+    m_pErrorMessageBox->setText(err.getErrorText().c_str());
+    m_pErrorMessageBox->setDetailedText(err.getErrorDetailText().c_str());
     m_pErrorMessageBox->exec();
 }

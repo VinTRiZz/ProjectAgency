@@ -23,7 +23,7 @@ public:
     bool isBackendOnline(const DBRecords::AIBackendInfo::id_t& id) const;
 
 signals:
-    void sig_errorOccurs(const QString& errorText);
+    void sig_errorOccurs(const Exchange::Error& err) const;
 
 private:
     AIBackendServiceManager* m_pServiceManager {nullptr};

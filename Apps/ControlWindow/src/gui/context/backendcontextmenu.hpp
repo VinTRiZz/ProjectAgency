@@ -26,7 +26,7 @@ public:
     void setView(QAbstractItemView* pView);
 
 signals:
-    void sig_errorOccurs(const QString& errText, const QString& errDetail) const;
+    void sig_errorOccurs(const Exchange::Error& err) const;
     void sig_addBackendRequested(const DBRecords::AIBackendInfoPtr& pBackend) const;
     void sig_editBackendRequested(const DBRecords::AIBackendInfoPtr& pBackend) const;
 

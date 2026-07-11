@@ -12,7 +12,6 @@
 /**
  * @brief The AIManager class AIBackend handler class
  */
-#warning "Error using not implemented"
 class AIManager : public Exchange::ErrorUser
 {
 public:

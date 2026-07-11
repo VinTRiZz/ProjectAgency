@@ -40,9 +40,11 @@ signals:
     void sig_backendUpdated(const DBRecords::AIBackendInfoPtr& pBackend);
     void sig_backendRemoved(const DBRecords::AIBackendInfoPtr& backendId);
 
-    void sig_errorOccurs(const QString& errorText, const QString& errDetail);
+    void sig_errorOccurs(const Exchange::Error& err);
 
 private:
+    void emitError(const QString &errText, const QString &errDetail);
+
     bool m_enableDebugMode {false}; // Allows generating test samples
     BackendArrayHdl m_backends;
     Client_BackendServiceManager* m_pBackendServiceManager {nullptr};

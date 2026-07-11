@@ -129,8 +129,10 @@ std::optional<std::vector<record_t> > DBConnection::executeQuery(const std::stri
         // COMPLOG_DEBUG("Executing:", queryStr);
         auto execRes = m_pClient->execSqlSync(queryStr);
         res = resultToRecords(execRes);
+        m_error.reset();
     } catch (const drogon::orm::DrogonDbException& ex) {
-        Exchange::Error::printSelf(Exchange::ErrorCode::SystemDBError, ex.base().what());
+        m_error.setCode(Exchange::ErrorCode::SystemDBError);
+        m_error.setDetailText(ex.base().what());
         return {};
     }
     return res;
@@ -138,6 +140,7 @@ std::optional<std::vector<record_t> > DBConnection::executeQuery(const std::stri
 
 void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_t &&cbk) const
 {
+    m_error.reset();
     try {
         if (std::string::npos != queryStr.find(';')) {
             throw Exchange::Error(Exchange::ErrorCode::SystemDBError, "Invalid query (contain ';' symbol)");
@@ -154,7 +157,8 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
             cbk({}, ex.base().what());
         });
     } catch (const drogon::orm::DrogonDbException& ex) {
-        Exchange::Error::printSelf(Exchange::ErrorCode::SystemDBError, ex.base().what());
+        m_error.setCode(Exchange::ErrorCode::SystemDBError);
+        m_error.setDetailText(ex.base().what());
     }
 }
 

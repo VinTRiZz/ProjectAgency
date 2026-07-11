@@ -47,16 +47,19 @@ enum class ErrorCode : uint16_t
     // ========= GUI ERRORS ========== //
     // =============================== //
 
-    // 10** --> Model errors
-    GuiModelUnknown = 1000,
+    // 10** --> Common errors
+    GuiUnknown = 1000,
+    GuiServerProcessingFail,
+
+    // 11** --> Model errors
+    GuiModelUnknown = 1100,
     GuiModelInvalidModel,
     GuiModelInvalidIndex,
-
 
     // =============================== //
     // ======== EXTRA ERRORS ========= //
     // =============================== //
-    ExtraCustom = 10000
+    ExtraUnknown = 10000
 };
 
 std::string errorCodeToText(ErrorCode code);

@@ -74,7 +74,8 @@ void AIManager::setCurrentTask(const std::string &taskText)
     m_currentTask = taskText;
 
     // TODO: Use input model to handle task
-    Exchange::Error::printSelf(Exchange::ErrorCode::SystemNotImplemented, "setCurrentTask");
+    m_error = Exchange::Error(Exchange::ErrorCode::SystemNotImplemented, "setCurrentTask");
+    m_error.printSelf();
 }
 
 std::string AIManager::getCurrentTask() const
@@ -95,10 +96,10 @@ void AIManager::stopCurrentTask()
 
 bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
+    m_error.reset();
     if (!backendInfo || !backendInfo->getId().empty()) {
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::SystemObjectNotInited,
-            std::string("Invalid backend to add"));
+        m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
+        m_error.setDetailText("Invalid backend to add");
         return false;
     }
 
@@ -111,7 +112,7 @@ bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 
     auto backendId = m_pRecordManager->addRecord(*backendInfo);
     if (!backendId.has_value()) {
-        m_pRecordManager->getError().printSelf();
+        m_error = m_pRecordManager->getError();
         return false;
     }
     backendInfo->setId(backendId.value());
@@ -129,10 +130,10 @@ bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 
 bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
+    m_error.reset();
     if (!backendInfo || backendInfo->getId().empty()) {
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::SystemObjectNotInited,
-            std::string("Invalid backend to update"));
+        m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
+        m_error.setDetailText("Invalid backend to update");
         return false;
     }
     for (auto pBck : m_backends) {
@@ -140,7 +141,7 @@ bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
             continue;
         }
         if (!m_pRecordManager->updateRecord(*backendInfo)) {
-            m_pRecordManager->getError().printSelf();
+            m_error = m_pRecordManager->getError();
             return false;
         }
         pBck->setInfo(backendInfo);
@@ -168,10 +169,10 @@ std::vector<std::shared_ptr<AIBackendHandler> > AIManager::getBackends() const
 
 void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
 {
+    m_error.reset();
     if (backendId.empty()) {
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::SystemObjectNotInited,
-            std::string("Invalid backend to remove"));
+        m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
+        m_error.setDetailText("Invalid backend to remove");
         return;
     }
     auto targetIt = std::find_if(m_backends.begin(), m_backends.end(), [&backendId](auto pBackend){
@@ -183,7 +184,7 @@ void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
     }
     auto pBackend = *targetIt;
     if (!m_pRecordManager->removeRecord(*pBackend->getInfo())) {
-        m_pRecordManager->getError().printSelf();
+        m_error = m_pRecordManager->getError();
         return;
     }
     m_backends.erase(targetIt);

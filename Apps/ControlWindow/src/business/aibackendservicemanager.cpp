@@ -12,15 +12,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 {
     m_pBackendServiceManager = new Client_BackendServiceManager(this);
 
-    connect(this, &AIBackendServiceManager::sig_errorOccurs, [](const auto& errText){
-        COMPLOG_ERROR("AIBackendServiceManager (exchange):", errText.toStdString());
-        Exchange::Error::printSelf();
-    });
-
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& ids){
         if (!isSucceed) {
-            emit sig_errorOccurs("Failed to get backend list", errorMsg);
+            emitError("Failed to get backend list", errorMsg);
             return;
         }
         for (auto& id : ids) {
@@ -31,7 +26,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigAdd,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs("Failed to add backend", errorMsg);
+            emitError("Failed to add backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -46,7 +41,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigGet,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs("Failed to get info about backend", errorMsg);
+            emitError("Failed to get info about backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -62,7 +57,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigSet,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& pBackendInfo){
         if (!isSucceed) {
-            emit sig_errorOccurs("Failed to save backend configuration", errorMsg);
+            emitError("Failed to save backend configuration", errorMsg);
             return;
         }
         auto pBackend = getBackend(pBackendInfo->getId());
@@ -77,7 +72,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigRemove,
             this, [this](bool isSucceed, const auto& errorMsg, const auto& backendId){
         if (!isSucceed) {
-            emit sig_errorOccurs("Failed to remove backend", errorMsg);
+            emitError("Failed to remove backend", errorMsg);
             return;
         }
         auto pBackend = getBackend(backendId);
@@ -146,4 +141,10 @@ DBRecords::AIBackendInfoPtr AIBackendServiceManager::getBackend(const DBRecords:
 BackendArrayHdl AIBackendServiceManager::getAllBackends() const
 {
     return m_backends;
+}
+
+void AIBackendServiceManager::emitError(const QString &errText, const QString &errDetail)
+{
+    auto resDetail = (errDetail.isEmpty() ? errText : errText + "(" + errDetail + ")");
+    emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, resDetail.toStdString()));
 }

@@ -8,6 +8,8 @@
 #include <optional>
 #include <memory>
 
+#include <ProjectAgency/Exchange/Error.h>
+
 namespace Database {
 
 // Common
@@ -16,7 +18,7 @@ using record_t = std::map<std::string, recordValue_t>;
 class AbstractConnection;
 using AbstractConnectionPtr = std::shared_ptr<AbstractConnection>;
 
-class AbstractConnection
+class AbstractConnection : public Exchange::ErrorUser
 {
 public:
     AbstractConnection() = default;

@@ -12,8 +12,6 @@
 #include "business/aibackend.hpp"
 #include "business/settings.hpp"
 
-#include <signal.h>
-
 namespace bpo = boost::program_options;
 
 // TODO: Think, how to do this thing properly (don't like such format)

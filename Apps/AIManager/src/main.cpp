@@ -1,6 +1,9 @@
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Ecosystem/ApplicationSettings.h>
+#include <Components/Ecosystem/Utility.h>
+
+#include <ProjectAgency/Exchange/Error.h>
 
 #include <boost/program_options.hpp>
 
@@ -25,6 +28,7 @@ int main(int argc, char* argv[]) {
     // Common setings
     long long   httpAPIPort {0};
     std::string dataDir {"."};
+    Common::setupBacktrace();
 
     bpo::options_description desc;
     desc.add_options()
@@ -112,23 +116,32 @@ int main(int argc, char* argv[]) {
 
     try {
         app.start(httpAPIPort);
-    } catch (const std::exception& ex) {
+    } catch (const Exchange::Error& ex) {
+        ex.printSelfStd();
+        Common::printStacktraceNoLogger();
         try {
             app.stop();
         } catch (...) {
-            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
-            return APP_EXITCODE_FAILURE;
+            throw;
         }
-        std::cerr << "CRITICAL: EXCEPTION: " << ex.what() << std::endl;
+        return APP_EXITCODE_EXCEPTION;
+    } catch (const std::exception& ex) {
+        std::cout << std::endl << ex.what() << std::endl;
+        Common::printStacktraceNoLogger();
+        try {
+            app.stop();
+        } catch (...) {
+            throw;
+        }
         return APP_EXITCODE_EXCEPTION;
     } catch (...) {
+        std::cout << "UNKNOWN EXCEPTION" << std::endl;
+        Common::printStacktraceNoLogger();
         try {
             app.stop();
         } catch (...) {
-            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
-            return APP_EXITCODE_FAILURE;
+            throw;
         }
-        std::cerr << "CRITICAL: UNKNOWN EXCEPTION" << std::endl;
         return APP_EXITCODE_UNKNOWN_EXCEPTION;
     }
     return APP_EXITCODE_OK;

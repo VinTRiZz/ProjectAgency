@@ -45,7 +45,7 @@ void BackendContextMenu::setView(QAbstractItemView *pView)
 void BackendContextMenu::slot_addBackend() const
 {
     if (!m_pModel) {
-        emit sig_errorOccurs("[INTERNAL ERROR]", "No model set to call signal");
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidModel, "No model set to call signal"));
         return;
     }
 
@@ -95,7 +95,7 @@ void BackendContextMenu::slot_editBackend() const
 {
     auto pBackend = m_targetIndex.data(BackendTableModel::R_backendPtr).value<DBRecords::AIBackendInfoPtr>();
     if (!pBackend) {
-        emit sig_errorOccurs("No backend selected", "No detail");
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidIndex, "No backend selected"));
         return;
     }
     emit sig_editBackendRequested(pBackend);
@@ -104,12 +104,12 @@ void BackendContextMenu::slot_editBackend() const
 void BackendContextMenu::slot_removeBackend() const
 {
     if (!m_pModel) {
-        emit sig_errorOccurs("[INTERNAL ERROR]", "No model set to call signal");
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidModel, "No model set"));
         return;
     }
     auto pBackend = m_targetIndex.data(BackendTableModel::R_backendPtr).value<DBRecords::AIBackendInfoPtr>();
     if (!pBackend) {
-        emit sig_errorOccurs("No backend selected", "No detail");
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidIndex, "No backend selected"));
         return;
     }
     COMPLOG_INFO("BackendContextMenu: Removing backend", pBackend->getId(), "(", pBackend->getDisplayName(), ")");

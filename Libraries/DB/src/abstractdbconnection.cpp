@@ -78,16 +78,11 @@ std::string AbstractConnection::cellDataToString(const recordValue_t &val) const
         using valueType_t = std::decay_t<decltype(v)>;
         if constexpr (std::is_same_v<valueType_t, std::string>) {
             return v;
-        } else
-            if constexpr (std::is_same_v<valueType_t, Exchange::id_t>) {
-                if (v == Exchange::NULL_ID) {
-                    return "NULL";
-                }
-                return std::to_string(v);
-            } else
-                if constexpr (std::is_same_v<valueType_t, double>) {
-                    return std::to_string(v);
-                }
+        } else if constexpr (std::is_same_v<valueType_t, Exchange::id_t>) {
+            return (v == Exchange::NULL_ID ? "NULL" : std::to_string(v));
+        } else if constexpr (std::is_same_v<valueType_t, double>) {
+            return std::to_string(v);
+        }
         return {};
     }, val);
 }
