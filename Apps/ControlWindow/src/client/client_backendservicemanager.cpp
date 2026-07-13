@@ -29,7 +29,7 @@ void Client_BackendServiceManager::requestIdList()
                 }
                 try {
                     auto responseJson = nlohmann::json::parse(resp->readAll().toStdString());
-                    std::vector<DBRecords::AIBackendInfo::id_t> ids;
+                    std::vector<DBRecords::AIBackendInfo::id_nullable_t> ids;
                     for (auto& js : responseJson) {
                         ids.push_back(js);
                     }
@@ -62,7 +62,7 @@ void Client_BackendServiceManager::requestConfigAdd(const DBRecords::AIBackendIn
             });
 }
 
-void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendInfo::id_t &backendId)
+void Client_BackendServiceManager::requestConfigGet(const DBRecords::AIBackendInfo::id_nullable_t &backendId)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_GET, backendId));
@@ -106,7 +106,7 @@ void Client_BackendServiceManager::requestConfigSet(const DBRecords::AIBackendIn
             });
 }
 
-void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBackendInfo::id_t &backendId)
+void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBackendInfo::id_nullable_t &backendId)
 {
     auto& requester = getRequester();
     auto req = createRequest(createTarget(Exchange::HTTPv1::QT_BACKEND_CONFIG_REM, backendId));
@@ -125,13 +125,13 @@ void Client_BackendServiceManager::requestConfigRemove(const DBRecords::AIBacken
 QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::AIBackendInfoPtr &pBackend) const
 {
     auto res = QString::fromStdString(apiUrl);
-    return res.arg(QString::fromStdString(pBackend->getId()));
+    return res.arg(QString::fromStdString(pBackend->getId().value()));
 }
 
-QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::AIBackendInfo::id_t &backendId) const
+QString Client_BackendServiceManager::createTarget(const std::string &apiUrl, const DBRecords::AIBackendInfo::id_nullable_t &backendId) const
 {
     auto res = QString::fromStdString(apiUrl);
-    return res.arg(QString::fromStdString(backendId));
+    return res.arg(QString::fromStdString(backendId.value()));
 }
 
 void Client_BackendServiceManager::emitError(const QString &errText) const

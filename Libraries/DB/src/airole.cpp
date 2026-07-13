@@ -5,6 +5,8 @@
 #include <Components/Logger/Logger.h>
 #include <Components/Encryption/Encoding.h>
 
+#include <ProjectAgency/Exchange/Error.h>
+
 namespace DBRecords {
 
 AIRole::AIRole() :
@@ -12,7 +14,7 @@ AIRole::AIRole() :
 
 }
 
-Database::record_t AIRole::toRecord() const
+Database::DBRowNamed AIRole::toRecord() const
 {
     auto res = Database::RecordBaseI::toRecord();
     res["version"] = m_version;
@@ -22,7 +24,7 @@ Database::record_t AIRole::toRecord() const
     return res;
 }
 
-bool AIRole::initFromRecord(const Database::record_t &iRecord)
+bool AIRole::initFromRecord(const Database::DBRowNamed &iRecord)
 {
     Database::RecordBaseI::initFromRecord(iRecord);
 
@@ -136,7 +138,7 @@ bool AIRole::fromJson(const std::string &iJson)
 {
     try {
         auto iJsonV = nlohmann::json::parse(iJson);
-        Database::record_t iRec;
+        Database::DBRowNamed iRec;
         for (const auto& [key, value] : iJsonV.items()) {
             if (value.is_number_integer()) {
                 iRec[key] = int64_t(value);

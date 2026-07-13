@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <ProjectAgency/DB/RecordManager.h>
+#include <Components/Database/RecordManager.h>
 #include <ProjectAgency/Exchange/Error.h>
 
 #include "backendhandle/aibackendhandler.hpp"
@@ -32,9 +32,9 @@ public:
 
     bool addBackend(const DBRecords::AIBackendInfoPtr& backendInfo);
     bool updateBackend(const DBRecords::AIBackendInfoPtr& backendInfo);
-    std::shared_ptr<AIBackendHandler> getBackend(const DBRecords::AIBackendInfo::id_t& backendId) const;
+    std::shared_ptr<AIBackendHandler> getBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId) const;
     std::vector<std::shared_ptr<AIBackendHandler> > getBackends() const;
-    void removeBackend(const DBRecords::AIBackendInfo::id_t& backendId);
+    void removeBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId);
 
 private:
     std::string m_token;

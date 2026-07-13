@@ -1,8 +1,10 @@
 #pragma once
 
-#include "recordobjects.hpp"
+#include <Components/Database/RecordBase.h>
 
 #include <memory>
+
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace DBRecords {
 
@@ -44,9 +46,9 @@ public:
     /**
      * @throws std::invalid_argument if ID length is not 64
      */
-    void setId(const std::string &id) noexcept(false) override;
-    Database::record_t toRecord() const override;
-    bool initFromRecord(const Database::record_t &iRecord) override;
+    void setId(const std::variant<std::monostate, id_t> &id) noexcept(false) override;
+    Database::DBRowNamed toRecord() const override;
+    bool initFromRecord(const Database::DBRowNamed &iRecord) override;
 
     void setType(AIBackendDeviceType typ);
     AIBackendDeviceType getType() const;

@@ -1,6 +1,8 @@
 #include "airolemanager.hpp"
 
 #include <Components/Logger/Logger.h>
+#include <ProjectAgency/Exchange/Error.h>
+#include <ProjectAgency/Exchange/Types.h>
 
 void AIRoleManager::setRecordManager(const Database::RecordManagerPtr &pManager)
 {
@@ -55,14 +57,14 @@ bool AIRoleManager::updateRole(const DBRecords::AIRolePtr &role)
             m_pRecordManager->getError().printSelf();
             return false;
         }
-        COMPLOG_INFO("AI role with id [", role->getId(), "] configuration updated");
+        COMPLOG_INFO("AI role with id [", role->getId().value_or(-1), "] configuration updated");
         *pRole = std::move(*role);
         return true;
     }
     return false;
 }
 
-void AIRoleManager::removeRole(const DBRecords::AIRole::id_t &id)
+void AIRoleManager::removeRole(const DBRecords::AIRole::id_nullable_t &id)
 {
     if (Exchange::NULL_ID == id) {
         COMPLOG_WARNING("Invalid AI role passed for remove (NULL id)");
@@ -72,7 +74,7 @@ void AIRoleManager::removeRole(const DBRecords::AIRole::id_t &id)
         return (id == pRole->getId());
     });
     if (m_roles.end() == targetIt) {
-        COMPLOG_WARNING("AI role with id [", id, "] not found for removing");
+        COMPLOG_WARNING("AI role with id [", id.value_or(-1), "] not found for removing");
         return;
     }
     auto pRole = *targetIt;
@@ -81,5 +83,5 @@ void AIRoleManager::removeRole(const DBRecords::AIRole::id_t &id)
         return;
     }
     m_roles.erase(targetIt);
-    COMPLOG_INFO("AI role with id [", id, "] removed");
+    COMPLOG_INFO("AI role with id [", id.value_or(-1), "] removed");
 }

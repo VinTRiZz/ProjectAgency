@@ -14,7 +14,9 @@ void AIServiceController::processGetBackendIdList(const drogon::HttpRequestPtr &
 {
     nlohmann::json res;
     for (auto& pBck : m_aiManager.getBackends()) {
-        res.push_back(pBck->getInfo()->getId());
+        res.push_back(pBck->getInfo()->getId().has_value() ?
+                            nlohmann::json::value_type(pBck->getInfo()->getId().value()) :
+                            nlohmann::json::value_type());
     }
     sendJsonMessage(drogon::k200OK, res.dump(), std::move(callback));
 }

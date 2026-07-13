@@ -32,7 +32,7 @@ public:
     void updateBackends();
     Client_BackendServiceManager* getClient() const;
 
-    DBRecords::AIBackendInfoPtr getBackend(const DBRecords::AIBackendInfo::id_t& id) const;
+    DBRecords::AIBackendInfoPtr getBackend(const DBRecords::AIBackendInfo::id_nullable_t& id) const;
     BackendArrayHdl getAllBackends() const;
 
 signals:

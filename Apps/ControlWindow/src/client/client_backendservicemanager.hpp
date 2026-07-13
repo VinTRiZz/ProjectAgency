@@ -13,20 +13,20 @@ public:
 public slots:
     void requestIdList();
     void requestConfigAdd(const DBRecords::AIBackendInfoPtr& pBackendInfo);
-    void requestConfigGet(const DBRecords::AIBackendInfo::id_t& backendId);
+    void requestConfigGet(const DBRecords::AIBackendInfo::id_nullable_t& backendId);
     void requestConfigSet(const DBRecords::AIBackendInfoPtr& pBackendInfo);
-    void requestConfigRemove(const DBRecords::AIBackendInfo::id_t& backendId);
+    void requestConfigRemove(const DBRecords::AIBackendInfo::id_nullable_t& backendId);
 
 signals:
-    void sig_responseIdList(const std::vector<DBRecords::AIBackendInfo::id_t>& ids = {});
+    void sig_responseIdList(const std::vector<DBRecords::AIBackendInfo::id_nullable_t>& ids = {});
     void sig_responseConfigAdd(const DBRecords::AIBackendInfoPtr& pBackendInfo = {});
     void sig_responseConfigGet(const DBRecords::AIBackendInfoPtr& pBackendInfo = {});
     void sig_responseConfigSet(const DBRecords::AIBackendInfoPtr& pBackendInfo = {});
-    void sig_responseConfigRemove(const DBRecords::AIBackendInfo::id_t& id = {});
+    void sig_responseConfigRemove(const DBRecords::AIBackendInfo::id_nullable_t& id = {});
 
 private:
     QString createTarget(const std::string& apiUrl, const DBRecords::AIBackendInfoPtr& pBackend) const;
-    QString createTarget(const std::string& apiUrl, const DBRecords::AIBackendInfo::id_t& backendId) const;
+    QString createTarget(const std::string& apiUrl, const DBRecords::AIBackendInfo::id_nullable_t& backendId) const;
 
     void emitError(const QString& errText) const;
 };

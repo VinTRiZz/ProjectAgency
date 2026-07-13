@@ -28,7 +28,7 @@ void AIBackendDynamicManager::setServiceManager(AIBackendServiceManager *pManage
     m_pServiceManager = pManager;
 }
 
-bool AIBackendDynamicManager::isBackendOnline(const DBRecords::AIBackendInfo::id_t &id) const
+bool AIBackendDynamicManager::isBackendOnline(const DBRecords::AIBackendInfo::id_nullable_t &id) const
 {
     // TODO: Implement
     emit sig_errorOccurs(Exchange::ErrorCode::SystemNotImplemented);

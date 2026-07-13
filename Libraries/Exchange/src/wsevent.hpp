@@ -1,7 +1,7 @@
 #pragma once
 
 #include "serializableobject.hpp"
-#include "error.hpp"
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace Exchange::Events {
 

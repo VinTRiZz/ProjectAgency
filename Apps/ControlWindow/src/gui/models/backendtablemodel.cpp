@@ -101,7 +101,7 @@ QVariant BackendTableModel::data(const QModelIndex &index, int role) const
         }
         switch (role)
         {
-        case R_id:      return QString::fromStdString(pBackend->getId());
+        case R_id:      return pBackend->getId().has_value() ? QString::fromStdString(pBackend->getId().value()) : QString();
         case R_address: return QString::fromStdString(pBackend->getFullAddress());
         case R_type:    return pBackend->getType();
         case R_name:    return QString::fromStdString(pBackend->getDisplayName());

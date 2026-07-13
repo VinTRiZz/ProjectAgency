@@ -1,4 +1,4 @@
-#include "backendinfo.hpp"
+#include "aibackendinfo.hpp"
 
 #include <stdexcept>
 
@@ -6,6 +6,8 @@
 
 #include <Components/Logger/Logger.h>
 #include <Components/Encryption/Encoding.h>
+
+#include <ProjectAgency/Exchange/Error.h>
 
 namespace DBRecords {
 
@@ -29,15 +31,16 @@ AIBackendInfoPtr AIBackendInfo::create()
     return std::make_shared<AIBackendInfo>();
 }
 
-void AIBackendInfo::setId(const std::string &id) noexcept(false)
+void AIBackendInfo::setId(const std::variant<std::monostate, id_t> &id) noexcept(false)
 {
-    if (id.size() != 64) {
+    if (!std::holds_alternative<std::string>(id) ||
+        std::get<std::string>(id).size() != 64) {
         throw std::invalid_argument("Invalid id length (expected 64 symbols)");
     }
     Database::RecordBaseS::setId(id);
 }
 
-Database::record_t AIBackendInfo::toRecord() const
+Database::DBRowNamed AIBackendInfo::toRecord() const
 {
     auto res = Database::RecordBaseS::toRecord();
     res["type"] = m_type;
@@ -47,7 +50,7 @@ Database::record_t AIBackendInfo::toRecord() const
     return res;
 }
 
-bool AIBackendInfo::initFromRecord(const Database::record_t &iRecord)
+bool AIBackendInfo::initFromRecord(const Database::DBRowNamed &iRecord)
 {
     auto initRes = Database::RecordBaseS::initFromRecord(iRecord);
     if (!initRes) {
@@ -197,7 +200,7 @@ bool AIBackendInfo::readJson(const std::string &iJson)
 {
     try {
         auto iJsonV = nlohmann::json::parse(iJson);
-        Database::record_t iRec;
+        Database::DBRowNamed iRec;
         for (const auto& [key, value] : iJsonV.items()) {
             if (value.is_number_integer()) {
                 iRec[key] = int64_t(value);

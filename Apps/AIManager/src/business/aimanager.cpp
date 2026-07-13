@@ -97,7 +97,7 @@ void AIManager::stopCurrentTask()
 bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     m_error.reset();
-    if (!backendInfo || !backendInfo->getId().empty()) {
+    if (!backendInfo || !backendInfo->getId()) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to add");
         return false;
@@ -131,7 +131,7 @@ bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     m_error.reset();
-    if (!backendInfo || backendInfo->getId().empty()) {
+    if (!backendInfo || backendInfo->getId()) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to update");
         return false;
@@ -145,14 +145,14 @@ bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
             return false;
         }
         pBck->setInfo(backendInfo);
-        COMPLOG_INFO("Backend with id [", backendInfo->getId(), "] configuration updated");
+        COMPLOG_INFO("Backend with id [", backendInfo->getId().value_or("NULL"), "] configuration updated");
         return true;
     }
-    COMPLOG_WARNING("Backend with id [", backendInfo->getId(), "] not found for configuration update");
+    COMPLOG_WARNING("Backend with id [", backendInfo->getId().value_or("NULL"), "] not found for configuration update");
     return false;
 }
 
-std::shared_ptr<AIBackendHandler> AIManager::getBackend(const DBRecords::AIBackendInfo::id_t& backendId) const
+std::shared_ptr<AIBackendHandler> AIManager::getBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId) const
 {
     for (auto pBck : m_backends) {
         if (backendId == pBck->getInfo()->getId()) {
@@ -167,10 +167,10 @@ std::vector<std::shared_ptr<AIBackendHandler> > AIManager::getBackends() const
     return m_backends;
 }
 
-void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
+void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_nullable_t &backendId)
 {
     m_error.reset();
-    if (backendId.empty()) {
+    if (!backendId) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to remove");
         return;
@@ -179,7 +179,7 @@ void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
         return (backendId == pBackend->getInfo()->getId());
     });
     if (m_backends.end() == targetIt) {
-        COMPLOG_WARNING("Backend with id [", backendId, "] not found for removing");
+        COMPLOG_WARNING("Backend with id [", backendId.value_or("NULL"), "] not found for removing");
         return;
     }
     auto pBackend = *targetIt;
@@ -188,7 +188,7 @@ void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_t &backendId)
         return;
     }
     m_backends.erase(targetIt);
-    COMPLOG_INFO("Backend with id [", backendId, "] removed");
+    COMPLOG_INFO("Backend with id [", backendId.value_or("NULL"), "] removed");
 }
 
 

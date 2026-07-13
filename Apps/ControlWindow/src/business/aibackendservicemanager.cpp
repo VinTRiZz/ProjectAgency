@@ -24,7 +24,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigAdd,
             this, [this](const auto& pBackendInfo){
-        auto pBackend = getBackend(pBackendInfo->getId());
+        if (!pBackendInfo->getId().has_value()) {
+            return;
+        }
+        auto pBackend = getBackend(pBackendInfo->getId().value());
         if (pBackend) {
             COMPLOG_WARNING("AIBackendServiceManager: Existing backend added");
             return;
@@ -35,7 +38,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigGet,
             this, [this](const auto& pBackendInfo){
-        auto pBackend = getBackend(pBackendInfo->getId());
+        if (!pBackendInfo->getId().has_value()) {
+            return;
+        }
+        auto pBackend = getBackend(pBackendInfo->getId().value());
         if (pBackend) {
             *pBackend = *pBackendInfo;
             emit sig_backendUpdated(pBackend);
@@ -47,7 +53,10 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigSet,
             this, [this](const auto& pBackendInfo){
-        auto pBackend = getBackend(pBackendInfo->getId());
+        if (!pBackendInfo->getId().has_value()) {
+            return;
+        }
+        auto pBackend = getBackend(pBackendInfo->getId().value());
         if (!pBackend) {
             COMPLOG_ERROR("Unexpected error: set value of undefined backend");
             return;
@@ -110,7 +119,7 @@ Client_BackendServiceManager *AIBackendServiceManager::getClient() const
     return m_pBackendServiceManager;
 }
 
-DBRecords::AIBackendInfoPtr AIBackendServiceManager::getBackend(const DBRecords::AIBackendInfo::id_t &id) const
+DBRecords::AIBackendInfoPtr AIBackendServiceManager::getBackend(const DBRecords::AIBackendInfo::id_nullable_t &id) const
 {
     auto lbnd = std::lower_bound(m_backends->begin(), m_backends->end(), id, [](const auto& pLeft, const auto& id){
         return (pLeft->getId() < id);

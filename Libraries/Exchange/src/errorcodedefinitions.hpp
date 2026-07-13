@@ -1,15 +1,14 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include <stdint.h>
+#include <Components/ExtraClasses/Error.h>
 
 namespace Exchange {
 
 /**
  * @brief The ErrorCode enum Error codes for internal usage
  */
-enum class ErrorCode : uint16_t
+enum ErrorCode : int
 {
     NoError = 0,
 
@@ -62,6 +61,26 @@ enum class ErrorCode : uint16_t
     ExtraUnknown = 10000
 };
 
-std::string errorCodeToText(ErrorCode code);
+class Error : public ExtraClasses::ErrorBase
+{
+public:
+    using ExtraClasses::ErrorBase::ErrorBase;
+
+    // Inheritance issues
+    Error(const ErrorBase &err) : ErrorBase(err) { }
+    Error(ErrorBase &&err) : ErrorBase(std::move(err)) {}
+
+    // Inheritance issues
+    template <typename ErrorT>
+    Error &operator=(ErrorT&& err) {
+        setCode(err.getCode());
+        setDetailText(err.getDetailText());
+        return *this;
+    }
+
+    // Error interface
+    std::string errorCodeToText(int errc) const override;
+};
+using ErrorUser = ExtraClasses::ErrorUserBase<Exchange::Error>;
 
 }

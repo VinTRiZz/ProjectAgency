@@ -4,8 +4,7 @@ namespace Exchange
 {
 
 #define EXCHANGE_CODE_TO_TEXT(a) case ErrorCode::a: return #a
-
-std::string errorCodeToText(ErrorCode code)
+std::string Error::errorCodeToText(int code) const
 {
     switch (code)
     {

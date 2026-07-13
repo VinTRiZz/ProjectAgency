@@ -1,6 +1,8 @@
 #pragma once
 
-#include "recordobjects.hpp"
+#include <Components/Database/RecordBase.h>
+
+#include <ProjectAgency/Exchange/Error.h>
 
 #include <memory>
 
@@ -18,8 +20,8 @@ public:
     AIRole();
 
     // RecordBase interface
-    Database::record_t toRecord() const override;
-    bool initFromRecord(const Database::record_t &iRecord) override;
+    Database::DBRowNamed toRecord() const override;
+    bool initFromRecord(const Database::DBRowNamed &iRecord) override;
 
     void setVersion(unsigned version);
     unsigned getVersion() const;

@@ -6,13 +6,13 @@
 #include <vector>
 #include <string>
 
-#include <ProjectAgency/DB/AbstractConnection.h>
+#include <Components/Database/AbstractConnection.h>
 
 namespace Database {
 
 // Common
 using recordValue_t = std::variant<std::monostate, std::string, int64_t, double>;
-using record_t = std::map<std::string, recordValue_t>;
+using DBRowNamed = std::map<std::string, recordValue_t>;
 
 class DBConnection : public AbstractConnection
 {
@@ -22,7 +22,7 @@ public:
     void init();
 
     // Execution working
-    std::optional<std::vector<record_t> > executeQuery(const std::string& queryStr, bool isSync = true) const override;
+    std::optional<std::vector<DBRowNamed> > executeQuery(const std::string& queryStr, bool isSync = true) const override;
     void executeQueryAsync(const std::string& queryStr, queryCallback_t&& cbk) const override;
 
 private:

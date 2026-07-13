@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <ProjectAgency/DB/AIRole.h>
-#include <ProjectAgency/DB/RecordManager.h>
+#include <Components/Database/RecordManager.h>
 
 class AIRoleManager
 {
@@ -14,7 +14,7 @@ public:
 
     bool addRole(const DBRecords::AIRolePtr& role);
     bool updateRole(const DBRecords::AIRolePtr& role);
-    void removeRole(const DBRecords::AIRole::id_t& id);
+    void removeRole(const DBRecords::AIRole::id_nullable_t& id);
 
 private:
     Database::RecordManagerPtr m_pRecordManager;

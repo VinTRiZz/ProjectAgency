@@ -20,7 +20,7 @@ public:
 
     void setServiceManager(AIBackendServiceManager* pManager);
 
-    bool isBackendOnline(const DBRecords::AIBackendInfo::id_t& id) const;
+    bool isBackendOnline(const DBRecords::AIBackendInfo::id_nullable_t& id) const;
 
 signals:
     void sig_errorOccurs(const Exchange::Error& err) const;

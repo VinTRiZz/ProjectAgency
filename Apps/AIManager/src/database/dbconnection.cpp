@@ -85,13 +85,13 @@ recordValue_t cellToRecord(const drogon::orm::Field& rowCell, CellType columnTyp
     throw Exchange::Error(Exchange::ErrorCode::SystemInvalidArgument, "Unexpected column type");
 }
 
-std::vector<record_t> resultToRecords(const drogon::orm::Result& execResult) {
+std::vector<DBRowNamed> resultToRecords(const drogon::orm::Result& execResult) {
 
     std::map<int, CellType> columnTypes;
 
-    std::vector<record_t> res;
+    std::vector<DBRowNamed> res;
     for (auto& row : execResult) {
-        record_t record;
+        DBRowNamed record;
         for (size_t i = 0; i < row.size(); ++i) {
             // Use deduced type
             if (columnTypes.count(i)) {
@@ -119,9 +119,9 @@ void DBConnection::init()
     m_pClient = drogon::orm::DbClient::newPgClient(createConnectionString(), 2);
 }
 
-std::optional<std::vector<record_t> > DBConnection::executeQuery(const std::string &queryStr, bool isSync) const
+std::optional<std::vector<DBRowNamed> > DBConnection::executeQuery(const std::string &queryStr, bool isSync) const
 {
-    std::vector<record_t> res;
+    std::vector<DBRowNamed> res;
     try {
         if (std::string::npos != queryStr.find(';')) {
             throw Exchange::Error(Exchange::ErrorCode::SystemDBError, "Invalid query (contain ';' symbol)");
@@ -149,7 +149,7 @@ void DBConnection::executeQueryAsync(const std::string &queryStr, queryCallback_
         auto cbkCopy = cbk;
         m_pClient->execSqlAsync(queryStr,
             [cbk = std::move(cbk)](const drogon::orm::Result& execRes){
-            std::vector<record_t> res = resultToRecords(execRes);
+            std::vector<DBRowNamed> res = resultToRecords(execRes);
             cbk(std::move(res), {});
         },
             [cbk = std::move(cbkCopy)](const drogon::orm::DrogonDbException& ex){
