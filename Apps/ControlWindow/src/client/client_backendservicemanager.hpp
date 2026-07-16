@@ -1,10 +1,10 @@
 #pragma once
 
-#include "client_base/httpclientbase.hpp"
+#include <Components/CustomQt/Web/HTTPClientBase.h>
 
 #include <ProjectAgency/DB/AIBackendInfo.h>
 
-class Client_BackendServiceManager : public HTTPClientBase
+class Client_BackendServiceManager : public QtCustom::Web::HTTPClientBase
 {
     Q_OBJECT
 public:

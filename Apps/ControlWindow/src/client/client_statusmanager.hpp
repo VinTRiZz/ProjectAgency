@@ -1,6 +1,6 @@
 #pragma once
 
-#include "client_base/httpclientbase.hpp"
+#include <Components/CustomQt/Web/HTTPClientBase.h>
 
 #include <ProjectAgency/Exchange/Types.h>
 #include <ProjectAgency/Exchange/HTTP.h>
@@ -8,7 +8,7 @@
 
 #include <QTimer>
 
-class Client_StatusManager : public HTTPClientBase
+class Client_StatusManager : public QtCustom::Web::HTTPClientBase
 {
     Q_OBJECT
 public:

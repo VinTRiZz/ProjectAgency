@@ -16,5 +16,4 @@ if (NOT PAG_BUILD_CWINDOW)
     return()
 endif()
 
-COMPONENTS_CCR_ADD_QT(5 Core Widgets)
 add_subdirectory(Components-Qt-Custom)
