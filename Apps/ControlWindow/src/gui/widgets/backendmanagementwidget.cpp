@@ -49,7 +49,7 @@ void BackendManagementWidget::slot_processError(const Exchange::Error &err)
         m_pErrorMessageBox->setIcon(QMessageBox::Critical);
     }
     m_pErrorMessageBox->setText(err.getErrorText().c_str());
-    m_pErrorMessageBox->setDetailedText(err.getErrorDetailText().c_str());
+    m_pErrorMessageBox->setDetailedText(err.getDetailText().c_str());
     m_pErrorMessageBox->exec();
 }
 

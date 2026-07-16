@@ -119,6 +119,6 @@ void BackendContextMenu::slot_removeBackend() const
         emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiModelInvalidIndex, "No backend selected"));
         return;
     }
-    COMPLOG_INFO("BackendContextMenu: Removing backend", pBackend->getId(), "(", pBackend->getDisplayName(), ")");
+    COMPLOG_INFO("BackendContextMenu: Removing backend", pBackend->getId().value_or("NULL"), "(", pBackend->getDisplayName(), ")");
     m_pModel->removeRow(m_targetIndex.row(), m_targetIndex.parent());
 }
