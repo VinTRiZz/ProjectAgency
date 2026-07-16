@@ -113,79 +113,9 @@ QVariant BackendTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool BackendTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    if (!index.isValid() || index.row() >= rowCount() || index.row() < 0)
-        return false;
-
-    if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        auto pBackend = getBackend(index);
-        if (!pBackend) {
-            return {};
-        }
-
-        switch (index.column())
-        {
-        case C_address: return setData(index, value, R_address);
-        case C_name:    return setData(index, value, R_name);
-        case C_type:    return setData(index, value, R_type);
-        }
-        return false;
-    }
-
-    if (role > Qt::UserRole) {
-        auto pBackend = getBackend(index);
-        if (!pBackend) {
-            return {};
-        }
-        bool isDataChanged = false;
-        switch (role)
-        {
-        case C_address:
-            isDataChanged = true;
-            {
-                auto addr = value.toString();
-                auto addrParts = addr.split(":");
-                if (addrParts.size() < 2 || addrParts[1].isEmpty()) { // No port
-                    return false;
-                }
-                auto portValue = addrParts[1].toInt();
-                if (portValue < 0 || portValue > 65535) { // Invalid port
-                    return false;
-                }
-                pBackend->setIp(addrParts[0].toStdString());
-                pBackend->setPort(portValue);
-            }
-            break;
-        case C_type:
-            isDataChanged = true;
-            {
-                auto devtype = DBRecords::AIBackendDeviceType(value.toInt());
-                if (devtype >= DBRecords::SYS_Devtype_max || devtype < DBRecords::Default) { // Invalid type
-                    return false;
-                }
-                pBackend->setType(devtype);
-            }
-            break;
-        case C_name:
-            isDataChanged = true;
-            pBackend->setDisplayName(value.toString().toStdString());
-            break;
-        }
-        if (isDataChanged) {
-            emit dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(columnCount() - 1), { Qt::DisplayRole });
-        }
-        return isDataChanged;
-    }
-    return false;
-}
-
 Qt::ItemFlags BackendTableModel::flags(const QModelIndex &index) const
 {
-    if (index.column() == C_id || index.column() == C_status) {
-        return QAbstractItemModel::flags(index) &~ Qt::ItemIsEditable;
-    }
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+    return QAbstractItemModel::flags(index) &~ Qt::ItemIsEditable;
 }
 
 void BackendTableModel::setBackendContext(AIManagerContext *pContext)

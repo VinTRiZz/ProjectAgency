@@ -34,7 +34,7 @@ public:
     bool updateBackend(const DBRecords::AIBackendInfoPtr& backendInfo);
     std::shared_ptr<AIBackendHandler> getBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId) const;
     std::vector<std::shared_ptr<AIBackendHandler> > getBackends() const;
-    void removeBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId);
+    bool removeBackend(const DBRecords::AIBackendInfo::id_nullable_t& backendId);
 
 private:
     std::string m_token;

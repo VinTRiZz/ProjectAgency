@@ -97,6 +97,10 @@ void BackendManagementWidget::setupBackendContextMenu()
                     m_pManagerContext->getBackendServiceManager()->getClient()->requestConfigSet(pBackend);
                 }
             });
+    connect(m_pBackendContextMenu, &BackendContextMenu::sig_removeBackendRequested,
+            this, [this](auto pBackend){
+        m_pManagerContext->getBackendServiceManager()->getClient()->requestConfigRemove(pBackend->getId());
+    });
     ui->treeViewBackendTree->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeViewBackendTree, &QWidget::customContextMenuRequested,
             m_pBackendContextMenu, [this](const QPoint& menuPos){

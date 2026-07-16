@@ -33,7 +33,7 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
             return;
         }
         m_backends->insert(pBackendInfo);
-        emit sig_backendAdded(pBackend);
+        emit sig_backendAdded(pBackendInfo);
     });
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseConfigGet,

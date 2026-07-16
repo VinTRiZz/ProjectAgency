@@ -125,5 +125,5 @@ void BackendContextMenu::slot_removeBackend() const
         return;
     }
     COMPLOG_INFO("BackendContextMenu: Removing backend", pBackend->getId().value_or("NULL"), "(", pBackend->getDisplayName(), ")");
-    m_pModel->removeRow(m_targetIndex.row(), m_targetIndex.parent());
+    emit sig_removeBackendRequested(pBackend);
 }

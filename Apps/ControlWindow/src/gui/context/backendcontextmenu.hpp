@@ -29,6 +29,7 @@ signals:
     void sig_errorOccurs(const Exchange::Error& err) const;
     void sig_addBackendRequested(const DBRecords::AIBackendInfoPtr& pBackend) const;
     void sig_editBackendRequested(const DBRecords::AIBackendInfoPtr& pBackend) const;
+    void sig_removeBackendRequested(const DBRecords::AIBackendInfoPtr& pBackend) const;
 
 private slots:
     void slot_addBackend() const;

@@ -32,7 +32,7 @@ void AIServiceController::processAddConfiguration(const drogon::HttpRequestPtr &
         sendTextMessage(drogon::k200OK, bckInfo.toJson(), std::move(callback));
         return;
     }
-    sendTextMessage(drogon::k400BadRequest, m_aiManager.getError().what(), std::move(callback));
+    sendTextMessage(drogon::k500InternalServerError, m_aiManager.getError().what(), std::move(callback));
 }
 
 void AIServiceController::processGetConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
@@ -53,18 +53,22 @@ void AIServiceController::processSetConfiguration(const drogon::HttpRequestPtr &
         return;
     }
     if (m_aiManager.updateBackend(bckInfo)) {
-        sendTextMessage(drogon::k200OK, "Configuration changed", std::move(callback));
+        sendTextMessage(drogon::k200OK, bckInfo->toJson(), std::move(callback));
         return;
     }
-    sendTextMessage(drogon::k404NotFound, m_aiManager.getError().what(), std::move(callback));
+    sendTextMessage(drogon::k500InternalServerError, m_aiManager.getError().what(), std::move(callback));
 }
 
 void AIServiceController::processRemoveConfiguration(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
 {
     auto pBackend = m_aiManager.getBackend(backendId);
-    if (pBackend) {
-        sendJsonMessage(drogon::k200OK, backendId, std::move(callback));
+    if (!pBackend) {
+        sendTextMessage(drogon::k404NotFound, "No such backend", std::move(callback));
         return;
     }
-    m_aiManager.removeBackend(backendId);
+    if (m_aiManager.removeBackend(backendId)) {
+        sendTextMessage(drogon::k200OK, backendId, std::move(callback));
+        return;
+    }
+    sendTextMessage(drogon::k500InternalServerError, m_aiManager.getError().what(), std::move(callback));
 }

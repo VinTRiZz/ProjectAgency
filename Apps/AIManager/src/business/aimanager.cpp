@@ -131,7 +131,7 @@ bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 bool AIManager::updateBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     m_error.reset();
-    if (!backendInfo || backendInfo->getId()) {
+    if (!backendInfo || !backendInfo->getId()) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to update");
         return false;
@@ -167,28 +167,29 @@ std::vector<std::shared_ptr<AIBackendHandler> > AIManager::getBackends() const
     return m_backends;
 }
 
-void AIManager::removeBackend(const DBRecords::AIBackendInfo::id_nullable_t &backendId)
+bool AIManager::removeBackend(const DBRecords::AIBackendInfo::id_nullable_t &backendId)
 {
     m_error.reset();
     if (!backendId) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to remove");
-        return;
+        return false;
     }
     auto targetIt = std::find_if(m_backends.begin(), m_backends.end(), [&backendId](auto pBackend){
         return (backendId == pBackend->getInfo()->getId());
     });
     if (m_backends.end() == targetIt) {
         COMPLOG_WARNING("Backend with id [", backendId.value_or("NULL"), "] not found for removing");
-        return;
+        return false;
     }
     auto pBackend = *targetIt;
     if (!m_pRecordManager->removeRecord(*pBackend->getInfo())) {
         m_error = m_pRecordManager->getError();
-        return;
+        return false;
     }
     m_backends.erase(targetIt);
     COMPLOG_INFO("Backend with id [", backendId.value_or("NULL"), "] removed");
+    return true;
 }
 
 
