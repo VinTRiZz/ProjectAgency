@@ -32,6 +32,9 @@ void SettingsConfigurator::setupSettings()
     initSettingValue(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT, 9001);
     initSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_INPUT_MODEL);
 
+    // For debug needs, will not work in real cases
+    initSettingValue(Settings::SECTION_DB, Settings::SYSTEM_MANAGER_TOKEN,  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
     // DB
     initSettingValue(Settings::SECTION_DB, Settings::DB_ADDRESS,    "127.0.0.1");
     initSettingValue(Settings::SECTION_DB, Settings::DB_PORT,       10001);

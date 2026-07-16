@@ -15,12 +15,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLineEdit" name="lineEditDeviceId">
+     <property name="placeholderText">
+      <string>Enter device ID...</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,1">
      <property name="spacing">
       <number>1</number>
      </property>
      <item>
       <widget class="QLineEdit" name="lineEditAddress">
+       <property name="text">
+        <string/>
+       </property>
        <property name="placeholderText">
         <string>Enter address...</string>
        </property>
@@ -57,6 +67,9 @@
    </item>
    <item>
     <widget class="QLineEdit" name="lineEditName">
+     <property name="text">
+      <string/>
+     </property>
      <property name="placeholderText">
       <string>Enter name to display...</string>
      </property>
@@ -94,7 +107,7 @@
      <item>
       <widget class="QPushButton" name="pushButtonExit">
        <property name="text">
-        <string>Exit</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>

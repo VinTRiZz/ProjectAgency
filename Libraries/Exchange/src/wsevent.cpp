@@ -71,7 +71,7 @@ bool WSEvent::readJson(const std::string_view &iString)
         return true;
     } catch (const nlohmann::json::exception& ex) {
         m_error.setCode(ErrorCode::ProtocolJsonException);
-        m_error.setDetailText(ex.what());
+        m_error.setDetailText(std::string("WSEvent | ") + ex.what());
     }
     return false;
 }

@@ -3,6 +3,7 @@
 #include <QAction>
 
 #include <Components/Logger/Logger.h>
+#include <Components/Ecosystem/Utility.h>
 
 #include "gui/models/backendtablemodel.hpp"
 #include "gui/models/backendtreemodel.hpp"
@@ -56,8 +57,13 @@ void BackendContextMenu::slot_addBackend() const
         return;
     }
 
+    DBRecords::AIBackendInfo backendPreconfig {};
+    backendPreconfig.setDisplayName("My AI backend");
+    backendPreconfig.setIp("127.0.0.1");
+    backendPreconfig.setId(Common::createRandomString(64)); // If someday it will be equal to existing one, notify me
+
     if (!m_targetIndex.isValid()) {
-        emit sig_addBackendRequested(DBRecords::AIBackendInfo::create());
+        emit sig_addBackendRequested(backendPreconfig.toPointer());
         return;
     }
 
@@ -73,7 +79,6 @@ void BackendContextMenu::slot_addBackend() const
     }
 
     // Preconfigure backend according to existing data
-    DBRecords::AIBackendInfo backendPreconfig {};
     auto maxLevel = m_pModel->getMaxGroupLevel();
     for (uint8_t curLevel = 0; curLevel <= indexLevel && curLevel <= maxLevel; ++curLevel) {
         auto opt_groupRule = m_pModel->getGroupingRule(maxLevel - curLevel);

@@ -40,7 +40,7 @@ bool DeviceStatus::readJson(const std::string_view &iString)
         m_error.setCode(ErrorCode::NoError);
     } catch (nlohmann::json::exception& ex) {
         m_error.setCode(ErrorCode::ProtocolJsonException);
-        m_error.setDetailText(ex.what());
+        m_error.setDetailText(std::string("DeviceStatus | ") + ex.what());
         return false;
     }
     return true;

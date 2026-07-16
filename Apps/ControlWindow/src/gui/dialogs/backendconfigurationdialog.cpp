@@ -28,6 +28,7 @@ void BackendConfigurationDialog::setBackend(const DBRecords::AIBackendInfo &back
 
 DBRecords::AIBackendInfo BackendConfigurationDialog::getBackend() const
 {
+    m_currentBackendInfo.setId(ui->lineEditDeviceId->text().toStdString());
     m_currentBackendInfo.setIp(ui->lineEditAddress->text().toStdString());
     m_currentBackendInfo.setPort(ui->spinBoxPort->value());
     m_currentBackendInfo.setDisplayName(ui->lineEditName->text().toStdString());
@@ -37,6 +38,7 @@ DBRecords::AIBackendInfo BackendConfigurationDialog::getBackend() const
 
 void BackendConfigurationDialog::resetInfo()
 {
+    ui->lineEditDeviceId->setText(m_currentBackendInfo.getId().value_or("").c_str());
     ui->lineEditAddress->setText(m_currentBackendInfo.getIp().c_str());
     ui->spinBoxPort->setValue(m_currentBackendInfo.getPort());
     ui->lineEditName->setText(m_currentBackendInfo.getDisplayName().c_str());

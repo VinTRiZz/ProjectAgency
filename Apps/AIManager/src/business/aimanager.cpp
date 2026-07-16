@@ -97,7 +97,7 @@ void AIManager::stopCurrentTask()
 bool AIManager::addBackend(const DBRecords::AIBackendInfoPtr &backendInfo)
 {
     m_error.reset();
-    if (!backendInfo || !backendInfo->getId()) {
+    if (!backendInfo) {
         m_error.setCode(Exchange::ErrorCode::SystemObjectNotInited);
         m_error.setDetailText("Invalid backend to add");
         return false;

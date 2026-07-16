@@ -144,6 +144,8 @@ bool AIRole::fromJson(const std::string &iJson)
                 iRec[key] = int64_t(value);
             } else if (value.is_number_float()) {
                 iRec[key] = double(value);
+            } else if (value.is_null()) {
+                iRec[key] = std::monostate();
             } else {
                 iRec[key] = std::string(Encryption::decodeHex(value)); // Treat anything as a string
             }
@@ -152,7 +154,7 @@ bool AIRole::fromJson(const std::string &iJson)
         return initFromRecord(iRec);
     } catch (const nlohmann::json::exception& ex) {
         m_error.setCode(Exchange::ErrorCode::ProtocolJsonException);
-        m_error.setDetailText(ex.what());
+        m_error.setDetailText(std::string("AIRole | ") + ex.what());
         return false;
     }
     return true;
