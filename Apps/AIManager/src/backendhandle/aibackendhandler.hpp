@@ -12,7 +12,7 @@
 /**
  * @brief The AIBackendHandler class Interface to control remote AIBackend instance
  */
-class AIBackendHandler
+class AIBackendHandler : public Exchange::ErrorUser
 {
 public:
     AIBackendHandler();

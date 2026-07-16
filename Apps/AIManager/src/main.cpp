@@ -22,7 +22,6 @@ namespace bpo = boost::program_options;
 #define APP_EXITCODE_EXCEPTION            3
 #define APP_EXITCODE_UNKNOWN_EXCEPTION    4
 
-
 int main(int argc, char* argv[]) {
 
     // Common setings

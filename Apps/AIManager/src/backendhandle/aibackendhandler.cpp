@@ -38,6 +38,7 @@ AIBackendHandler::AIBackendHandler() :
         d->eventConnection = hdl;
         d->connected.store(true, std::memory_order_release);
         COMPLOG_OK("[AIBackendHandler]", this, "Connected to server");
+        m_error.reset();
     });
 
     d->eventClient.set_message_handler([this](ConnectionHdl hdl, MessagePtr msg) {
@@ -69,9 +70,9 @@ AIBackendHandler::AIBackendHandler() :
         code = pCon->get_remote_close_code();
         reasonStr = pCon->get_remote_close_reason();
         d->connected.store(false, std::memory_order_release);
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::InterfaceConnectionError,
-            std::string("[WS] Disconnected from ") + pCon->get_remote_endpoint() + "(" + reasonStr + ")");
+        m_error.setCode(Exchange::ErrorCode::InterfaceConnectionError);
+        m_error.setDetailText(std::string("[WS] Disconnected from ") + pCon->get_remote_endpoint() + "(" + reasonStr + ")");
+        m_error.printSelf();
     });
 
 
@@ -79,9 +80,9 @@ AIBackendHandler::AIBackendHandler() :
         d->connected.store(false, std::memory_order_release);
         auto pCon = d->eventClient.get_con_from_hdl(hdl);
         auto ec = pCon->get_ec();
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::InterfaceConnectionError,
-            std::string("[WS] ") + ec.message());
+        m_error.setCode(Exchange::ErrorCode::InterfaceConnectionError);
+        m_error.setDetailText(std::string("[WS] ") + ec.message());
+        m_error.printSelf();
     });
 }
 
@@ -93,32 +94,31 @@ AIBackendHandler::~AIBackendHandler()
 void AIBackendHandler::connect()
 {
     if (!d->m_backendRecord) {
-        COMPLOG_ERROR("Backend can not connect: no info provided");
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::InterfaceInvalidAddress, "No address set");
+        m_error.setCode(Exchange::ErrorCode::InterfaceInvalidAddress);
+        m_error.setDetailText("No address set");
+        m_error.printSelf();
         return;
     }
     std::string uri = "ws://" + d->m_backendRecord->getFullAddress() + "/?manager=" + d->m_backendRecord->getToken();
-    COMPLOG_SYNC_DEBUG(uri);
+    // COMPLOG_SYNC_DEBUG("CONNECTING TO:", uri);
     websocketpp::lib::error_code ec;
     auto con = d->eventClient.get_connection(uri, ec);
     if (ec) {
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::InterfaceConnectionError,
-            std::string("[WS] ") + ec.message());
+        m_error.setCode(Exchange::ErrorCode::InterfaceConnectionError);
+        m_error.setDetailText(std::string("[WS] ") + ec.message());
+        m_error.printSelf();
         return;
     }
     d->eventClient.connect(con);
     std::thread([this](){
         d->eventClient.run();
     }).detach();
+    m_error.reset();
 }
 
 void AIBackendHandler::disconnect()
 {
-    if (!isConnected()) {
-        return;
-    }
+    if (!isConnected()) { return; }
     d->eventClient.close(d->eventConnection, websocketpp::close::status::going_away, "Normal disconnection");
 }
 
@@ -130,8 +130,12 @@ bool AIBackendHandler::isConnected() const
 bool AIBackendHandler::sendEvent(const Exchange::Events::WSEvent &ev)
 {
     if (!isConnected()) {
+        m_error.setCode(Exchange::ErrorCode::InterfaceConnectionError);
+        m_error.setDetailText("[WS] Not connected");
+        m_error.printSelf();
         return false;
     }
+    m_error.reset();
     d->eventClient.send(d->eventConnection, ev.toJson(), websocketpp::frame::opcode::text);
     return true;
 }

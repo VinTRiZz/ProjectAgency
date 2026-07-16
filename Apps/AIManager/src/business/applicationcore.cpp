@@ -11,6 +11,7 @@
 #include "httpcontrollers/aiservicecontroller.hpp"
 #include "httpcontrollers/aistatuscontroller.hpp"
 #include "httpcontrollers/userrequestcontroller.hpp"
+#include "httpcontrollers/aimanagerservicecontroller.hpp"
 
 struct ApplicationCore::Impl
 {
@@ -65,6 +66,7 @@ void ApplicationCore::start(uint16_t apiPort)
     d->m_aiManager.start();
 
     // Controller setup
+    drogon::app().registerController(std::make_shared<AIManagerServiceController>(*this));
     drogon::app().registerController(std::make_shared<AIServiceController>(d->m_aiManager));
     drogon::app().registerController(std::make_shared<AIStatusController>(d->m_aiManager));
     drogon::app().registerController(std::make_shared<UserRequestController>(d->m_aiManager));

@@ -7,15 +7,27 @@ namespace Exchange::HTTPv1 {
 const std::string API_V {"/api/v1"};
 
 // AI Manager server
-const auto SERVER_BASE {API_V + "/manager"};
-const auto SERVER_STATUS {SERVER_BASE + "/status"};
+const auto SERVER_BASE      {API_V + "/manager"};
+const auto SERVER_STATUS    {SERVER_BASE + "/status"};
+const auto SERVER_ACTION    {SERVER_BASE + "?action={action}"};
+const auto QT_SERVER_ACTION {SERVER_BASE + "?action=%1"};
+
+/**
+ * @brief The ServerAction enum Actions to work with AIBackend
+ */
+enum ServerAction : short
+{
+    ActionStop = 0,
+    ActionRestart,
+};
 
 // All backend id list
 const auto BACKENDS_ID_LIST {API_V + "/backends"};
 
 // Target backend
-const auto BACKEND_BASE {API_V + "/backend"};
-const auto BACKEND_STATUS {BACKEND_BASE + "/{backendId}/status"};
+const auto BACKEND_BASE         {API_V + "/backend"};
+const auto BACKEND_STATUS       {BACKEND_BASE + "/{backendId}/status"};
+const auto BACKEND_RECONNECT    {BACKEND_BASE + "/{backendId}/reconnect"};
 
 // CRUD of backend information
 const auto BACKEND_CONFIG_ADD {BACKEND_BASE + "?action=create"};

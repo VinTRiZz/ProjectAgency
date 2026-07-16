@@ -41,6 +41,11 @@ public:
             AIServiceController::processRemoveConfiguration,
             Exchange::HTTPv1::BACKEND_CONFIG_REM,
             drogon::Delete);
+
+        ADD_METHOD_TO(
+            AIServiceController::processBackendReconnect,
+            Exchange::HTTPv1::BACKEND_RECONNECT,
+            drogon::Delete);
     METHOD_LIST_END
 
     // ID, name, role, current status, last online, etc. (basic info to display)
@@ -63,6 +68,11 @@ public:
         ResponseCallback_t &&callback);
 
     void processRemoveConfiguration(
+        const drogon::HttpRequestPtr &req,
+        ResponseCallback_t &&callback,
+        const std::string& backendId);
+
+    void processBackendReconnect(
         const drogon::HttpRequestPtr &req,
         ResponseCallback_t &&callback,
         const std::string& backendId);

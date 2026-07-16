@@ -72,3 +72,20 @@ void AIServiceController::processRemoveConfiguration(const drogon::HttpRequestPt
     }
     sendTextMessage(drogon::k500InternalServerError, m_aiManager.getError().what(), std::move(callback));
 }
+
+void AIServiceController::processBackendReconnect(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &backendId)
+{
+    auto pBackend = m_aiManager.getBackend(backendId);
+    if (!pBackend) {
+        sendTextMessage(drogon::k404NotFound, "No such backend", std::move(callback));
+        return;
+    }
+    pBackend->connect();
+    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (pBackend->isConnected()) {
+        sendTextMessage(drogon::k200OK, {}, std::move(callback));
+    } else {
+        sendTextMessage(drogon::k503ServiceUnavailable, pBackend->getError().what(), std::move(callback));
+    }
+}
