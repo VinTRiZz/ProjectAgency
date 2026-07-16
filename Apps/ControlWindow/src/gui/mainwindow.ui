@@ -31,7 +31,111 @@
      <number>1</number>
     </property>
     <item>
-     <widget class="BackendManagementWidget" name="backendManagementWidget" native="true"/>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_control">
+       <attribute name="title">
+        <string>Control instance</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>1</number>
+        </property>
+        <property name="topMargin">
+         <number>1</number>
+        </property>
+        <property name="rightMargin">
+         <number>1</number>
+        </property>
+        <property name="bottomMargin">
+         <number>1</number>
+        </property>
+        <item>
+         <widget class="AIManagerServiceWidget" name="aiManagerControlWidget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_tasks">
+       <attribute name="title">
+        <string>Tasks</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>1</number>
+        </property>
+        <property name="topMargin">
+         <number>1</number>
+        </property>
+        <property name="rightMargin">
+         <number>1</number>
+        </property>
+        <property name="bottomMargin">
+         <number>1</number>
+        </property>
+        <item>
+         <widget class="TaskManagementWidget" name="taskManagementWidget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_backends">
+       <attribute name="title">
+        <string>Agents</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>1</number>
+        </property>
+        <property name="topMargin">
+         <number>1</number>
+        </property>
+        <property name="rightMargin">
+         <number>1</number>
+        </property>
+        <property name="bottomMargin">
+         <number>1</number>
+        </property>
+        <item>
+         <widget class="BackendManagementWidget" name="backendManagementWidget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_roles">
+       <attribute name="title">
+        <string>AI Roles</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>1</number>
+        </property>
+        <property name="topMargin">
+         <number>1</number>
+        </property>
+        <property name="rightMargin">
+         <number>1</number>
+        </property>
+        <property name="bottomMargin">
+         <number>1</number>
+        </property>
+        <item>
+         <widget class="AIRoleManagementWidget" name="aiRolesManagementWidget" native="true"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -52,6 +156,24 @@
    <class>BackendManagementWidget</class>
    <extends>QWidget</extends>
    <header>gui/widgets/backendmanagementwidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TaskManagementWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/widgets/taskmanagementwidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AIRoleManagementWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/widgets/airolemanagementwidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AIManagerServiceWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/widgets/aimanagerservicewidget.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

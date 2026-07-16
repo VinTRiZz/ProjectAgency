@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->tabWidget->setCurrentIndex(0);
+
     // TODO: Add a form to setup backend
     ui->backendManagementWidget->setAIManagerAddress("127.0.0.1", 9001);
 }
