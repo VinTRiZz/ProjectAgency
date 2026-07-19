@@ -6,7 +6,6 @@
 #include <QApplication>
 
 int main(int argc, char* argv[]) {
-
     int res = -1;
     auto& appSettings = Common::ApplicationSettings::getInstance();
     {

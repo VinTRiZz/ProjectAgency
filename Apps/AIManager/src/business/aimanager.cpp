@@ -24,6 +24,11 @@ Database::RecordManagerPtr AIManager::getRecordManager() const
 void AIManager::setToken(const std::string &tokenString)
 {
     m_token = tokenString;
+    for (auto& pBackend : m_backends) {
+        pBackend->disconnect();
+        pBackend->getInfo()->setToken(tokenString);
+        pBackend->connect();
+    }
 }
 
 void AIManager::setInputModel(const std::string &modelName)

@@ -3,6 +3,7 @@
 #include "controllerbase.hpp"
 
 #include <ProjectAgency/Exchange/HTTP.h>
+#include <ProjectAgency/Exchange/EncryptedExchangeMaster.h>
 
 #include "business/applicationcore.hpp"
 
@@ -27,4 +28,9 @@ public:
 
 private:
     ApplicationCore& m_appCore;
+
+    std::string m_sessionPubkey;
+    Exchange::EncryptedExchangeMaster m_encMaster;
+
+    bool setAppSetting(const std::string& settingJson);
 };

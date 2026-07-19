@@ -13,12 +13,14 @@ const auto SERVER_ACTION    {SERVER_BASE + "?action={action}"};
 const auto QT_SERVER_ACTION {SERVER_BASE + "?action=%1"};
 
 /**
- * @brief The ServerAction enum Actions to work with AIBackend
+ * @brief The AIManagerAction enum Actions to work with AIBackend
  */
-enum ServerAction : short
+enum AIManagerAction : short
 {
-    ActionStop = 0,
-    ActionRestart,
+    AIMA_Stop = 0,
+    AIMA_Restart,
+    AIMA_ExchangePublicKeys,
+    AIMA_SetSetting,
 };
 
 // All backend id list

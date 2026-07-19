@@ -34,7 +34,7 @@ ApplicationCore::~ApplicationCore()
 
 void ApplicationCore::setToken(const std::string &tokenString)
 {
-
+    d->m_aiManager.setToken(tokenString);
 }
 
 bool ApplicationCore::init()
