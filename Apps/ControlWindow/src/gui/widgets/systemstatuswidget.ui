@@ -127,14 +127,14 @@ unavailable</string>
           <item>
            <widget class="QPushButton" name="pushButtonReboot">
             <property name="text">
-             <string>Reboot</string>
+             <string>Restart</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="pushButtonPoweroff">
             <property name="text">
-             <string>Turn OFF</string>
+             <string>Stop</string>
             </property>
            </widget>
           </item>
