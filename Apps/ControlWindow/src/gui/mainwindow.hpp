@@ -6,6 +6,8 @@ namespace Ui {
 class MainWindow;
 }
 
+class AIManagerContext;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -16,5 +18,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+    AIManagerContext* m_pManagerContext;
 };
 

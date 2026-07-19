@@ -24,8 +24,8 @@ public:
     explicit BackendManagementWidget(QWidget *parent = nullptr);
     ~BackendManagementWidget();
 
-    void setAIManagerAddress(const QString& addr, uint16_t apiPort);
-    QString getAIManagerAddress() const;
+    void setContext(AIManagerContext* pContext);
+    AIManagerContext* getManagerContext();
 
 private slots:
     void slot_processError(const Exchange::Error& err);

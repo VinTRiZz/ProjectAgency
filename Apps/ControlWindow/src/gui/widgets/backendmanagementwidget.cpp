@@ -19,10 +19,6 @@ BackendManagementWidget::BackendManagementWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_pManagerContext = new AIManagerContext(this);
-    connect(m_pManagerContext->getBackendServiceManager(), &AIBackendServiceManager::sig_errorOccurs,
-            this, &BackendManagementWidget::slot_processError);
-
     setupBackendTree();
 }
 
@@ -31,14 +27,23 @@ BackendManagementWidget::~BackendManagementWidget()
     delete ui;
 }
 
-void BackendManagementWidget::setAIManagerAddress(const QString &addr, uint16_t apiPort)
+void BackendManagementWidget::setContext(AIManagerContext *pContext)
 {
-    m_pManagerContext->setAddress(addr + ":" + QString::number(apiPort));
+    if (m_pManagerContext) {
+        disconnect(m_pManagerContext->getBackendServiceManager(), nullptr, this, nullptr);
+    }
+    m_pManagerContext = pContext;
+    if (m_pManagerContext) {
+        connect(m_pManagerContext->getBackendServiceManager(), &AIBackendServiceManager::sig_errorOccurs,
+                this, &BackendManagementWidget::slot_processError);
+    }
+
+    m_pBackendTableModel->setBackendContext(m_pManagerContext);
 }
 
-QString BackendManagementWidget::getAIManagerAddress() const
+AIManagerContext *BackendManagementWidget::getManagerContext()
 {
-    return m_pManagerContext->getAddress();
+    return m_pManagerContext;
 }
 
 void BackendManagementWidget::slot_processError(const Exchange::Error &err)
@@ -56,13 +61,13 @@ void BackendManagementWidget::slot_processError(const Exchange::Error &err)
 void BackendManagementWidget::setupBackendTree()
 {
     m_pBackendTableModel = new BackendTableModel(this);
-    m_pBackendTableModel->setBackendContext(m_pManagerContext);
     m_pBackendTreeModel = new BackendTreeModel(this);
     m_pBackendTreeModel->setSourceModel(m_pBackendTableModel);
-    m_pBackendTreeModel->setTreeColumn(BackendTableModel::C_type);
+    m_pBackendTreeModel->setTreeColumn(BackendTableModel::C_name);
 
     ui->treeViewBackendTree->setModel(m_pBackendTreeModel);
-    ui->treeViewBackendTree->setTreePosition(BackendTableModel::C_type);
+    ui->treeViewBackendTree->setTreePosition(BackendTableModel::C_name);
+    ui->treeViewBackendTree->hideColumn(BackendTableModel::C_type); // Will be as a decoration
     ui->treeViewBackendTree->hideColumn(BackendTableModel::C_id);
     ui->treeViewBackendTree->hideColumn(BackendTableModel::C_address);
     ui->treeViewBackendTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -79,6 +84,10 @@ void BackendManagementWidget::setupBackendContextMenu()
             this, &BackendManagementWidget::slot_processError);
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_addBackendRequested,
             this, [this](auto pBackend){
+                if (!m_pManagerContext) {
+                    slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+                    return;
+                }
                 BackendConfigurationDialog confDialog {};
                 confDialog.setBackend(*pBackend);
                 auto execRes = confDialog.exec();
@@ -89,6 +98,10 @@ void BackendManagementWidget::setupBackendContextMenu()
             });
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_editBackendRequested,
             this, [this](auto pBackend){
+                if (!m_pManagerContext) {
+                    slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+                    return;
+                }
                 BackendConfigurationDialog confDialog {};
                 confDialog.setBackend(*pBackend);
                 auto execRes = confDialog.exec();
@@ -99,6 +112,10 @@ void BackendManagementWidget::setupBackendContextMenu()
             });
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_removeBackendRequested,
             this, [this](auto pBackend){
+        if (!m_pManagerContext) {
+            slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+            return;
+        }
         m_pManagerContext->getBackendServiceManager()->getClient()->requestConfigRemove(pBackend->getId());
     });
     ui->treeViewBackendTree->setContextMenuPolicy(Qt::CustomContextMenu);

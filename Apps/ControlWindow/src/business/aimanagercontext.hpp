@@ -14,6 +14,8 @@ class AIManagerContext : public QObject
 public:
     explicit AIManagerContext(QObject* parent = nullptr);
 
+    void init();
+
     /**
      * @brief setAddress Address is IP:port
      * @param addr

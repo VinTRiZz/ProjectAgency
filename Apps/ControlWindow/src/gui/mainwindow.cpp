@@ -1,16 +1,20 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
+#include "business/aimanagercontext.hpp"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
+    m_pManagerContext = new AIManagerContext(this);
+    m_pManagerContext->init();
+
     ui->tabWidget->setCurrentIndex(0);
 
-    // TODO: Add a form to setup backend
-    ui->backendManagementWidget->setAIManagerAddress("127.0.0.1", 9001);
+    ui->backendManagementWidget->setContext(m_pManagerContext);
 }
 
 MainWindow::~MainWindow()
