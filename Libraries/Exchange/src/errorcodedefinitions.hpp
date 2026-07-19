@@ -41,6 +41,11 @@ enum ErrorCode : int
     InterfaceStartFailed,
     InterfaceStopFailed,
     InterfaceConnectionError,
+    InterfaceEncUnknown,
+    InterfaceEncInitError,
+    InterfaceEncInvalidPubkey,
+    InterfaceEncMsgEncError,
+    InterfaceEncMsgDecError,
 
     // =============================== //
     // ========= GUI ERRORS ========== //
