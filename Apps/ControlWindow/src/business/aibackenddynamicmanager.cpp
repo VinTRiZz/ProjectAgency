@@ -13,13 +13,11 @@ AIBackendDynamicManager::AIBackendDynamicManager(QObject *parent) :
 void AIBackendDynamicManager::setAddress(const QString &addr)
 {
     // TODO: Implement
-    emit sig_errorOccurs({Exchange::ErrorCode::SystemNotImplemented, "Can not set address of dynamic data"});
 }
 
 QString AIBackendDynamicManager::getAddress() const
 {
     // TODO: Implement
-    emit sig_errorOccurs(Exchange::ErrorCode::SystemNotImplemented);
     return {};
 }
 

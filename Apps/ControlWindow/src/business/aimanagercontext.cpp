@@ -5,19 +5,28 @@
 
 #include "aibackendservicemanager.hpp"
 #include "aibackenddynamicmanager.hpp"
+#include "controlservicemanager.hpp"
 
 #include "controlwindowsettings.hpp"
 
 AIManagerContext::AIManagerContext(QObject* parent) :
     QObject(parent)
 {
+    m_pControlServiceManager = new ControlServiceManager(this);
+    connect(m_pControlServiceManager, &ControlServiceManager::sig_errorOccurs,
+            this, &AIManagerContext::sig_errorOccurs);
+
     m_pBackendServiceManager = new AIBackendServiceManager(this);
+    connect(m_pBackendServiceManager, &AIBackendServiceManager::sig_errorOccurs,
+                                      this, &AIManagerContext::sig_errorOccurs);
 
     // DEBUG
     // m_pBackendServiceManager->setDebugEnabled(true);
     // m_pBackendServiceManager->updateBackends();
 
     m_pBackendDynamicManager = new AIBackendDynamicManager(this);
+    connect(m_pBackendDynamicManager, &AIBackendDynamicManager::sig_errorOccurs,
+                                      this, &AIManagerContext::sig_errorOccurs);
 }
 
 void AIManagerContext::init()
@@ -60,6 +69,7 @@ void AIManagerContext::init()
 void AIManagerContext::setAddress(const QString &addr)
 {
     COMPLOG_INFO("Context address changed to:", addr.toStdString());
+    m_pControlServiceManager->setAddress(addr);
     m_pBackendServiceManager->setAddress(addr);
     m_pBackendDynamicManager->setAddress(addr);
 
@@ -70,6 +80,11 @@ void AIManagerContext::setAddress(const QString &addr)
 QString AIManagerContext::getAddress() const
 {
     return m_pBackendServiceManager->getAddress();
+}
+
+ControlServiceManager *AIManagerContext::getControlServiceManager() const
+{
+    return m_pControlServiceManager;
 }
 
 AIBackendServiceManager *AIManagerContext::getBackendServiceManager() const

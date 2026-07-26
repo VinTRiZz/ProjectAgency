@@ -27,8 +27,8 @@ public:
     void setContext(AIManagerContext* pContext);
     AIManagerContext* getManagerContext();
 
-private slots:
-    void slot_processError(const Exchange::Error& err);
+signals:
+    void sig_errorOccurs(const Exchange::Error& err);
 
 private:
     Ui::BackendManagementWidget *ui;

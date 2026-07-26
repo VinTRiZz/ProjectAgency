@@ -33,29 +33,12 @@ void BackendManagementWidget::setContext(AIManagerContext *pContext)
         disconnect(m_pManagerContext->getBackendServiceManager(), nullptr, this, nullptr);
     }
     m_pManagerContext = pContext;
-    if (m_pManagerContext) {
-        connect(m_pManagerContext->getBackendServiceManager(), &AIBackendServiceManager::sig_errorOccurs,
-                this, &BackendManagementWidget::slot_processError);
-    }
-
     m_pBackendTableModel->setBackendContext(m_pManagerContext);
 }
 
 AIManagerContext *BackendManagementWidget::getManagerContext()
 {
     return m_pManagerContext;
-}
-
-void BackendManagementWidget::slot_processError(const Exchange::Error &err)
-{
-    if (!m_pErrorMessageBox) {
-        m_pErrorMessageBox = new QMessageBox(this);
-        m_pErrorMessageBox->setWindowTitle("Operation failed");
-        m_pErrorMessageBox->setIcon(QMessageBox::Critical);
-    }
-    m_pErrorMessageBox->setText(err.getErrorText().c_str());
-    m_pErrorMessageBox->setDetailedText(err.getDetailText().c_str());
-    m_pErrorMessageBox->exec();
 }
 
 void BackendManagementWidget::setupBackendTree()
@@ -81,11 +64,11 @@ void BackendManagementWidget::setupBackendContextMenu()
     m_pBackendContextMenu->setModel(m_pBackendTreeModel);
     m_pBackendContextMenu->setView(ui->treeViewBackendTree);
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_errorOccurs,
-            this, &BackendManagementWidget::slot_processError);
+            this, &BackendManagementWidget::sig_errorOccurs);
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_addBackendRequested,
             this, [this](auto pBackend){
                 if (!m_pManagerContext) {
-                    slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+                    emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
                     return;
                 }
                 BackendConfigurationDialog confDialog {};
@@ -99,7 +82,7 @@ void BackendManagementWidget::setupBackendContextMenu()
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_editBackendRequested,
             this, [this](auto pBackend){
                 if (!m_pManagerContext) {
-                    slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+                    emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
                     return;
                 }
                 BackendConfigurationDialog confDialog {};
@@ -113,7 +96,7 @@ void BackendManagementWidget::setupBackendContextMenu()
     connect(m_pBackendContextMenu, &BackendContextMenu::sig_removeBackendRequested,
             this, [this](auto pBackend){
         if (!m_pManagerContext) {
-            slot_processError(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
+            emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::GuiServerProcessingFail, "Context not set"));
             return;
         }
         m_pManagerContext->getBackendServiceManager()->getClient()->requestConfigRemove(pBackend->getId());

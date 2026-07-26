@@ -10,7 +10,7 @@ AIManagerServiceController::AIManagerServiceController(ApplicationCore &appCore)
     ControllerBase(),
     m_appCore {appCore}
 {
-
+    m_encMaster.init();
 }
 
 void AIManagerServiceController::processServerAction(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, int actionType)
