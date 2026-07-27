@@ -23,11 +23,12 @@ LOCAL_psqlEnv="-v ON_ERROR_STOP=1 -h $LOCAL_hostname -p $LOCAL_port -U $LOCAL_ad
 LOCAL_scriptDir=$(realpath $(dirname "$0"))
 for envScript in "$LOCAL_scriptDir"/*.sql; do
     if [ "$envScript" == "$LOCAL_scriptDir/0.sql" ]; then
+        psql $LOCAL_psqlEnv -v CONFIGURE_SERVERUSER="server" -v CONFIGURE_DBNAME="$LOCAL_database" -f "$envScript"
         continue;
     fi
 
     echo "Executing script: " $envScript
-    psql $LOCAL_psqlEnv -v CONFIGURE_SERVERUSER="server" -v CONFIGURE_DBNAME="$LOCAL_database" -f "$envScript"
+    psql $LOCAL_psqlEnv -v CONFIGURE_SERVERUSER="server" -v CONFIGURE_DBNAME="$LOCAL_database" -d "$LOCAL_database" -f "$envScript"
 
     if [ $? != 0 ]; then
         echo "[ FAIL ] Failed to execute version script"
