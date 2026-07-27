@@ -20,6 +20,10 @@ struct DatabaseConfiguration : public SerializableObject,
     // SerializableObject interface
     std::string toJson() const override;
     bool readJson(const std::string_view &iString) override;
+
+    // operators
+    bool operator ==(const DatabaseConfiguration& conf) const;
+    bool operator !=(const DatabaseConfiguration& conf) const;
 };
 
 } // namespace Exchange

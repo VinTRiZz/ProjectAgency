@@ -34,6 +34,14 @@ void AIManager::setToken(const std::string &tokenString)
 void AIManager::setInputModel(const std::string &modelName)
 {
     m_inputModelName = modelName;
+
+    auto& appSettings = Common::ApplicationSettings::getInstance();
+    auto pSett = appSettings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_INPUT_MODEL);
+    if (pSett->isSet() && (m_inputModelName == pSett->getValueString())) {
+        return;
+    }
+    pSett->setValue(m_inputModelName);
+    appSettings.saveSettings();
 }
 
 void AIManager::init()

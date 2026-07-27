@@ -25,4 +25,5 @@ private:
     std::string m_pubkey;
 
     void processKeyExchange(const QString& responsePayload);
+    void requestSetSetting(const std::string& settingName, const std::string& settingValue);
 };

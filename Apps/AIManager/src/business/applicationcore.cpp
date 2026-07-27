@@ -15,6 +15,7 @@
 
 struct ApplicationCore::Impl
 {
+    Exchange::DatabaseConfiguration m_dbConfig;
     Database::RecordManagerPtr m_pRecordManager;
 
     AIManager m_aiManager;
@@ -66,7 +67,7 @@ void ApplicationCore::start(uint16_t apiPort)
     d->m_aiManager.start();
 
     // Controller setup
-    drogon::app().registerController(std::make_shared<AIManagerServiceController>(*this));
+    drogon::app().registerController(std::make_shared<AIManagerServiceController>(*this, d->m_aiManager));
     drogon::app().registerController(std::make_shared<AIServiceController>(d->m_aiManager));
     drogon::app().registerController(std::make_shared<AIStatusController>(d->m_aiManager));
     drogon::app().registerController(std::make_shared<UserRequestController>(d->m_aiManager));
@@ -90,19 +91,44 @@ void ApplicationCore::stop()
     drogon::app().quit();
 }
 
+void ApplicationCore::setDatabaseConfiguration(const Exchange::DatabaseConfiguration &dbConfig)
+{
+    if (d->m_dbConfig != dbConfig) {
+        d->m_dbConfig = dbConfig;
+        auto pCon = std::make_shared<Database::DBConnection>();
+        pCon->setAppName("AIManager");
+        pCon->setName("main");
+        pCon->setUser(d->m_dbConfig.m_dbUsername, d->m_dbConfig.m_dbPassword);
+        pCon->setServer(d->m_dbConfig.m_dbAddress, d->m_dbConfig.m_dbPort);
+        pCon->setDatabase(d->m_dbConfig.m_dbName);
+        pCon->init();
+        d->m_pRecordManager->setConnection(pCon);
+        return;
+    }
+    d->m_dbConfig = dbConfig;
+}
+
+Exchange::DatabaseConfiguration ApplicationCore::getDatabaseConfiguration() const
+{
+    return d->m_dbConfig;
+}
+
 void ApplicationCore::initDatabase()
 {
     auto& appSettings = Common::ApplicationSettings::getInstance();
+    d->m_dbConfig.m_dbAddress = appSettings.getSetting(Settings::SECTION_DB, Settings::DB_ADDRESS)->getValueString();
+    d->m_dbConfig.m_dbPort = appSettings.getSetting(Settings::SECTION_DB, Settings::DB_PORT)->getValue<int64_t>();
+    d->m_dbConfig.m_dbUsername = appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USERNAME)->getValueString();
+    d->m_dbConfig.m_dbPassword = appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USER_PASS)->getValueString();
+    d->m_dbConfig.m_dbName = appSettings.getSetting(Settings::SECTION_DB, Settings::DB_DBNAME)->getValueString();
 
     d->m_pRecordManager = std::make_shared<Database::RecordManager>();
     auto pCon = std::make_shared<Database::DBConnection>();
     pCon->setAppName("AIManager");
     pCon->setName("main");
-    pCon->setUser(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USERNAME)->getValueString(),
-                appSettings.getSetting(Settings::SECTION_DB, Settings::DB_USER_PASS)->getValueString());
-    pCon->setServer(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_ADDRESS)->getValueString(),
-                  appSettings.getSetting(Settings::SECTION_DB, Settings::DB_PORT)->getValue<int64_t>());
-    pCon->setDatabase(appSettings.getSetting(Settings::SECTION_DB, Settings::DB_DBNAME)->getValueString());
+    pCon->setUser(d->m_dbConfig.m_dbUsername, d->m_dbConfig.m_dbPassword);
+    pCon->setServer(d->m_dbConfig.m_dbAddress, d->m_dbConfig.m_dbPort);
+    pCon->setDatabase(d->m_dbConfig.m_dbName);
     pCon->init();
     d->m_pRecordManager->setConnection(pCon);
 }

@@ -6,12 +6,13 @@
 #include <ProjectAgency/Exchange/EncryptedExchangeMaster.h>
 
 #include "business/applicationcore.hpp"
+#include "business/aimanager.hpp"
 
 class AIManagerServiceController : public drogon::HttpController<AIManagerServiceController, false>,
                                    public ControllerBase
 {
 public:
-    AIManagerServiceController(ApplicationCore& appCore);
+    AIManagerServiceController(ApplicationCore& appCore, AIManager& aiManager);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(
@@ -28,6 +29,7 @@ public:
 
 private:
     ApplicationCore& m_appCore;
+    AIManager& m_aiManager;
 
     std::string m_sessionPubkey;
     Exchange::EncryptedExchangeMaster m_encMaster;

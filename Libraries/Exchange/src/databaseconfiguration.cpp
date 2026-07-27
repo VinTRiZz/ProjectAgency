@@ -43,4 +43,18 @@ bool DatabaseConfiguration::readJson(const std::string_view &iString)
     return true;
 }
 
+bool DatabaseConfiguration::operator ==(const DatabaseConfiguration& conf) const {
+    return
+        (m_dbAddress == conf.m_dbAddress) &&
+        (m_dbName == conf.m_dbName) &&
+        (m_dbPort == conf.m_dbPort) &&
+        (m_dbUsername == conf.m_dbUsername) &&
+        (m_dbPassword == conf.m_dbPassword)
+    ;
+}
+
+bool DatabaseConfiguration::operator !=(const DatabaseConfiguration& conf) const {
+    return !(*this == conf);
+}
+
 } // namespace Exchange

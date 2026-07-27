@@ -2,15 +2,19 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Components/Ecosystem/ApplicationSettings.h>
 #include <Components/Ecosystem/Utility.h>
 #include <Components/Logger/Logger.h>
 
 #include <ProjectAgency/Exchange/ObjectSetting.h>
 
-AIManagerServiceController::AIManagerServiceController(ApplicationCore &appCore) :
+#include "common/settings.hpp"
+
+AIManagerServiceController::AIManagerServiceController(ApplicationCore &appCore, AIManager &aiManager) :
     drogon::HttpController<AIManagerServiceController, false>(),
     ControllerBase(),
-    m_appCore {appCore}
+    m_appCore {appCore},
+    m_aiManager {aiManager}
 {
     m_encMaster.init();
 }
@@ -74,15 +78,45 @@ bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
         COMPLOG_WARNING("Failed to parse settings object:", appSetting.getError().what());
         return false;
     }
+    auto decrValue = m_encMaster.decrypt(appSetting.m_value);
+    if (!decrValue.has_value()) {
+        COMPLOG_WARNING("Failed to set app setting [", appSetting.m_name, "] : ", m_encMaster.getError());
+        return false;
+    }
+
     if (appSetting.m_name == "token") {
-        auto decrToken = m_encMaster.decrypt(appSetting.m_value);
-        if (!decrToken.has_value()) {
-            COMPLOG_WARNING("Failed to set app token:", m_encMaster.getError());
-            return false;
-        }
-        m_appCore.setToken(decrToken.value());
+        m_appCore.setToken(decrValue.value());
         return true;
     }
+
+    if (appSetting.m_name == "API port") {
+        auto& settings = Common::ApplicationSettings::getInstance();
+        auto pSett = settings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
+        try {
+            pSett->setValue(std::stoi(decrValue.value()));
+        } catch (const std::invalid_argument& ex) {
+            COMPLOG_WARNING("Failed to set app API port (invalid value)");
+            return false;
+        }
+        settings.saveSettings();
+        return true;
+    }
+
+    if (appSetting.m_name == "input model") {
+        m_aiManager.setInputModel(decrValue.value());
+        return true;
+    }
+
+    if (appSetting.m_name == "DB parameters") {
+        Exchange::DatabaseConfiguration dbConfig;
+        if (!dbConfig.readJson(decrValue.value())) {
+            COMPLOG_WARNING("Failed to set app DB configuration:", dbConfig.getError().what());
+            return false;
+        }
+        m_appCore.setDatabaseConfiguration(dbConfig);
+        return true;
+    }
+
     COMPLOG_WARNING("Unknown setting to set:", appSetting.m_name);
     return false;
 }

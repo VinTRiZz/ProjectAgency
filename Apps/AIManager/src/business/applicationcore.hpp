@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+#include <ProjectAgency/Exchange/DatabaseConfiguration.h>
+
 /**
  * @brief The ApplicationCore class Core, started from main function
  */
@@ -18,6 +20,9 @@ public:
 
     void start(uint16_t apiPort);
     void stop();
+
+    void setDatabaseConfiguration(const Exchange::DatabaseConfiguration& dbConfig);
+    Exchange::DatabaseConfiguration getDatabaseConfiguration() const;
 
 private:
     struct Impl;
