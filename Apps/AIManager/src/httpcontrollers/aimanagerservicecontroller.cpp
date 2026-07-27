@@ -5,6 +5,8 @@
 #include <Components/Ecosystem/Utility.h>
 #include <Components/Logger/Logger.h>
 
+#include <ProjectAgency/Exchange/ObjectSetting.h>
+
 AIManagerServiceController::AIManagerServiceController(ApplicationCore &appCore) :
     drogon::HttpController<AIManagerServiceController, false>(),
     ControllerBase(),
@@ -67,23 +69,20 @@ void AIManagerServiceController::processServerAction(const drogon::HttpRequestPt
 
 bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
 {
-    try {
-        auto js = nlohmann::json::parse(settingJson);
-        if (!js.contains("name") || !js.contains("value")) {
-            COMPLOG_WARNING("Failed to set app setting (invalid input json)");
+    Exchange::ObjectSetting appSetting;
+    if (!appSetting.readJson(settingJson)) {
+        COMPLOG_WARNING("Failed to parse settings object:", appSetting.getError().what());
+        return false;
+    }
+    if (appSetting.m_name == "token") {
+        auto decrToken = m_encMaster.decrypt(appSetting.m_value);
+        if (!decrToken.has_value()) {
+            COMPLOG_WARNING("Failed to set app token:", m_encMaster.getError());
             return false;
         }
-        if (js["name"] == "token") {
-            auto decrToken = m_encMaster.decrypt(js["value"]);
-            if (!decrToken.has_value()) {
-                COMPLOG_WARNING("Failed to set app token:", m_encMaster.getError());
-                return false;
-            }
-            m_appCore.setToken(decrToken.value());
-            return true;
-        }
-    } catch (const nlohmann::json::exception& ex) {
-        COMPLOG_WARNING("Failed to set app setting:", ex.what());
+        m_appCore.setToken(decrToken.value());
+        return true;
     }
+    COMPLOG_WARNING("Unknown setting to set:", appSetting.m_name);
     return false;
 }

@@ -1,6 +1,7 @@
 #include "client_controlservicemanager.hpp"
 
 #include <ProjectAgency/Exchange/HTTP.h>
+#include <ProjectAgency/Exchange/ObjectSetting.h>
 
 #include <Components/Logger/Logger.h>
 
@@ -47,9 +48,11 @@ void Client_ControlServiceManager::requrestSetToken(const QString &tokenStr)
         return;
     }
 
-#error "Emplace sending token"
+    Exchange::ObjectSetting sett;
+    sett.m_name = "token";
+    sett.m_value = encryptedToken.value();
 
-    sendSimpleRequestPut(setSettingPath, {});
+    sendSimpleRequestPut(setSettingPath, QString::fromStdString(sett.toJson()));
 }
 
 void Client_ControlServiceManager::requrestSetPort(uint16_t port)
