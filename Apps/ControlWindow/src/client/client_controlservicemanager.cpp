@@ -19,6 +19,15 @@ Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
             processKeyExchange(responsePayload);
             return;
         }
+
+        const auto setSettingPath =
+            QString::fromStdString(Exchange::HTTPv1::QT_SERVER_ACTION).arg(
+                QString::number(Exchange::HTTPv1::AIMA_SetSetting));
+        if (reqPath == setSettingPath) {
+            m_isPendingSetParameter = false;
+            // TODO: Process set of value
+            return;
+        }
     });
 
     m_exchangeManager.init();
@@ -51,6 +60,11 @@ void Client_ControlServiceManager::requrestSetModel(const QString &modelStr)
 void Client_ControlServiceManager::requrestSetDBParameters(const Exchange::DatabaseConfiguration &dbConfig)
 {
     requestSetSetting("DB parameters", dbConfig.toJson());
+}
+
+std::pair<bool, Exchange::DatabaseConfiguration> Client_ControlServiceManager::getDBParameters() const
+{
+    return std::make_pair(m_isPendingSetParameter, m_dbConfig);
 }
 
 Exchange::EncryptedExchangeMaster &Client_ControlServiceManager::getExchangeManager()
@@ -88,5 +102,6 @@ void Client_ControlServiceManager::requestSetSetting(const std::string &settingN
     sett.m_name = settingName;
     sett.m_value = encryptedValue.value();
 
+    m_isPendingSetParameter = true;
     sendSimpleRequestPut(setSettingPath, QString::fromStdString(sett.toJson()));
 }

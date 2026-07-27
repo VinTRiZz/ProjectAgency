@@ -31,6 +31,11 @@ void AIManager::setToken(const std::string &tokenString)
     }
 }
 
+std::string AIManager::getToken() const
+{
+    return m_token;
+}
+
 void AIManager::setInputModel(const std::string &modelName)
 {
     m_inputModelName = modelName;
@@ -42,6 +47,11 @@ void AIManager::setInputModel(const std::string &modelName)
     }
     pSett->setValue(m_inputModelName);
     appSettings.saveSettings();
+}
+
+std::string AIManager::getInputModel() const
+{
+    return m_inputModelName;
 }
 
 void AIManager::init()

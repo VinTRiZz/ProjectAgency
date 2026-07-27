@@ -19,7 +19,10 @@ public:
     Database::RecordManagerPtr getRecordManager() const;
 
     void setToken(const std::string& tokenString);
+    std::string getToken() const;
+
     void setInputModel(const std::string& modelName);
+    std::string getInputModel() const;
 
     void init();
     void start();

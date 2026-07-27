@@ -19,13 +19,22 @@ public:
             AIManagerServiceController::processServerAction,
             Exchange::HTTPv1::SERVER_ACTION,
             drogon::Put);
+
+        ADD_METHOD_TO(
+            AIManagerServiceController::processServerGetSetting,
+            Exchange::HTTPv1::SERVER_ACTION,
+            drogon::Get);
     METHOD_LIST_END
 
-    // Completely stop or restarts application
     void processServerAction(
         const drogon::HttpRequestPtr &req,
         ResponseCallback_t &&callback,
         int actionType);
+
+    void processServerGetSetting(
+        const drogon::HttpRequestPtr &req,
+        ResponseCallback_t &&callback,
+        const std::string& settingName);
 
 private:
     ApplicationCore& m_appCore;

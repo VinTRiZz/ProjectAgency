@@ -4,6 +4,8 @@
 
 #include "client/client_controlservicemanager.hpp"
 
+#include <ProjectAgency/Exchange/DatabaseConfiguration.h>
+
 namespace Exchange {
 class Error;
 }
@@ -16,6 +18,9 @@ public:
 
     void setAddress(const QString& addr);
     QString getAddress() const;
+
+    void setDatabaseConfiguration(const Exchange::DatabaseConfiguration& dbConfig);
+    Exchange::DatabaseConfiguration getDatabaseConfiguration();
 
 signals:
     void sig_errorOccurs(const Exchange::Error& err);

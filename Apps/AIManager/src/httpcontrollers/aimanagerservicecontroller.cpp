@@ -120,3 +120,11 @@ bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
     COMPLOG_WARNING("Unknown setting to set:", appSetting.m_name);
     return false;
 }
+
+void AIManagerServiceController::processServerGetSetting(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string &settingName)
+{
+
+}

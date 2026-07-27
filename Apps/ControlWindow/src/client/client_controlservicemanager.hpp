@@ -18,12 +18,19 @@ public:
     void requrestSetModel(const QString& modelStr);
     void requrestSetDBParameters(const Exchange::DatabaseConfiguration& dbConfig);
 
+    void requrestGetDBParameters();
+    std::pair<bool, Exchange::DatabaseConfiguration> getDBParameters() const; // Return <isPending> and current value
+
     Exchange::EncryptedExchangeMaster& getExchangeManager();
 
 private:
     Exchange::EncryptedExchangeMaster m_exchangeManager;
     std::string m_pubkey;
 
+    bool m_isPendingSetParameter {false};
+    Exchange::DatabaseConfiguration m_dbConfig;
+
     void processKeyExchange(const QString& responsePayload);
     void requestSetSetting(const std::string& settingName, const std::string& settingValue);
+    void requestGetSetting(const std::string& settingName);
 };

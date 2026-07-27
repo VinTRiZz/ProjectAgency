@@ -11,6 +11,8 @@ const auto SERVER_BASE      {API_V + "/manager"};
 const auto SERVER_STATUS    {SERVER_BASE + "/status"};
 const auto SERVER_ACTION    {SERVER_BASE + "?action={action}"};
 const auto QT_SERVER_ACTION {SERVER_BASE + "?action=%1"};
+const auto SERVER_GET_SETTING {SERVER_BASE + "/{setting}"};
+const auto QT_SERVER_GET_SETTING {SERVER_BASE + "/%1"};
 
 /**
  * @brief The AIManagerAction enum Actions to work with AIBackend
