@@ -40,6 +40,7 @@ signals:
     void sig_backendUpdated(const DBRecords::AIBackendInfoPtr& pBackend);
     void sig_backendRemoved(const DBRecords::AIBackendInfoPtr& backendId);
 
+    void sig_connected() const;
     void sig_errorOccurs(const Exchange::Error& err);
 
 private:

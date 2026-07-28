@@ -33,9 +33,12 @@ public:
     AIBackendDynamicManager* getBackendDynamicManager() const;
 
 signals:
+    void sig_connected() const;
     void sig_errorOccurs(const Exchange::Error& err);
 
 private:
+    bool m_isAddressValid {false};
+
     ControlServiceManager*   m_pControlServiceManager {nullptr};
     AIBackendServiceManager* m_pBackendServiceManager {nullptr};
     AIBackendDynamicManager* m_pBackendDynamicManager {nullptr};

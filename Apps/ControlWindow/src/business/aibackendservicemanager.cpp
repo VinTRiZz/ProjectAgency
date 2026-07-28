@@ -14,6 +14,8 @@ AIBackendServiceManager::AIBackendServiceManager(QObject *parent) :
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_errorOccurs,
             this, &AIBackendServiceManager::sig_errorOccurs);
+    connect(m_pBackendServiceManager, &QtCustom::Web::HTTPClientBase::sig_validAddressSet,
+            this, &AIBackendServiceManager::sig_connected);
 
     connect(m_pBackendServiceManager, &Client_BackendServiceManager::sig_responseIdList,
             this, [this](const auto& ids){

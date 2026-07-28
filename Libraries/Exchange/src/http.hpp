@@ -25,6 +25,14 @@ enum AIManagerAction : short
     AIMA_SetSetting,
 };
 
+// Settings for a control endpoint
+namespace AIManagerSettingName {
+const auto TOKEN        {"token"};
+const auto API_PORT     {"API port"};
+const auto INPUT_MODEL  {"input model"};
+const auto DB_CONFIG    {"DB parameters"};
+}
+
 // All backend id list
 const auto BACKENDS_ID_LIST {API_V + "/backends"};
 

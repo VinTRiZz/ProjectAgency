@@ -19,12 +19,12 @@ public:
     void setAddress(const QString& addr);
     QString getAddress() const;
 
-    void setDatabaseConfiguration(const Exchange::DatabaseConfiguration& dbConfig);
-    Exchange::DatabaseConfiguration getDatabaseConfiguration();
+    Client_ControlServiceManager* getControlClient() const;
 
 signals:
+    void sig_connected() const;
     void sig_errorOccurs(const Exchange::Error& err);
 
 private:
-    Client_ControlServiceManager m_controlClient;
+    Client_ControlServiceManager* m_controlClient {nullptr};
 };

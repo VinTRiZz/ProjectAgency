@@ -23,6 +23,7 @@ public:
     bool isBackendOnline(const DBRecords::AIBackendInfo::id_nullable_t& id) const;
 
 signals:
+    void sig_connected() const;
     void sig_errorOccurs(const Exchange::Error& err) const;
 
 private:

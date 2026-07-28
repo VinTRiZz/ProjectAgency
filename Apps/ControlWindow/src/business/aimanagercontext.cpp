@@ -15,10 +15,24 @@ AIManagerContext::AIManagerContext(QObject* parent) :
     m_pControlServiceManager = new ControlServiceManager(this);
     connect(m_pControlServiceManager, &ControlServiceManager::sig_errorOccurs,
             this, &AIManagerContext::sig_errorOccurs);
+    connect(m_pControlServiceManager, &ControlServiceManager::sig_connected,
+            this, [this](){
+        if (!m_isAddressValid) {
+            m_isAddressValid = true;
+            emit sig_connected();
+        }
+    });
 
     m_pBackendServiceManager = new AIBackendServiceManager(this);
     connect(m_pBackendServiceManager, &AIBackendServiceManager::sig_errorOccurs,
                                       this, &AIManagerContext::sig_errorOccurs);
+    connect(m_pBackendServiceManager, &AIBackendServiceManager::sig_connected,
+            this, [this](){
+                if (!m_isAddressValid) {
+                    m_isAddressValid = true;
+                    emit sig_connected();
+                }
+            });
 
     // DEBUG
     // m_pBackendServiceManager->setDebugEnabled(true);
@@ -27,6 +41,13 @@ AIManagerContext::AIManagerContext(QObject* parent) :
     m_pBackendDynamicManager = new AIBackendDynamicManager(this);
     connect(m_pBackendDynamicManager, &AIBackendDynamicManager::sig_errorOccurs,
                                       this, &AIManagerContext::sig_errorOccurs);
+    connect(m_pBackendDynamicManager, &AIBackendDynamicManager::sig_connected,
+            this, [this](){
+                if (!m_isAddressValid) {
+                    m_isAddressValid = true;
+                    emit sig_connected();
+                }
+            });
 }
 
 void AIManagerContext::init()
@@ -69,6 +90,18 @@ void AIManagerContext::init()
 void AIManagerContext::setAddress(const QString &addr)
 {
     COMPLOG_INFO("Context address changed to:", addr.toStdString());
+    m_isAddressValid = false;
+
+    auto addSplit = addr.split(":", Qt::SplitBehaviorFlags::SkipEmptyParts);
+    if (addSplit.size() != 2) {
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceInvalidAddress, "Invalid address of control unit"));
+        return;
+    }
+    if (!QtCustom::Web::HTTPClientBase::isServerListening(addSplit.front(), addSplit.back().toInt())) {
+        emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceConnectionError, "Failed to connect to control unit"));
+        return;
+    }
+
     m_pControlServiceManager->setAddress(addr);
     m_pBackendServiceManager->setAddress(addr);
     m_pBackendDynamicManager->setAddress(addr);

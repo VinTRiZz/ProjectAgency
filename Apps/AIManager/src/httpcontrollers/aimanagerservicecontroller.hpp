@@ -22,7 +22,7 @@ public:
 
         ADD_METHOD_TO(
             AIManagerServiceController::processServerGetSetting,
-            Exchange::HTTPv1::SERVER_ACTION,
+            Exchange::HTTPv1::SERVER_GET_SETTING,
             drogon::Get);
     METHOD_LIST_END
 

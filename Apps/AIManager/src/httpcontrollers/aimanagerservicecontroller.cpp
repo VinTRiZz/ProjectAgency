@@ -84,12 +84,12 @@ bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
         return false;
     }
 
-    if (appSetting.m_name == "token") {
+    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
         m_appCore.setToken(decrValue.value());
         return true;
     }
 
-    if (appSetting.m_name == "API port") {
+    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
         auto& settings = Common::ApplicationSettings::getInstance();
         auto pSett = settings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
         try {
@@ -102,12 +102,12 @@ bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
         return true;
     }
 
-    if (appSetting.m_name == "input model") {
+    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
         m_aiManager.setInputModel(decrValue.value());
         return true;
     }
 
-    if (appSetting.m_name == "DB parameters") {
+    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
         Exchange::DatabaseConfiguration dbConfig;
         if (!dbConfig.readJson(decrValue.value())) {
             COMPLOG_WARNING("Failed to set app DB configuration:", dbConfig.getError().what());

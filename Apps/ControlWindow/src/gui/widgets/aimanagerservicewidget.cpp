@@ -2,6 +2,9 @@
 #include "ui_aimanagerservicewidget.h"
 
 #include <Components/Ecosystem/ApplicationSettings.h>
+#include <Components/Logger/Logger.h>
+
+#include <QTimer>
 
 #include "business/aimanagercontext.hpp"
 #include "business/controlservicemanager.hpp"
@@ -14,19 +17,49 @@ AIManagerServiceWidget::AIManagerServiceWidget(QWidget *parent)
 
     connect(ui->pushButtonSaveControlAddress, &QPushButton::clicked,
             this, [this](){
-        auto controlAddress = ui->lineEditControlAddress->text() + ":" +
-                              QString::number(ui->spinBoxControlPort->value());
-        COMPLOG_INFO("Changing address of control unit to:", controlAddress.toStdString());
+                auto controlAddress = ui->lineEditControlAddress->text() + ":" +
+                                      QString::number(ui->spinBoxControlPort->value());
+                COMPLOG_INFO("Changing address of control unit to:", controlAddress.toStdString());
 
-        auto& settings = Common::ApplicationSettings::getInstance();
-        // TODO: Save connection settings
-        m_pManagerContext->setAddress(controlAddress);
-    });
+                auto& settings = Common::ApplicationSettings::getInstance();
+                // TODO: Save connection settings
+                m_pManagerContext->setAddress(controlAddress);
+            });
+
+    connect(ui->pushButtonShowPassword, &QPushButton::clicked,
+            this, [this](){
+                auto echoMode = ui->lineEditToken->echoMode();
+                if (echoMode == QLineEdit::EchoMode::Normal) {
+                    ui->lineEditToken->setEchoMode(QLineEdit::EchoMode::Password);
+                    ui->pushButtonShowPassword->setText("Show");
+                } else {
+                    ui->lineEditToken->setEchoMode(QLineEdit::EchoMode::Normal);
+                    ui->pushButtonShowPassword->setText("Hide");
+                }
+            });
+
+    connect(ui->pushButtonDBShowPassword, &QPushButton::clicked,
+            this, [this](){
+                auto echoMode = ui->lineEditDBPass->echoMode();
+                if (echoMode == QLineEdit::EchoMode::Normal) {
+                    ui->lineEditDBPass->setEchoMode(QLineEdit::EchoMode::Password);
+                    ui->pushButtonDBShowPassword->setText("Show");
+                } else {
+                    ui->lineEditDBPass->setEchoMode(QLineEdit::EchoMode::Normal);
+                    ui->pushButtonDBShowPassword->setText("Hide");
+                }
+            });
 
     connect(ui->pushButtonSaveDBConfig, &QPushButton::clicked,
             this, [this](){
-        m_pManagerContext->getControlServiceManager()->setDatabaseConfiguration({}); // TODO: Set
-    });
+                Exchange::DatabaseConfiguration conf;
+                conf.m_dbName       = ui->lineEditDBName->text().toStdString();
+                conf.m_dbAddress    = ui->lineEditDBAddress->text().toStdString();
+                conf.m_dbPort       = ui->spinBoxDBPort->value();
+                conf.m_dbUsername   = ui->lineEditDBUser->text().toStdString();
+                conf.m_dbPassword   = ui->lineEditDBPass->text().toStdString();
+                m_pManagerContext->getControlServiceManager()->getControlClient()->requrestSetDBParameters(conf);
+            });
 }
 
 AIManagerServiceWidget::~AIManagerServiceWidget()
@@ -36,7 +69,35 @@ AIManagerServiceWidget::~AIManagerServiceWidget()
 
 void AIManagerServiceWidget::setContext(AIManagerContext *pContext)
 {
+    if (m_pManagerContext) {
+        disconnect(m_pManagerContext, nullptr, this, nullptr);
+    }
     m_pManagerContext = pContext;
+
+    if (m_pManagerContext) {
+        connect(m_pManagerContext, &AIManagerContext::sig_connected,
+                this, [this](){
+                    auto pControlClient = m_pManagerContext->getControlServiceManager()->getControlClient();
+
+                    auto token = pControlClient->getToken().getValue();
+                    ui->lineEditToken->setText(QString::fromStdString(token));
+
+                    auto apiAddr = pControlClient->getServer().split(":").first(); // Expected existance (see connected signal logic)
+                    auto apiPort = pControlClient->getPort().getValue();
+                    ui->lineEditControlAddress->setText(apiAddr);
+                    ui->spinBoxControlPort->setValue(apiPort);
+
+                    auto inputModel = pControlClient->getInputModel().getValue();
+                    // TODO: Use comboBoxInputModel to set current input model
+
+                    auto dbConf = pControlClient->getDBConfig().getValue();
+                    ui->lineEditDBAddress->setText(QString::fromStdString(dbConf.m_dbAddress));
+                    ui->lineEditDBName->setText(QString::fromStdString(dbConf.m_dbName));
+                    ui->lineEditDBUser->setText(QString::fromStdString(dbConf.m_dbUsername));
+                    ui->lineEditDBPass->setText(QString::fromStdString(dbConf.m_dbPassword));
+                    ui->spinBoxDBPort->setValue(dbConf.m_dbPort);
+                });
+    }
 }
 
 AIManagerContext *AIManagerServiceWidget::getManagerContext()
