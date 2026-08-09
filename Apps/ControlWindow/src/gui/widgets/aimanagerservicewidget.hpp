@@ -23,4 +23,6 @@ private:
     Ui::AIManagerServiceWidget *ui;
 
     AIManagerContext* m_pManagerContext {nullptr};
+
+    void fetchConfiguration();
 };

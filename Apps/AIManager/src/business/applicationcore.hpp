@@ -19,6 +19,8 @@ public:
     bool init();
 
     void start(uint16_t apiPort);
+    bool isRunning() const;
+    uint16_t getPort() const;
     void stop();
 
     void setDatabaseConfiguration(const Exchange::DatabaseConfiguration& dbConfig);

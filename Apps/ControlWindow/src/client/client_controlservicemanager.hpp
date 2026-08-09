@@ -14,37 +14,45 @@ public:
     template <typename DataT>
     class RequestedData
     {
-        friend class Client_ControlServiceManager;
     public:
         using value_t = DataT;
 
+        ~RequestedData() { invalidate(); }
+
         void invalidate() {
-            if (m_isValuePending) { m_selfValue.set_value({}); } // Server error handling
+            if (isPending()) { // Server error handling
+                m_selfValue.set_value({});
+            }
             m_selfValue = {};
             m_sharedFut = m_selfValue.get_future().share();
         }
 
-        value_t operator*() const {
+        void setValue(value_t&& iVal) {
+            m_selfValue.set_value(std::move(iVal));
+        }
+
+        std::optional<value_t> getValue(const uint16_t timeoutMs = 0) const {
+            if (!isPending()) return {};
+            auto futureStatus = m_sharedFut.wait_for(std::chrono::milliseconds(timeoutMs));
+            if (std::future_status::ready != futureStatus) {
+                return {};
+            }
             return m_sharedFut.get();
         }
 
-        value_t getValue() const {
-            return m_sharedFut.get();
+        bool isPending() const {
+            auto futureStatus = m_sharedFut.wait_for(std::chrono::milliseconds(0));
+            return (std::future_status::ready != futureStatus);
         }
 
     private:
-        bool m_isValuePending {false};
         std::promise<value_t> m_selfValue;
         std::shared_future<value_t> m_sharedFut { m_selfValue.get_future().share() };
-
-        void setValue(value_t&& iVal) {
-            m_isValuePending = false;
-            m_selfValue.set_value(std::move(iVal));
-        }
     };
 
 
     explicit Client_ControlServiceManager(QObject *parent = nullptr);
+    ~Client_ControlServiceManager();
 
     void init();
 
@@ -62,6 +70,9 @@ public:
 
     Exchange::EncryptedExchangeMaster& getExchangeManager();
 
+signals:
+    void sig_keyExchangeComplete();
+
 private:
     Exchange::EncryptedExchangeMaster m_exchangeManager;
     std::string m_pubkey;
@@ -72,7 +83,9 @@ private:
     mutable RequestedData<std::string> m_settingFuture_inputModel;
     mutable RequestedData<Exchange::DatabaseConfiguration> m_settingFuture_dbConfig;
 
+    void invalidateFutures();
+
     void processKeyExchange(const QString& responsePayload);
     void requestSetSetting(const std::string& settingName, const std::string& settingValue);
-    void requestGetSetting(const std::string& settingName) const;
+    bool requestGetSetting(const std::string& settingName) const;
 };

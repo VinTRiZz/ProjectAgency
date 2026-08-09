@@ -37,7 +37,9 @@ signals:
     void sig_errorOccurs(const Exchange::Error& err);
 
 private:
-    bool m_isAddressValid {false};
+    std::atomic<unsigned> m_connectedInstances {0};
+    void resetConnectedCounter();
+    void updateConnectedCounter();
 
     ControlServiceManager*   m_pControlServiceManager {nullptr};
     AIBackendServiceManager* m_pBackendServiceManager {nullptr};

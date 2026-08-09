@@ -82,6 +82,19 @@ void ApplicationCore::start(uint16_t apiPort)
     drogon::app().run();
 }
 
+bool ApplicationCore::isRunning() const
+{
+    return drogon::app().isRunning();
+}
+
+uint16_t ApplicationCore::getPort() const
+{
+    if (drogon::app().getListeners().empty()) {
+        return {};
+    }
+    return drogon::app().getListeners().front().toPort();
+}
+
 void ApplicationCore::stop()
 {
     if (!drogon::app().isRunning()) {

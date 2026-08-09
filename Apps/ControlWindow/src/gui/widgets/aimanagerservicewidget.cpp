@@ -4,7 +4,7 @@
 #include <Components/Ecosystem/ApplicationSettings.h>
 #include <Components/Logger/Logger.h>
 
-#include <QTimer>
+#include <QtConcurrent>
 
 #include "business/aimanagercontext.hpp"
 #include "business/controlservicemanager.hpp"
@@ -76,31 +76,48 @@ void AIManagerServiceWidget::setContext(AIManagerContext *pContext)
 
     if (m_pManagerContext) {
         connect(m_pManagerContext, &AIManagerContext::sig_connected,
-                this, [this](){
-                    auto pControlClient = m_pManagerContext->getControlServiceManager()->getControlClient();
-
-                    auto token = pControlClient->getToken().getValue();
-                    ui->lineEditToken->setText(QString::fromStdString(token));
-
-                    auto apiAddr = pControlClient->getServer().split(":").first(); // Expected existance (see connected signal logic)
-                    auto apiPort = pControlClient->getPort().getValue();
-                    ui->lineEditControlAddress->setText(apiAddr);
-                    ui->spinBoxControlPort->setValue(apiPort);
-
-                    auto inputModel = pControlClient->getInputModel().getValue();
-                    // TODO: Use comboBoxInputModel to set current input model
-
-                    auto dbConf = pControlClient->getDBConfig().getValue();
-                    ui->lineEditDBAddress->setText(QString::fromStdString(dbConf.m_dbAddress));
-                    ui->lineEditDBName->setText(QString::fromStdString(dbConf.m_dbName));
-                    ui->lineEditDBUser->setText(QString::fromStdString(dbConf.m_dbUsername));
-                    ui->lineEditDBPass->setText(QString::fromStdString(dbConf.m_dbPassword));
-                    ui->spinBoxDBPort->setValue(dbConf.m_dbPort);
-                });
+                this, &AIManagerServiceWidget::fetchConfiguration);
     }
 }
 
 AIManagerContext *AIManagerServiceWidget::getManagerContext()
 {
     return m_pManagerContext;
+}
+
+void AIManagerServiceWidget::fetchConfiguration()
+{
+    QtConcurrent::run([this](){
+        auto pControlClient = m_pManagerContext->getControlServiceManager()->getControlClient();
+
+        auto& tokenF = pControlClient->getToken();
+        auto& apiPortF = pControlClient->getPort();
+        auto& inputModel = pControlClient->getInputModel();
+        auto& dbConfF = pControlClient->getDBConfig();
+
+        auto tokenOpt = tokenF.getValue(1000);
+        auto token = QString::fromStdString(tokenOpt.value_or(""));
+        auto apiAddr = pControlClient->getServer().split(":").first(); // Expected existance (see connected signal logic)
+        auto apiPort = apiPortF.getValue(1000).value_or(1);
+        auto dbConf = dbConfF.getValue(1000).value_or(Exchange::DatabaseConfiguration{});
+
+        QMetaObject::invokeMethod(this, [this,
+                                         token = std::move(token),
+                                         apiAddr = std::move(apiAddr),
+                                         apiPort = std::move(apiPort),
+                                         dbConf = std::move(dbConf)](){
+            ui->lineEditToken->setText(token);
+
+            ui->lineEditControlAddress->setText(apiAddr);
+            ui->spinBoxControlPort->setValue(apiPort);
+
+            // TODO: Use comboBoxInputModel to set current input model
+
+            ui->lineEditDBAddress->setText(QString::fromStdString(dbConf.m_dbAddress));
+            ui->lineEditDBName->setText(QString::fromStdString(dbConf.m_dbName));
+            ui->lineEditDBUser->setText(QString::fromStdString(dbConf.m_dbUsername));
+            ui->lineEditDBPass->setText(QString::fromStdString(dbConf.m_dbPassword));
+            ui->spinBoxDBPort->setValue(dbConf.m_dbPort);
+        });
+    });
 }

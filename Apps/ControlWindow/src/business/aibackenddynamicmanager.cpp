@@ -13,6 +13,7 @@ AIBackendDynamicManager::AIBackendDynamicManager(QObject *parent) :
 void AIBackendDynamicManager::setAddress(const QString &addr)
 {
     // TODO: Implement
+    emit sig_connected(); // to not break logic
 }
 
 QString AIBackendDynamicManager::getAddress() const
@@ -29,6 +30,5 @@ void AIBackendDynamicManager::setServiceManager(AIBackendServiceManager *pManage
 bool AIBackendDynamicManager::isBackendOnline(const DBRecords::AIBackendInfo::id_nullable_t &id) const
 {
     // TODO: Implement
-    emit sig_errorOccurs(Exchange::ErrorCode::SystemNotImplemented);
     return false;
 }

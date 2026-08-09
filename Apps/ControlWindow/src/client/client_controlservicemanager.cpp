@@ -13,6 +13,61 @@
 Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
     : QtCustom::Web::HTTPClientBase{parent}
 {
+    connect(this, &QtCustom::Web::HTTPClientBase::sig_errorOccurs,
+            this, [this](){
+        // Handle infinity awaiting
+        invalidateFutures();
+    });
+
+    connect(this, &QtCustom::Web::HTTPClientBase::sig_simpleResponseGet,
+            this, [this](const auto& reqPath, const auto& responsePayload){
+        auto getSettingPathBase = QString::fromStdString(Exchange::HTTPv1::QT_SERVER_GET_SETTING);
+        const auto getSettingPathRegexp = QRegularExpression(getSettingPathBase.arg("(.*)"));
+        const auto matches = getSettingPathRegexp.match(reqPath);
+        if (!matches.hasMatch()) {
+            return;
+        }
+        auto settingName = Encryption::decodeHex(matches.captured(1).toStdString());
+        if (settingName.empty()) {
+            COMPLOG_WARNING("ControlServiceManager: Failed to decrypt setting name");
+            return;
+        }
+        auto decodedSettingValue = m_exchangeManager.decrypt(responsePayload.toStdString());
+        if (!decodedSettingValue.has_value()) {
+            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting:", m_exchangeManager.getError().what());
+            return;
+        }
+        Exchange::ObjectSetting sett;
+        if (!sett.readJson(decodedSettingValue.value())) {
+            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting data:", sett.getError().what());
+            return;
+        }
+
+        COMPLOG_DEBUG_SYNC("Processing setting:", sett.m_name, sett.m_value);
+
+        if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
+            m_settingFuture_token.setValue(std::move(sett.m_value));
+        } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
+            try {
+                m_settingFuture_port.setValue(std::stoi(sett.m_value));
+            } catch (const std::invalid_argument& ex) {
+                COMPLOG_WARNING("ControlServiceManager: Failed to decode API port (invalid value)");
+                return;
+            }
+        } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
+            m_settingFuture_inputModel.setValue(std::move(sett.m_value));
+        } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
+            Exchange::DatabaseConfiguration dbConfig;
+            if (!dbConfig.readJson(sett.m_value)) {
+                COMPLOG_WARNING("ControlServiceManager: Failed to decode db parameters:", dbConfig.getError().what());
+                return;
+            }
+            m_settingFuture_dbConfig.setValue(std::move(dbConfig));
+        } else {
+            COMPLOG_WARNING("ControlServiceManager: Unknown setting data responsed:", sett.m_name);
+        }
+    });
+
     connect(this, &QtCustom::Web::HTTPClientBase::sig_simpleResponsePut,
             this, [this](const auto& reqPath, const auto& responsePayload){
         const auto keyExchangePath =
@@ -30,57 +85,14 @@ Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
             // Ignore
             return;
         }
-
-        auto getSettingPathBase = QString::fromStdString(Exchange::HTTPv1::QT_SERVER_GET_SETTING);
-        const auto getSettingPathRegexp = QRegularExpression(getSettingPathBase.arg("(.*)"));
-        const auto matches = getSettingPathRegexp.match(reqPath);
-        if (matches.hasMatch()) {
-            auto settingName = Encryption::decodeHex(matches.captured(1).toStdString());
-            if (settingName.empty()) {
-                COMPLOG_WARNING("ControlServiceManager: Failed to decrypt setting name");
-                return;
-            }
-            auto decodedSettingValue = m_exchangeManager.decrypt(responsePayload.toStdString());
-            if (!decodedSettingValue.has_value()) {
-                COMPLOG_WARNING("ControlServiceManager: Failed to decode setting:", m_exchangeManager.getError().what());
-                return;
-            }
-            Exchange::ObjectSetting sett;
-            if (!sett.readJson(decodedSettingValue.value())) {
-                COMPLOG_WARNING("ControlServiceManager: Failed to decode setting data:", sett.getError().what());
-                return;
-            }
-            if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
-                m_settingFuture_token.setValue(std::move(sett.m_value));
-                return;
-            }
-            if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
-                try {
-                    m_settingFuture_port.setValue(std::stoi(sett.m_value));
-                } catch (const std::invalid_argument& ex) {
-                    COMPLOG_WARNING("ControlServiceManager: Failed to decode API port (invalid value)");
-                    return;
-                }
-                return;
-            }
-            if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
-                m_settingFuture_inputModel.setValue(std::move(sett.m_value));
-                return;
-            }
-            if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
-                Exchange::DatabaseConfiguration dbConfig;
-                if (!dbConfig.readJson(sett.m_value)) {
-                    COMPLOG_WARNING("ControlServiceManager: Failed to decode db parameters:", dbConfig.getError().what());
-                    return;
-                }
-                m_settingFuture_dbConfig.setValue(std::move(dbConfig));
-                return;
-            }
-            return;
-        }
     });
 
     m_exchangeManager.init();
+}
+
+Client_ControlServiceManager::~Client_ControlServiceManager()
+{
+    invalidateFutures();
 }
 
 void Client_ControlServiceManager::init()
@@ -145,6 +157,14 @@ Exchange::EncryptedExchangeMaster &Client_ControlServiceManager::getExchangeMana
     return m_exchangeManager;
 }
 
+void Client_ControlServiceManager::invalidateFutures()
+{
+    if (m_settingFuture_token.isPending())        m_settingFuture_token.invalidate();
+    if (m_settingFuture_port.isPending())         m_settingFuture_port.invalidate();
+    if (m_settingFuture_inputModel.isPending())   m_settingFuture_inputModel.invalidate();
+    if (m_settingFuture_dbConfig.isPending())     m_settingFuture_dbConfig.invalidate();
+}
+
 void Client_ControlServiceManager::processKeyExchange(const QString &responsePayload)
 {
     m_pubkey = {};
@@ -154,6 +174,7 @@ void Client_ControlServiceManager::processKeyExchange(const QString &responsePay
     }
     m_pubkey = responsePayload.toStdString();
     COMPLOG_INFO("ControlServiceManager: key exchange complete");
+    emit sig_keyExchangeComplete();
 }
 
 void Client_ControlServiceManager::requestSetSetting(const std::string &settingName, const std::string &settingValue)
@@ -178,14 +199,20 @@ void Client_ControlServiceManager::requestSetSetting(const std::string &settingN
     sendSimpleRequestPut(setSettingPath, QString::fromStdString(sett.toJson()));
 }
 
-void Client_ControlServiceManager::requestGetSetting(const std::string &settingName) const
+bool Client_ControlServiceManager::requestGetSetting(const std::string &settingName) const
 {
     if (m_pubkey.empty()) {
         emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceEncInvalidPubkey, "Key exchange failed"));
-        return;
+        COMPLOG_ERROR("Setting failed to get (key exchange failed)");
+        return false;
     }
-    const auto getSettingPath =
-        QString::fromStdString(Exchange::HTTPv1::QT_SERVER_GET_SETTING).arg(
-            QString::fromStdString(Encryption::encodeHex(settingName)));
-    sendSimpleRequestGet(getSettingPath);
+
+    // idk how to do it without const cast
+    QMetaObject::invokeMethod(const_cast<Client_ControlServiceManager*>(this), [this, settingName](){
+        const auto getSettingPath =
+            QString::fromStdString(Exchange::HTTPv1::QT_SERVER_GET_SETTING).arg(
+                QString::fromStdString(Encryption::encodeHex(settingName)));
+        sendSimpleRequestGet(getSettingPath);
+    });
+    return true;
 }

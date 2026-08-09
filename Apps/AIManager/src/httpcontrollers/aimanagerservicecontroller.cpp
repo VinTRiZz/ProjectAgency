@@ -4,6 +4,7 @@
 
 #include <Components/Ecosystem/ApplicationSettings.h>
 #include <Components/Ecosystem/Utility.h>
+#include <Components/Encryption/Encoding.h>
 #include <Components/Logger/Logger.h>
 
 #include <ProjectAgency/Exchange/ObjectSetting.h>
@@ -126,5 +127,32 @@ void AIManagerServiceController::processServerGetSetting(
     ResponseCallback_t &&callback,
     const std::string &settingName)
 {
+    if (m_sessionPubkey.empty()) {
+        sendTextMessage(drogon::k401Unauthorized, "Key exchange failed", std::move(callback));
+        return;
+    }
 
+    Exchange::ObjectSetting objSett;
+    objSett.m_name = Encryption::decodeHex(settingName);
+
+    if (objSett.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
+        objSett.m_value = m_aiManager.getToken();
+    } else if (objSett.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
+        objSett.m_value = m_aiManager.getInputModel();
+    } else if (objSett.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
+        objSett.m_value = std::to_string(m_appCore.getPort());
+    } else if (objSett.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
+        objSett.m_value = m_appCore.getDatabaseConfiguration().toJson();
+    } else {
+        sendTextMessage(drogon::k404NotFound, std::string("Invalid setting to set: ") + objSett.m_name, std::move(callback));
+        return;
+    }
+
+    auto res = objSett.toJson();
+    auto resEnc =  m_encMaster.encrypt(res, m_sessionPubkey);
+    if (!resEnc.has_value()) {
+        sendTextMessage(drogon::k500InternalServerError, "Encryption failure", std::move(callback));
+        return;
+    }
+    sendTextMessage(drogon::k200OK, resEnc.value(), std::move(callback));
 }

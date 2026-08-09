@@ -9,10 +9,8 @@ ControlServiceManager::ControlServiceManager(QObject *parent)
 
     connect(m_controlClient, &QtCustom::Web::HTTPClientBase::sig_errorOccurs,
             this, &ControlServiceManager::sig_errorOccurs);
-    connect(m_controlClient, &QtCustom::Web::HTTPClientBase::sig_validAddressSet,
+    connect(m_controlClient, &Client_ControlServiceManager::sig_keyExchangeComplete,
             this, &ControlServiceManager::sig_connected);
-
-    // m_controlClient.requrestGetDBParameters();
 }
 
 void ControlServiceManager::setAddress(const QString &addr)

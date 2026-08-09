@@ -16,23 +16,13 @@ AIManagerContext::AIManagerContext(QObject* parent) :
     connect(m_pControlServiceManager, &ControlServiceManager::sig_errorOccurs,
             this, &AIManagerContext::sig_errorOccurs);
     connect(m_pControlServiceManager, &ControlServiceManager::sig_connected,
-            this, [this](){
-        if (!m_isAddressValid) {
-            m_isAddressValid = true;
-            emit sig_connected();
-        }
-    });
+            this, &AIManagerContext::updateConnectedCounter);
 
     m_pBackendServiceManager = new AIBackendServiceManager(this);
     connect(m_pBackendServiceManager, &AIBackendServiceManager::sig_errorOccurs,
-                                      this, &AIManagerContext::sig_errorOccurs);
+            this, &AIManagerContext::sig_errorOccurs);
     connect(m_pBackendServiceManager, &AIBackendServiceManager::sig_connected,
-            this, [this](){
-                if (!m_isAddressValid) {
-                    m_isAddressValid = true;
-                    emit sig_connected();
-                }
-            });
+            this, &AIManagerContext::updateConnectedCounter);
 
     // DEBUG
     // m_pBackendServiceManager->setDebugEnabled(true);
@@ -40,14 +30,9 @@ AIManagerContext::AIManagerContext(QObject* parent) :
 
     m_pBackendDynamicManager = new AIBackendDynamicManager(this);
     connect(m_pBackendDynamicManager, &AIBackendDynamicManager::sig_errorOccurs,
-                                      this, &AIManagerContext::sig_errorOccurs);
+            this, &AIManagerContext::sig_errorOccurs);
     connect(m_pBackendDynamicManager, &AIBackendDynamicManager::sig_connected,
-            this, [this](){
-                if (!m_isAddressValid) {
-                    m_isAddressValid = true;
-                    emit sig_connected();
-                }
-            });
+            this, &AIManagerContext::updateConnectedCounter);
 }
 
 void AIManagerContext::init()
@@ -90,7 +75,7 @@ void AIManagerContext::init()
 void AIManagerContext::setAddress(const QString &addr)
 {
     COMPLOG_INFO("Context address changed to:", addr.toStdString());
-    m_isAddressValid = false;
+    resetConnectedCounter();
 
     auto addSplit = addr.split(":", Qt::SplitBehaviorFlags::SkipEmptyParts);
     if (addSplit.size() != 2) {
@@ -128,4 +113,17 @@ AIBackendServiceManager *AIManagerContext::getBackendServiceManager() const
 AIBackendDynamicManager *AIManagerContext::getBackendDynamicManager() const
 {
     return m_pBackendDynamicManager;
+}
+
+void AIManagerContext::resetConnectedCounter()
+{
+    m_connectedInstances.store(0);
+}
+
+void AIManagerContext::updateConnectedCounter()
+{
+    m_connectedInstances.fetch_add(1);
+    if (m_connectedInstances.load() == 3) {
+        emit sig_connected();
+    }
 }

@@ -3,7 +3,7 @@ if (NOT PAG_BUILD_CWINDOW)
     return()
 endif()
 
-COMPONENTS_CCR_ADD_QT(5 Core Widgets Network)
+COMPONENTS_CCR_ADD_QT(5 Core Widgets Network Concurrent)
 
 # Qt configuration
 set(CMAKE_AUTOUIC ON)
@@ -15,6 +15,7 @@ set(APP_TARGET_NAME PAG-ControlWindow)
 COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     Qt5::Widgets
     Qt5::Network
+    Qt5::Concurrent
 )
 
 COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Logger)

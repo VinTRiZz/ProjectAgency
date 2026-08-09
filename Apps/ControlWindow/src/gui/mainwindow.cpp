@@ -5,6 +5,8 @@
 
 #include <ProjectAgency/Exchange/Error.h>
 
+#include <Components/Logger/Logger.h>
+
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -16,12 +18,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pManagerContext = new AIManagerContext(this);
     connect(m_pManagerContext, &AIManagerContext::sig_errorOccurs,
             this, &MainWindow::slot_processError);
-    m_pManagerContext->init();
 
     ui->tabWidget->setCurrentIndex(0);
 
     ui->aiManagerServiceWidget->setContext(m_pManagerContext);
     ui->backendManagementWidget->setContext(m_pManagerContext);
+
+    m_pManagerContext->init();
 }
 
 MainWindow::~MainWindow()
@@ -31,6 +34,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::slot_processError(const Exchange::Error &err)
 {
+    COMPLOG_ERROR_SYNC("USER MESSAGE:", err.what());
     if (!m_pErrorMessageBox) {
         m_pErrorMessageBox = new QMessageBox(this);
         m_pErrorMessageBox->setWindowTitle("Operation failed");
