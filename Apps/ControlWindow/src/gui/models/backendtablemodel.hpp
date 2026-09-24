@@ -2,7 +2,7 @@
 
 #include <QAbstractTableModel>
 
-#include <Components/ExtraClasses/Containers/HandlerBase.h>
+#include <Components/ExtraClasses/Containers/Handler.h>
 
 #include "business/aibackendservicemanager.hpp"
 

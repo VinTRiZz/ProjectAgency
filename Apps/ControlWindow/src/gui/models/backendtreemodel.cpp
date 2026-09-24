@@ -12,7 +12,6 @@ BackendTreeModel::BackendTreeModel(QObject *parent)
     : QtCustom::Models::TreeGroupingProxyModel{parent}
 {
     setGroupingRule(0, GroupingRule::GR_type);
-    setGroupingRule(1, GroupingRule::GR_isOnline);
 }
 
 void BackendTreeModel::setGroupingRule(uint8_t level, GroupingRule grRule)
@@ -75,7 +74,7 @@ QtCustom::Models::TreeGroupingProxyModel::GroupKey_t BackendTreeModel::getGroup(
     return QVariant::fromValue(levelDescriptor_t(0, pBackend));
 }
 
-QtCustom::Models::TreeGroupingProxyModel::GroupKey_t BackendTreeModel::getParentGroup(GroupKey_t groupKey) const
+QtCustom::Models::TreeGroupingProxyModel::GroupKey_t BackendTreeModel::getParentGroup(const GroupKey_t& groupKey) const
 {
     auto backendDescr = groupKey.value<levelDescriptor_t>();
     if (!backendDescr.second) { return {}; }

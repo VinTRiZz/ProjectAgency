@@ -37,7 +37,7 @@ private:
     // TreeGroupingProxyModel interface
 protected:
     GroupKey_t getGroup(int sourceModelRow) const override;
-    GroupKey_t getParentGroup(GroupKey_t groupKey) const override;
+    GroupKey_t getParentGroup(const GroupKey_t& groupKey) const override;
     uint getGroupHash(const GroupKey_t &groupKey) const override;
     bool canMergeGroups(const GroupKey_t &lgk, const GroupKey_t &rgk) const override;
     QVariant getGroupData(GroupKey_t groupKey, int column, int role) const override;

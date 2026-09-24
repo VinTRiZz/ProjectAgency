@@ -6,12 +6,12 @@
 
 #include <ProjectAgency/DB/AIBackendInfo.h>
 
-#include <Components/ExtraClasses/Containers/HandlerBase.h>
+#include <Components/ExtraClasses/Containers/Handler.h>
 
 class Client_BackendServiceManager;
 
 using BackendArray = std::set<DBRecords::AIBackendInfoPtr>;
-using BackendArrayHdl = ExtraClasses::HandlerBase<BackendArray>;
+using BackendArrayHdl = ExtraClasses::Handler<BackendArray>;
 
 /**
  * @brief The AIBackendServiceManager class Instance to work with backend info stated in AIManager

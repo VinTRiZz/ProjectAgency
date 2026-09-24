@@ -83,7 +83,7 @@ QVariant BackendTableModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::DecorationRole) {
-        if (index.column() != 0) {
+        if (index.column() != C_name) {
             return {};
         }
         auto pBackend = getBackend(index);
