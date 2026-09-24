@@ -13,12 +13,6 @@
 Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
     : QtCustom::Web::HTTPClientBase{parent}
 {
-    connect(this, &QtCustom::Web::HTTPClientBase::sig_errorOccurs,
-            this, [this](){
-        // Handle infinity awaiting
-        invalidateFutures();
-    });
-
     connect(this, &QtCustom::Web::HTTPClientBase::sig_simpleResponseGet,
             this, [this](const auto& reqPath, const auto& responsePayload){
         auto getSettingPathBase = QString::fromStdString(Exchange::HTTPv1::QT_SERVER_GET_SETTING);
@@ -34,38 +28,38 @@ Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
         }
         auto decodedSettingValue = m_exchangeManager.decrypt(responsePayload.toStdString());
         if (!decodedSettingValue.has_value()) {
-            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting:", m_exchangeManager.getError().what());
+            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting:", m_exchangeManager.getError().getDetailText());
             return;
         }
         Exchange::ObjectSetting sett;
         if (!sett.readJson(decodedSettingValue.value())) {
-            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting data:", sett.getError().what());
+            COMPLOG_WARNING("ControlServiceManager: Failed to decode setting data:", sett.getError().getDetailText());
             return;
         }
 
-        COMPLOG_DEBUG_SYNC("Processing setting:", sett.m_name, sett.m_value);
-
         if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
-            m_settingFuture_token.setValue(std::move(sett.m_value));
+            m_settingFuture_token = std::move(sett.m_value);
         } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
             try {
-                m_settingFuture_port.setValue(std::stoi(sett.m_value));
+                m_settingFuture_port = std::stoi(sett.m_value);
             } catch (const std::invalid_argument& ex) {
                 COMPLOG_WARNING("ControlServiceManager: Failed to decode API port (invalid value)");
                 return;
             }
         } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
-            m_settingFuture_inputModel.setValue(std::move(sett.m_value));
+            m_settingFuture_inputModel = std::move(sett.m_value);
         } else if (sett.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
             Exchange::DatabaseConfiguration dbConfig;
             if (!dbConfig.readJson(sett.m_value)) {
                 COMPLOG_WARNING("ControlServiceManager: Failed to decode db parameters:", dbConfig.getError().what());
                 return;
             }
-            m_settingFuture_dbConfig.setValue(std::move(dbConfig));
+            m_settingFuture_dbConfig = std::move(dbConfig);
         } else {
             COMPLOG_WARNING("ControlServiceManager: Unknown setting data responsed:", sett.m_name);
+            return;
         }
+        emit sig_configChanged();
     });
 
     connect(this, &QtCustom::Web::HTTPClientBase::sig_simpleResponsePut,
@@ -92,7 +86,7 @@ Client_ControlServiceManager::Client_ControlServiceManager(QObject *parent)
 
 Client_ControlServiceManager::~Client_ControlServiceManager()
 {
-    invalidateFutures();
+
 }
 
 void Client_ControlServiceManager::init()
@@ -104,15 +98,21 @@ void Client_ControlServiceManager::init()
     sendSimpleRequestPut(keyExchangePath, QString::fromStdString(m_exchangeManager.getPubkey()));
 }
 
+void Client_ControlServiceManager::requestConfiguration()
+{
+    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::TOKEN);
+    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::API_PORT);
+    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL);
+    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG);
+}
+
 void Client_ControlServiceManager::requrestSetToken(const QString &tokenStr)
 {
     requestSetSetting(Exchange::HTTPv1::AIManagerSettingName::TOKEN, tokenStr.toStdString());
 }
 
-const Client_ControlServiceManager::RequestedData<std::string>& Client_ControlServiceManager::getToken() const
+std::string Client_ControlServiceManager::getToken() const
 {
-    m_settingFuture_token.invalidate();
-    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::TOKEN);
     return m_settingFuture_token;
 }
 
@@ -121,10 +121,8 @@ void Client_ControlServiceManager::requrestSetPort(uint16_t port)
     requestSetSetting(Exchange::HTTPv1::AIManagerSettingName::API_PORT, std::to_string(port));
 }
 
-const Client_ControlServiceManager::RequestedData<uint16_t>& Client_ControlServiceManager::getPort() const
+uint16_t Client_ControlServiceManager::getPort() const
 {
-    m_settingFuture_port.invalidate();
-    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::API_PORT);
     return m_settingFuture_port;
 }
 
@@ -133,10 +131,8 @@ void Client_ControlServiceManager::requrestSetInputModel(const QString &modelStr
     requestSetSetting(Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL, modelStr.toStdString());
 }
 
-const Client_ControlServiceManager::RequestedData<std::string>& Client_ControlServiceManager::getInputModel() const
+std::string Client_ControlServiceManager::getInputModel() const
 {
-    m_settingFuture_inputModel.invalidate();
-    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL);
     return m_settingFuture_inputModel;
 }
 
@@ -145,24 +141,14 @@ void Client_ControlServiceManager::requrestSetDBParameters(const Exchange::Datab
     requestSetSetting(Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG, dbConfig.toJson());
 }
 
-const Client_ControlServiceManager::RequestedData<Exchange::DatabaseConfiguration>& Client_ControlServiceManager::getDBConfig() const
+Exchange::DatabaseConfiguration Client_ControlServiceManager::getDBConfig() const
 {
-    m_settingFuture_dbConfig.invalidate();
-    requestGetSetting(Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG);
     return m_settingFuture_dbConfig;
 }
 
 Exchange::EncryptedExchangeMaster &Client_ControlServiceManager::getExchangeManager()
 {
     return m_exchangeManager;
-}
-
-void Client_ControlServiceManager::invalidateFutures()
-{
-    if (m_settingFuture_token.isPending())        m_settingFuture_token.invalidate();
-    if (m_settingFuture_port.isPending())         m_settingFuture_port.invalidate();
-    if (m_settingFuture_inputModel.isPending())   m_settingFuture_inputModel.invalidate();
-    if (m_settingFuture_dbConfig.isPending())     m_settingFuture_dbConfig.invalidate();
 }
 
 void Client_ControlServiceManager::processKeyExchange(const QString &responsePayload)
@@ -175,6 +161,8 @@ void Client_ControlServiceManager::processKeyExchange(const QString &responsePay
     m_pubkey = responsePayload.toStdString();
     COMPLOG_INFO("ControlServiceManager: key exchange complete");
     emit sig_keyExchangeComplete();
+
+    requestConfiguration();
 }
 
 void Client_ControlServiceManager::requestSetSetting(const std::string &settingName, const std::string &settingValue)

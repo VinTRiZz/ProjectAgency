@@ -24,5 +24,5 @@ private:
 
     AIManagerContext* m_pManagerContext {nullptr};
 
-    void fetchConfiguration();
+    void updateConfiguration();
 };

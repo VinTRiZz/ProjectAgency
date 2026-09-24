@@ -75,8 +75,9 @@ void AIManagerServiceWidget::setContext(AIManagerContext *pContext)
     m_pManagerContext = pContext;
 
     if (m_pManagerContext) {
-        connect(m_pManagerContext, &AIManagerContext::sig_connected,
-                this, &AIManagerServiceWidget::fetchConfiguration);
+        auto pClient = m_pManagerContext->getControlServiceManager()->getControlClient();
+        connect(pClient, &Client_ControlServiceManager::sig_configChanged,
+                this, &AIManagerServiceWidget::updateConfiguration);
     }
 }
 
@@ -85,39 +86,21 @@ AIManagerContext *AIManagerServiceWidget::getManagerContext()
     return m_pManagerContext;
 }
 
-void AIManagerServiceWidget::fetchConfiguration()
+void AIManagerServiceWidget::updateConfiguration()
 {
-    QtConcurrent::run([this](){
-        auto pControlClient = m_pManagerContext->getControlServiceManager()->getControlClient();
+    auto pClient = m_pManagerContext->getControlServiceManager()->getControlClient();
 
-        auto& tokenF = pControlClient->getToken();
-        auto& apiPortF = pControlClient->getPort();
-        auto& inputModel = pControlClient->getInputModel();
-        auto& dbConfF = pControlClient->getDBConfig();
+    ui->lineEditToken->setText(QString::fromStdString(pClient->getToken()));
 
-        auto tokenOpt = tokenF.getValue(1000);
-        auto token = QString::fromStdString(tokenOpt.value_or(""));
-        auto apiAddr = pControlClient->getServer().split(":").first(); // Expected existance (see connected signal logic)
-        auto apiPort = apiPortF.getValue(1000).value_or(1);
-        auto dbConf = dbConfF.getValue(1000).value_or(Exchange::DatabaseConfiguration{});
+    ui->lineEditControlAddress->setText(pClient->getServer());
+    ui->spinBoxControlPort->setValue(pClient->getPort());
 
-        QMetaObject::invokeMethod(this, [this,
-                                         token = std::move(token),
-                                         apiAddr = std::move(apiAddr),
-                                         apiPort = std::move(apiPort),
-                                         dbConf = std::move(dbConf)](){
-            ui->lineEditToken->setText(token);
+    // TODO: Use comboBoxInputModel to set current input model
 
-            ui->lineEditControlAddress->setText(apiAddr);
-            ui->spinBoxControlPort->setValue(apiPort);
-
-            // TODO: Use comboBoxInputModel to set current input model
-
-            ui->lineEditDBAddress->setText(QString::fromStdString(dbConf.m_dbAddress));
-            ui->lineEditDBName->setText(QString::fromStdString(dbConf.m_dbName));
-            ui->lineEditDBUser->setText(QString::fromStdString(dbConf.m_dbUsername));
-            ui->lineEditDBPass->setText(QString::fromStdString(dbConf.m_dbPassword));
-            ui->spinBoxDBPort->setValue(dbConf.m_dbPort);
-        });
-    });
+    auto conf = pClient->getDBConfig();
+    ui->lineEditDBAddress->setText(QString::fromStdString(conf.m_dbAddress));
+    ui->lineEditDBName->setText(QString::fromStdString(conf.m_dbName));
+    ui->lineEditDBUser->setText(QString::fromStdString(conf.m_dbUsername));
+    ui->lineEditDBPass->setText(QString::fromStdString(conf.m_dbPassword));
+    ui->spinBoxDBPort->setValue(conf.m_dbPort);
 }

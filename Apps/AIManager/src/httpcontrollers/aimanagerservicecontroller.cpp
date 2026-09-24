@@ -47,17 +47,17 @@ void AIManagerServiceController::processServerAction(const drogon::HttpRequestPt
         break;
 
     case Exchange::HTTPv1::AIManagerAction::AIMA_ExchangePublicKeys:
-        m_sessionPubkey = req->getBody();
 
         // Test encrypting
         {
+            auto pubKey = req->getBody();
             std::string testStr {"Examples string for test"};
-            auto testEnc = m_encMaster.encrypt(testStr, m_sessionPubkey);
+            auto testEnc = m_encMaster.encrypt(testStr, pubKey.data());
             if (!testEnc.has_value()) {
-                m_sessionPubkey = {};
                 sendTextMessage(drogon::k400BadRequest, "Invalid session key", std::move(callback));
                 break;
             }
+            m_sessionPubkey = std::move(pubKey);
         }
         sendTextMessage(drogon::k200OK, m_encMaster.getPubkey(), std::move(callback));
         break;
@@ -144,13 +144,14 @@ void AIManagerServiceController::processServerGetSetting(
     } else if (objSett.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
         objSett.m_value = m_appCore.getDatabaseConfiguration().toJson();
     } else {
-        sendTextMessage(drogon::k404NotFound, std::string("Invalid setting to set: ") + objSett.m_name, std::move(callback));
+        sendTextMessage(drogon::k404NotFound, std::string("Invalid setting to get: ") + objSett.m_name, std::move(callback));
         return;
     }
 
     auto res = objSett.toJson();
     auto resEnc =  m_encMaster.encrypt(res, m_sessionPubkey);
     if (!resEnc.has_value()) {
+        COMPLOG_WARNING("Encryption failure:", m_encMaster.getError().getDetailText());
         sendTextMessage(drogon::k500InternalServerError, "Encryption failure", std::move(callback));
         return;
     }

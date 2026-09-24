@@ -78,6 +78,10 @@ void ApplicationCore::start(uint16_t apiPort)
     // 3 threads, one for pending operations, second for periodic requests, third is extra
     drogon::app().setThreadNum(3);
 
+    // Debug
+    drogon::app().setLogLevel(trantor::Logger::LogLevel::kWarn);
+    // drogon::app().setLogLevel(trantor::Logger::LogLevel::kTrace);
+
     drogon::app().addListener("0.0.0.0", apiPort);
     drogon::app().run();
 }
