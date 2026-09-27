@@ -89,23 +89,21 @@ int main(int argc, char* argv[]) {
     // Check control port
     auto pPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_CONTROL_PORT);
     if (wsControlPort == 0) {
-        if (!pPortSetting->isSet()) {
-            Exchange::Error::printSelf(
-                Exchange::ErrorCode::SystemInvalidConfig,
-                std::string("Manager control port is invalid"));
-            return APP_EXITCODE_CONFIGURATION_ERROR;
-        }
-
-        try {
-            wsControlPort = pPortSetting->getValue<int64_t>();
-            if (wsControlPort < 0 || wsControlPort > 65535) {
-                throw std::invalid_argument("Port value exception");
+        if (pPortSetting->isSet()) {
+            try {
+                wsControlPort = pPortSetting->getValue<int64_t>();
+                if (wsControlPort < 0 || wsControlPort > 65535) {
+                    throw std::invalid_argument("Port value exception");
+                }
+            } catch (const std::exception& ex) {
+                Exchange::Error::printSelf(
+                    Exchange::ErrorCode::SystemInvalidConfig,
+                    std::string("Invalid WS control port"));
+                return APP_EXITCODE_CONFIGURATION_ERROR;
             }
-        } catch (const std::exception& ex) {
-            Exchange::Error::printSelf(
-                Exchange::ErrorCode::SystemInvalidConfig,
-                std::string("Invalid WS control port"));
-            return APP_EXITCODE_CONFIGURATION_ERROR;
+        } else {
+            COMPLOG_WARNING("No control port set, using default (9100)");
+            pPortSetting->setValue(9100);
         }
     }
 
@@ -113,10 +111,9 @@ int main(int argc, char* argv[]) {
     auto pOllamaPortSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_PORT);
     auto pOllamaAddressSetting = settingsInstance.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_OLLAMA_SERVER);
     if (!pOllamaPortSetting->isSet() || !pOllamaAddressSetting->isSet()) {
-        Exchange::Error::printSelf(
-            Exchange::ErrorCode::SystemInvalidConfig,
-            std::string("Ollama server not set"));
-        return APP_EXITCODE_CONFIGURATION_ERROR;
+        pOllamaAddressSetting->setValue("127.0.0.1");
+        pOllamaPortSetting->setValue(11434);
+        COMPLOG_WARNING("No Ollama server set, using default (localhost, port 11434)");
     }
 
     // Check Ollama server port
