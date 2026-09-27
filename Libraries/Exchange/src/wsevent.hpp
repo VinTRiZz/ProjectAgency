@@ -3,6 +3,8 @@
 #include "serializableobject.hpp"
 #include <ProjectAgency/Exchange/Error.h>
 
+#include <stdint.h>
+
 namespace Exchange::Events {
 
 /**

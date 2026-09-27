@@ -1,3 +1,4 @@
 add_subdirectory(AIBackend)
 add_subdirectory(AIManager)
 add_subdirectory(ControlWindow)
+add_subdirectory(AIBackendTester)

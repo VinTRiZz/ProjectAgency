@@ -85,7 +85,7 @@ public:
 private:
     AIBackendDeviceType m_type {AIBackendDeviceType::Default};
     std::string m_ip;
-    uint16_t    m_port {};
+    uint16_t    m_port {9010};
     std::string m_displayName;
     std::string m_token;
 };

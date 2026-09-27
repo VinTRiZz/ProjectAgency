@@ -32,6 +32,7 @@ add_subdirectory(ComponentsSystem)
 option (PAG_BUILD_CWINDOW OFF)
 option (PAG_BUILD_MANAGER OFF)
 option (PAG_BUILD_BACKEND ON)
+option (PAG_BUILD_TESTER OFF)
 
 COMPONENTS_CCR_FIND_LIBRARY(boost_system)
 COMPONENTS_CCR_FIND_LIBRARY(boost_thread)
