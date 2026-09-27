@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) {
 
     bpo::options_description desc;
     desc.add_options()
-            ("help",                                    "Print help and exit")
-            ("api-port,-a", bpo::value(&httpAPIPort),   "HTTP API port for control window")
+            ("help",                                                        "Print help and exit")
+            ("api-port,-a", bpo::value(&httpAPIPort)->default_value(9010),  "HTTP API port for control window")
             ("data,-d",     bpo::value(&dataDir),       "Path to directory to use for saving server data (current dir by default)")
             ;
     bpo::variables_map vm;
