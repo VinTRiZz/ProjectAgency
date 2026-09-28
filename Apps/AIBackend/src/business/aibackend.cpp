@@ -7,10 +7,11 @@
 #include <ProjectAgency/Exchange/Error.h>
 
 #include <Components/Logger/Logger.h>
+#include <Components/Ecosystem/Utility.h>
 #include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Thread/ProcessInvoker.h>
 
-#include <atomic>
+#include <nlohmann/json.hpp>
 
 struct AIBackend::Impl
 {
@@ -21,8 +22,20 @@ struct AIBackend::Impl
     std::shared_ptr<AIObjects::OllamaConfig>  currentOllamaConfig;
 
     AIObjects::AIRequest requestBase;
+    std::atomic_uint64_t m_currentResponseNo {1};
 
-    std::atomic<bool> isAnswering {false};
+    std::string createRequestPayload(const OllamaInterface::ResponsePtr& pResp) {
+        nlohmann::json res;
+        res["id"] = pResp->getId();
+        res["pending"] = pResp->isPending();
+        res["error_text"] = pResp->getErrorText();
+        if (pResp->isPending()) {
+            res["data"] = {};
+        } else {
+            res["data"] = pResp->getResponse().toJson();
+        }
+        return res.dump();
+    }
 };
 
 AIBackend::AIBackend() :
@@ -42,6 +55,8 @@ void AIBackend::start(
     uint16_t eventListenPort,
     const std::string &ollamaServerAddress, uint16_t ollamaAPIPort)
 {
+    d->m_currentResponseNo = 1;
+
     auto& dirManager = Common::DirectoryManager::getInstance();
     auto configDir = dirManager.getDirectory(Common::DirectoryType::Config);
     auto configFile = configDir / "model.mf";
@@ -69,6 +84,7 @@ void AIBackend::start(
 void AIBackend::stop()
 {
     d->eventListener.stop();
+    d->m_currentResponseNo = 1;
 }
 
 void AIBackend::initEventProcessing()
@@ -83,17 +99,29 @@ void AIBackend::initEventProcessingAIAsk()
     d->eventListener.setEventCallback(Events::AIAsk, [this](auto&& wsEvent){
         auto req = d->requestBase;
         req.setRequest(wsEvent.getPayload().data());
+        auto pResponse = d->ollamaInterface.ask(std::move(req));
 
-        d->isAnswering.store(true, std::memory_order_release);
-        d->ollamaInterface.ask(req);
+        if (pResponse) {
+            wsEvent.setPayload(d->createRequestPayload(pResponse));
+        }
+        d->eventListener.sendResponse(wsEvent.toJson());
     });
     d->eventListener.setEventCallback(Events::AIAskStatus, [this](auto&& wsEvent){
-        wsEvent.setPayload(d->isAnswering.load(std::memory_order_acquire) ? "busy" : "idle");
+        auto targetId = wsEvent.getPayload();
+        auto pRequest = d->ollamaInterface.getRequest(targetId);
+        if (pRequest) {
+            nlohmann::json resp;
+            resp["pending"] = pRequest->isPending();
+            resp["error_text"] = pRequest->getErrorText();
+            wsEvent.setPayload(resp.dump());
+        } else {
+            wsEvent.setPayload("not found");
+        }
         d->eventListener.sendResponse(wsEvent.toJson());
     });
     d->eventListener.setEventCallback(Events::AIAskInterrupt, [this](auto&& wsEvent){
-        d->ollamaInterface.askInterrupt();
-        wsEvent.setPayload({});
+        auto res = d->ollamaInterface.interruptAsk(wsEvent.getPayload());
+        wsEvent.setPayload(res ? "ok" : "fail");
         d->eventListener.sendResponse(wsEvent.toJson());
     });
     d->eventListener.setEventCallback(Events::AIAskSetConfig, [this](auto&& wsEvent) {
@@ -110,12 +138,11 @@ void AIBackend::initEventProcessingAIAsk()
 void AIBackend::initOllamaInterface()
 {
     namespace Events = Exchange::Events;
-    d->ollamaInterface.setResponseCallback([this](auto&& response) -> void {
-        d->isAnswering.store(false, std::memory_order_release);
+    d->ollamaInterface.setAskEventCallback([this](auto&& pResponse) -> void {
         Events::WSEvent resp(Events::AIAsk);
-        if (response.has_value()) {
-            resp.setPayload(response->getResponse());
-        }
+        d->m_currentResponseNo.fetch_add(1, std::memory_order_seq_cst);
+        resp.setId(d->m_currentResponseNo.load(std::memory_order_seq_cst));
+        resp.setPayload(d->createRequestPayload(pResponse));
         d->eventListener.sendResponse(resp.toJson());
     });
 }
