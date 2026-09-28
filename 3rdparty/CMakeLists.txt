@@ -16,4 +16,14 @@ if (PAG_BUILD_MANAGER)
     set( BUILD_TESTING          OFF CACHE BOOL "Extra 3rdparty function" FORCE)
     set( BUILD_TESTS            OFF CACHE BOOL "Extra 3rdparty function" FORCE)
     add_subdirectory(drogon)
+
+    # Disable annoying warnings from a library
+    target_compile_options(drogon PRIVATE
+        # MSVC: Disables 'deprecated' warning (C4996)
+        $<$<CXX_COMPILER_ID:MSVC>:/wd4996>
+
+        # GCC, Clang, AppleClang: Disables deprecation warnings
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wno-deprecated-declarations>
+    )
 endif()
+
