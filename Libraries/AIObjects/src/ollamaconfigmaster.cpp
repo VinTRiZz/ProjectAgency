@@ -60,7 +60,7 @@ OllamaConfigPtr OllamaConfigMaster::fromText(const std::string &content)
         config = std::make_unique<OllamaConfig>();
     }
 
-    if (modelName.find('/') != std::string::npos) {
+    if (!modelName.empty()) {
         config->m_model.name = modelName;
     }
 
@@ -109,6 +109,9 @@ OllamaConfigPtr OllamaConfigMaster::fromText(const std::string &content)
     if (std::regex_search(content, match, systemRe)) {
         config->m_model.systemPrompt = match[1];
     }
+
+    COMPLOG_DEBUG("MODEL:", config->m_model.name);
+
     return config;
 }
 
