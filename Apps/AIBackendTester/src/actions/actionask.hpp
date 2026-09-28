@@ -2,10 +2,6 @@
 
 #include "actionbase.hpp"
 
-#include <nlohmann/json.hpp>
-
-#include <ProjectAgency/Exchange/WSEvent.h>
-
 class AskAction : public TesterAction
 {
 public:
@@ -33,15 +29,11 @@ public:
             promptText = args[0];
             COMPLOG_INFO("[TESTER] Using custom prompt:", promptText);
         } else {
-            promptText = "Say 'Hello from AIBackendTester!' and nothing else. Do not add any extra text.";
+            promptText = "Say 'Hello from AIBackendTester!' and nothing else. Do NOT add any extra text and do NOT think about answer.";
             COMPLOG_INFO("[TESTER] Using default prompt");
         }
 
-        nlohmann::json reqJson;
-        reqJson["model"] = "qwen3.5";
-        reqJson["prompt"] = promptText;
-        reqJson["stream"] = false;
-        std::string payload = reqJson.dump();
+        std::string payload = promptText;
 
         auto state = createResponseState();
         setupResponseCallback(client, state, Exchange::Events::EventType::AIAsk);
@@ -66,34 +58,14 @@ public:
             return false;
         }
 
-        std::string decodedPayload = state->payload;
-        COMPLOG_INFO("[TESTER] Raw response payload:", decodedPayload);
+        auto res = parseAskResponse(state->payload);
+        displayAskResponse(res);
 
-        try {
-            auto respJson = nlohmann::json::parse(decodedPayload);
-            bool pending = respJson.value("pending", true);
-            std::string respId = respJson.value("id", "unknown");
-
-            if (pending) {
-                COMPLOG_WARNING("[TESTER] AIAsk response indicates pending. ID:", respId);
-                COMPLOG_INFO("[TESTER] Use 'ask_status", respId, "' to check status");
-                COMPLOG_EMPTY("[TESTER] Test passed: AIAsk accepted (pending), ID:", respId);
-            } else {
-                if (respJson.contains("data") && respJson["data"].is_string()) {
-                    std::string dataStr = respJson["data"].get<std::string>();
-                    COMPLOG_OK("[TESTER] AIAsk completed. Response ID:", respId);
-                    COMPLOG_EMPTY("[TESTER] Test passed: AIAsk completed successfully. Data:", dataStr);
-                } else {
-                    COMPLOG_OK("[TESTER] AIAsk completed. Response ID:", respId);
-                    COMPLOG_EMPTY("[TESTER] Test passed: AIAsk completed successfully");
-                }
-            }
-        } catch (const nlohmann::json::exception& e) {
-            COMPLOG_ERROR("[TESTER] Failed to parse AIAsk response JSON:", e.what());
-            COMPLOG_EMPTY("[TESTER] Expected: valid JSON response with 'id' and 'pending' fields");
-            return false;
+        if (res.pending) {
+            COMPLOG_WARNING("[TESTER] AIAsk accepted but still pending. ID:", res.id);
+        } else {
+            COMPLOG_OK("[TESTER] AIAsk completed. ID:", res.id);
         }
-
         return true;
     }
 };

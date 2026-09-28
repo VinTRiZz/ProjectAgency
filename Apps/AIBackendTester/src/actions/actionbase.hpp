@@ -15,6 +15,70 @@
 #include <Components/Logger/Logger.h>
 #include <Components/Encryption/Encoding.h>
 
+#include <nlohmann/json.hpp>
+
+struct AskResponseData {
+    std::string id;
+    bool pending {true};
+    std::string errorText;
+    std::string data;
+};
+
+inline AskResponseData parseAskResponse(const std::string& payload)
+{
+    AskResponseData res;
+    try {
+        auto respJson = nlohmann::json::parse(payload);
+        res.id = respJson.value("id", "unknown");
+        res.pending = respJson.value("pending", true);
+        res.errorText = respJson.value("error_text", "");
+        if (respJson.contains("data")) {
+            if (respJson["data"].is_string()) {
+                res.data = respJson["data"].get<std::string>();
+            } else if (!respJson["data"].is_null()) {
+                res.data = respJson["data"].dump();
+            }
+        }
+    } catch (const nlohmann::json::exception& e) {
+        COMPLOG_ERROR("[TESTER] Failed to parse ask response JSON:", e.what());
+    }
+    return res;
+}
+
+inline void displayAskResponse(const AskResponseData& res)
+{
+    COMPLOG_EMPTY("--- AIAsk Response ---");
+    COMPLOG_EMPTY("  ID:", res.id);
+    COMPLOG_EMPTY("  Pending:", res.pending ? "yes" : "no");
+    if (!res.errorText.empty()) {
+        COMPLOG_EMPTY("  Error:", res.errorText);
+    }
+    if (!res.pending && !res.data.empty()) {
+        COMPLOG_EMPTY("  Data:", res.data);
+    }
+    COMPLOG_EMPTY("-----------------------");
+}
+
+inline void displayStatusResponse(const std::string& payload)
+{
+    COMPLOG_EMPTY("--- AIAskStatus Response ---");
+    if (payload == "not found") {
+        COMPLOG_EMPTY("  Status: not found");
+    } else {
+        try {
+            auto j = nlohmann::json::parse(payload);
+            COMPLOG_EMPTY("  Pending:", j.value("pending", false) ? "yes" : "no");
+            std::string err = j.value("error_text", "");
+            if (!err.empty()) {
+                COMPLOG_EMPTY("  Error:", err);
+            }
+        } catch (...) {
+            COMPLOG_EMPTY("  Raw:", payload);
+        }
+    }
+    COMPLOG_EMPTY("----------------------------");
+}
+
 class TesterAction
 {
 public:
