@@ -14,7 +14,7 @@ static constexpr auto RSA_ENCRYPTION_MAX_LEN {200};
 
 struct EncryptedExchangeMaster::Impl
 {
-    EVP_PKEY* pkey {nullptr};
+    std::shared_ptr<EVP_PKEY> pkey {};
 };
 
 EncryptedExchangeMaster::EncryptedExchangeMaster() :
@@ -52,44 +52,17 @@ std::optional<std::string> EncryptedExchangeMaster::encrypt(const std::string &i
         m_error.setDetailText(std::string("Key decoding: ") + Encryption::getEncryptionErrorText());
         return {};
     }
-
-    auto splittedData = ExtraClasses::DataInfo::split(inputStr, RSA_ENCRYPTION_MAX_LEN);
-    std::string resH;
-    for (auto& pt : splittedData) {
-        auto res = Encryption::rsaEncryptString(pubKey, pt);
-        if (!res.has_value()) {
-            m_error.setCode(ErrorCode::InterfaceEncMsgEncError);
-            m_error.setDetailText(std::string("Encryption process: ") + Encryption::getEncryptionErrorText());
-            return {};
-        }
-
-        auto tmpPart = Encryption::encodeHex(*res);
-        if (tmpPart.empty()) {
-            m_error.setCode(ErrorCode::InterfaceEncMsgEncError);
-            m_error.setDetailText(std::string("Result encoding: ") + Encryption::getEncryptionErrorText());
-            return {};
-        }
-        resH += tmpPart;
-    }
-    return resH;
+    return Encryption::rsaEncryptString(pubKey, inputStr);
 }
 
 std::optional<std::string> EncryptedExchangeMaster::decrypt(const std::string &encStr) const
 {
-    auto decodedInput = Encryption::decodeHex(encStr);
-    auto splittedData = ExtraClasses::DataInfo::split(decodedInput, 256); // 256 is RSA block size
-
-    std::string res;
-    for (auto& pt : splittedData) {
-        auto decPt = Encryption::rsaDecryptString(d->pkey, pt);
-        if (!decPt.has_value()) {
-            m_error.setCode(ErrorCode::InterfaceEncMsgDecError);
-            m_error.setDetailText(std::string("Decryption process: ") + Encryption::getEncryptionErrorText());
-            return {};
-        }
-        res += *decPt;
+    auto dec = Encryption::rsaDecryptString(d->pkey, encStr);
+    if (!dec.has_value()) {
+        m_error.setCode(ErrorCode::InterfaceEncMsgDecError);
+        m_error.setDetailText(std::string("Decryption process: ") + Encryption::getEncryptionErrorText());
     }
-    return res;
+    return dec;
 }
 
 }
