@@ -82,6 +82,7 @@ void ApplicationCore::start(uint16_t apiPort)
     drogon::app().setLogLevel(trantor::Logger::LogLevel::kWarn);
     // drogon::app().setLogLevel(trantor::Logger::LogLevel::kTrace);
 
+    COMPLOG_INFO("Listening port:", apiPort);
     drogon::app().addListener("0.0.0.0", apiPort);
     drogon::app().run();
 }

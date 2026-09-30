@@ -75,6 +75,7 @@ void AIManagerContext::init()
 void AIManagerContext::setAddress(const QString &addr)
 {
     COMPLOG_INFO("Context address changed to:", addr.toStdString());
+    emit sig_addressChanged(addr);
     resetConnectedCounter();
 
     auto addSplit = addr.split(":", Qt::SplitBehaviorFlags::SkipEmptyParts);

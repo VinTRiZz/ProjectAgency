@@ -34,6 +34,7 @@ public:
 
 signals:
     void sig_connected() const;
+    void sig_addressChanged(const QString& addr);
     void sig_errorOccurs(const Exchange::Error& err);
 
 private:

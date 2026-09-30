@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    m_pManagerContext = new AIManagerContext(this);
+    m_pManagerContext = new AIManagerContext(this); 
     connect(m_pManagerContext, &AIManagerContext::sig_errorOccurs,
             this, &MainWindow::slot_processError);
 

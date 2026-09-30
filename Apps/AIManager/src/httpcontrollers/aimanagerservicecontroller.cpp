@@ -81,41 +81,44 @@ bool AIManagerServiceController::setAppSetting(const std::string &settingJson)
         return false;
     }
 
+    // I don't like such a compares
+    auto& settings = Common::ApplicationSettings::getInstance();
+    bool isSucceed {false};
     if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::TOKEN) {
         m_appCore.setToken(decrValue.value());
-        return true;
+        isSucceed = true;
     }
-
-    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
-        auto& settings = Common::ApplicationSettings::getInstance();
+    else if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::API_PORT) {
         auto pSett = settings.getSetting(Settings::SECTION_SYSTEM, Settings::SYSTEM_API_PORT);
         try {
             pSett->setValue(std::stoi(decrValue.value()));
+            isSucceed = true;
         } catch (const std::invalid_argument& ex) {
             COMPLOG_WARNING("Failed to set app API port (invalid value)");
-            return false;
+            isSucceed = false;
         }
-        settings.saveSettings();
-        return true;
     }
-
-    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
+    else if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::INPUT_MODEL) {
         m_aiManager.setInputModel(decrValue.value());
-        return true;
+        isSucceed = true;
     }
-
-    if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
+    else if (appSetting.m_name == Exchange::HTTPv1::AIManagerSettingName::DB_CONFIG) {
         Exchange::DatabaseConfiguration dbConfig;
-        if (!dbConfig.readJson(decrValue.value())) {
+        if (dbConfig.readJson(decrValue.value())) {
+            m_appCore.setDatabaseConfiguration(dbConfig);
+            isSucceed = true;
+        } else {
             COMPLOG_WARNING("Failed to set app DB configuration:", dbConfig.getError().what());
-            return false;
         }
-        m_appCore.setDatabaseConfiguration(dbConfig);
-        return true;
     }
 
-    COMPLOG_WARNING("Unknown setting to set:", appSetting.m_name);
-    return false;
+    if (isSucceed) {
+        settings.saveSettings();
+        COMPLOG_OK("Changed value of a setting:", appSetting.m_name);
+    } else {
+        COMPLOG_WARNING("Failed to to write setting:", appSetting.m_name);
+    }
+    return isSucceed;
 }
 
 void AIManagerServiceController::processServerGetSetting(

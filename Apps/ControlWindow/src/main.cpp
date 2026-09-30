@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
         COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
-        appSettings.loadSettings(dirManager.getDirectory(Common::Config) / "default.ini");
+        appSettings.loadSettings(dirManager.getDirectory(Common::Config) / "pag_controlWindow.ini");
 
         a.setApplicationName(PROJECT_NAME_STRING);
         a.setApplicationDisplayName(PROJECT_NAME_STRING);

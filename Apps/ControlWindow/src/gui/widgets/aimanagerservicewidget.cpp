@@ -8,6 +8,7 @@
 
 #include "business/aimanagercontext.hpp"
 #include "business/controlservicemanager.hpp"
+#include "business/controlwindowsettings.hpp"
 
 AIManagerServiceWidget::AIManagerServiceWidget(QWidget *parent)
     : QWidget(parent)
@@ -22,7 +23,19 @@ AIManagerServiceWidget::AIManagerServiceWidget(QWidget *parent)
                 COMPLOG_INFO("Changing address of control unit to:", controlAddress.toStdString());
 
                 auto& settings = Common::ApplicationSettings::getInstance();
-                // TODO: Save connection settings
+
+                auto backendAddrSett = settings.getSetting(
+                    ControlWindowSettings::SECTION_AI_BACKEND,
+                    ControlWindowSettings::AI_BACKEND_ADDRESS);
+                backendAddrSett->setValue(ui->lineEditControlAddress->text().toStdString());
+
+                auto backendPortSett = settings.getSetting(
+                    ControlWindowSettings::SECTION_AI_BACKEND,
+                    ControlWindowSettings::AI_BACKEND_PORT);
+                backendPortSett->setValue(ui->spinBoxControlPort->value());
+
+                settings.saveSettings();
+
                 m_pManagerContext->setAddress(controlAddress);
             });
 
@@ -78,6 +91,20 @@ void AIManagerServiceWidget::setContext(AIManagerContext *pContext)
         auto pClient = m_pManagerContext->getControlServiceManager()->getControlClient();
         connect(pClient, &Client_ControlServiceManager::sig_configChanged,
                 this, &AIManagerServiceWidget::updateConfiguration);
+
+        auto updateAddress = [this](const auto& addr){
+            auto addrParts = addr.split(":", Qt::SkipEmptyParts);
+            if (addrParts.size() > 1) {
+                ui->lineEditControlAddress->setText(addrParts.front());
+                ui->spinBoxControlPort->setValue(addrParts.back().toInt());
+            } else {
+                ui->lineEditControlAddress->setText({});
+                ui->spinBoxControlPort->setValue(0);
+            }
+        };
+        connect(m_pManagerContext, &AIManagerContext::sig_addressChanged,
+                this, updateAddress);
+        updateAddress(QString("127.0.0.1:9001"));
     }
 }
 
@@ -91,9 +118,6 @@ void AIManagerServiceWidget::updateConfiguration()
     auto pClient = m_pManagerContext->getControlServiceManager()->getControlClient();
 
     ui->lineEditToken->setText(QString::fromStdString(pClient->getToken()));
-
-    ui->lineEditControlAddress->setText(pClient->getServer());
-    ui->spinBoxControlPort->setValue(pClient->getPort());
 
     // TODO: Use comboBoxInputModel to set current input model
 
