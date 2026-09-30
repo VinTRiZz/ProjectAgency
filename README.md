@@ -16,15 +16,13 @@ The system uses Ollama to work, may use many subservers (for this purposes, inst
 3. AIBackend: Simple WS client, that connects Ollama-created AI on a client with ecosystem. Works with AI stated on current device. Just handles requests like "Reconfigure as C++ engeneer." or "Create SQLite backend class".
 
 ### READY
+1. AIBackend, requesting Ollama by http
+2. AIManager connection to AIBackend
+3. ControlWindow, able to get AIManager configuration and simple show AIBackend instances
 
 ### PLANS
-1. AIBackend: Business logic carcas, connection setup
-2. AIBackend: Ollama exchange (request for generating, handle answers)
-3. AIBackend: HTTP server control instance (start, stop, set context, etc.)
-4. ControlWindow: GUI carcas
-5. ControlWindow: Request for task and generating status from AIBackend
-6. ControlWindow: Adding many AIBackend instances
-7. Common: Develop architecture of AI system
-8. Common: Develop config bases for AI system components
-9. Common: Test config bases for work correctly
-10. AIBackend: Add testing 
+1. Status control of AIBackned instances
+2. Requesting to a input model from ControlWindow
+3. Filesystem and command execution managing
+4. Orchestrating functionality in AIManager
+5. Context manipulations (such as caching info about project)
