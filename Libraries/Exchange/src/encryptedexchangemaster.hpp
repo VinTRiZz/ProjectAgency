@@ -20,7 +20,9 @@ public:
     bool init(); // Replaces old RSA key
 
     std::string getPubkey() const;
-    std::optional<std::string> encrypt(const std::string& inputStr, const std::string& pubKeyStr) const;
+    bool setEncryptionKey(const std::string& pubkeyStr);
+    bool canEncrypt() const;
+    std::optional<std::string> encrypt(const std::string& inputStr) const;
     std::optional<std::string> decrypt(const std::string& encStr) const;
 
 private:

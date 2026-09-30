@@ -91,7 +91,7 @@ Client_ControlServiceManager::~Client_ControlServiceManager()
 
 void Client_ControlServiceManager::init()
 {
-    m_pubkey = {};
+    m_exchangeManager.setEncryptionKey({});
     const auto keyExchangePath =
         QString::fromStdString(Exchange::HTTPv1::QT_SERVER_ACTION).arg(
             QString::number(Exchange::HTTPv1::AIMA_ExchangePublicKeys));
@@ -153,12 +153,15 @@ Exchange::EncryptedExchangeMaster &Client_ControlServiceManager::getExchangeMana
 
 void Client_ControlServiceManager::processKeyExchange(const QString &responsePayload)
 {
-    m_pubkey = {};
+    m_exchangeManager.setEncryptionKey({});
     if (responsePayload.isEmpty()) {
         COMPLOG_ERROR("ControlServiceManager: Empty key for exchange");
         return;
     }
-    m_pubkey = responsePayload.toStdString();
+    if (!m_exchangeManager.setEncryptionKey(responsePayload.toStdString())) {
+        emit sig_errorOccurs(m_exchangeManager.getError());
+        return;
+    }
     COMPLOG_INFO("ControlServiceManager: key exchange complete");
     emit sig_keyExchangeComplete();
 
@@ -170,11 +173,12 @@ void Client_ControlServiceManager::requestSetSetting(const std::string &settingN
     const auto setSettingPath =
         QString::fromStdString(Exchange::HTTPv1::QT_SERVER_ACTION).arg(
             QString::number(Exchange::HTTPv1::AIMA_SetSetting));
-    if (m_pubkey.empty()) {
+    if (!m_exchangeManager.canEncrypt()) {
         emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceEncInvalidPubkey, "Key exchange failed"));
+        COMPLOG_ERROR("Setting failed to set (key exchange failed)");
         return;
     }
-    auto encryptedValue = m_exchangeManager.encrypt(settingValue, m_pubkey);
+    auto encryptedValue = m_exchangeManager.encrypt(settingValue);
     if (!encryptedValue.has_value()) {
         emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceEncInvalidPubkey, "Failed to encrypt message"));
         return;
@@ -189,7 +193,7 @@ void Client_ControlServiceManager::requestSetSetting(const std::string &settingN
 
 bool Client_ControlServiceManager::requestGetSetting(const std::string &settingName) const
 {
-    if (m_pubkey.empty()) {
+    if (!m_exchangeManager.canEncrypt()) {
         emit sig_errorOccurs(Exchange::Error(Exchange::ErrorCode::InterfaceEncInvalidPubkey, "Key exchange failed"));
         COMPLOG_ERROR("Setting failed to get (key exchange failed)");
         return false;

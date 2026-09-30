@@ -50,14 +50,10 @@ void AIManagerServiceController::processServerAction(const drogon::HttpRequestPt
 
         // Test encrypting
         {
-            auto pubKey = req->getBody();
-            std::string testStr {"Examples string for test"};
-            auto testEnc = m_encMaster.encrypt(testStr, pubKey.data());
-            if (!testEnc.has_value()) {
+            if (!m_encMaster.setEncryptionKey(req->getBody().data())) {
                 sendTextMessage(drogon::k400BadRequest, "Invalid session key", std::move(callback));
                 break;
             }
-            m_sessionPubkey = std::move(pubKey);
         }
         sendTextMessage(drogon::k200OK, m_encMaster.getPubkey(), std::move(callback));
         break;
@@ -127,7 +123,7 @@ void AIManagerServiceController::processServerGetSetting(
     ResponseCallback_t &&callback,
     const std::string &settingName)
 {
-    if (m_sessionPubkey.empty()) {
+    if (!m_encMaster.canEncrypt()) {
         sendTextMessage(drogon::k401Unauthorized, "Key exchange failed", std::move(callback));
         return;
     }
@@ -149,7 +145,7 @@ void AIManagerServiceController::processServerGetSetting(
     }
 
     auto res = objSett.toJson();
-    auto resEnc =  m_encMaster.encrypt(res, m_sessionPubkey);
+    auto resEnc =  m_encMaster.encrypt(res);
     if (!resEnc.has_value()) {
         COMPLOG_WARNING("Encryption failure:", m_encMaster.getError().getDetailText());
         sendTextMessage(drogon::k500InternalServerError, "Encryption failure", std::move(callback));

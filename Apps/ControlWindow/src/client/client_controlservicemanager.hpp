@@ -36,7 +36,6 @@ signals:
 
 private:
     Exchange::EncryptedExchangeMaster m_exchangeManager;
-    std::string m_pubkey;
 
     // For requesting
     std::string m_settingFuture_token;

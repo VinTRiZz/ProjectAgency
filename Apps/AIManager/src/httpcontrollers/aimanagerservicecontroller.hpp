@@ -40,7 +40,6 @@ private:
     ApplicationCore& m_appCore;
     AIManager& m_aiManager;
 
-    std::string m_sessionPubkey;
     Exchange::EncryptedExchangeMaster m_encMaster;
 
     bool setAppSetting(const std::string& settingJson);
